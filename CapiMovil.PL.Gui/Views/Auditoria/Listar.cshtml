@@ -1,0 +1,126 @@
+﻿@model List<CapiMovil.BL.BE.AuditoriaBE>
+
+@{
+    ViewData["Title"] = "Auditoría";
+    int total = Model?.Count ?? 0;
+    int inserts = Model?.Count(x => x.Accion == "INSERT") ?? 0;
+    int updates = Model?.Count(x => x.Accion == "UPDATE") ?? 0;
+    int deletes = Model?.Count(x => x.Accion == "DELETE") ?? 0;
+}
+
+<div class="container-fluid py-3">
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1">Auditoría del Sistema</h2>
+        <p class="text-muted mb-0">Consulta la trazabilidad de acciones registradas en el sistema.</p>
+    </div>
+
+    @if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["error"]</div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="text-muted small">Total</div>
+                    <div class="fs-3 fw-bold">@total</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="text-muted small">INSERT</div>
+                    <div class="fs-3 fw-bold text-success">@inserts</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="text-muted small">UPDATE</div>
+                    <div class="fs-3 fw-bold text-primary">@updates</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="text-muted small">DELETE</div>
+                    <div class="fs-3 fw-bold text-danger">@deletes</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Código</th>
+                        <th>Tabla</th>
+                        <th>Acción</th>
+                        <th>Usuario</th>
+                        <th>Módulo</th>
+                        <th>Observación</th>
+                        <th>Fecha</th>
+                        <th>Detalle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.CodigoAuditoria</td>
+                                <td>@item.Tabla</td>
+                                <td>
+                                    @if (item.Accion == "INSERT")
+                                    {
+                                        <span class="badge bg-success">INSERT</span>
+                                    }
+                                    else if (item.Accion == "UPDATE")
+                                    {
+                                        <span class="badge bg-primary">UPDATE</span>
+                                    }
+                                    else if (item.Accion == "DELETE")
+                                    {
+                                        <span class="badge bg-danger">DELETE</span>
+                                    }
+                                    else if (item.Accion == "LOGIN")
+                                    {
+                                        <span class="badge bg-info text-dark">LOGIN</span>
+                                    }
+                                    else if (item.Accion == "LOGOUT")
+                                    {
+                                        <span class="badge bg-secondary">LOGOUT</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-dark">@item.Accion</span>
+                                    }
+                                </td>
+                                <td>@item.NombreUsuario</td>
+                                <td>@item.Modulo</td>
+                                <td>@item.Observacion</td>
+                                <td>@item.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <a asp-action="Detalle" asp-route-id="@item.IdAuditoria" class="btn btn-outline-info btn-sm">Ver</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center">No hay registros de auditoría.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

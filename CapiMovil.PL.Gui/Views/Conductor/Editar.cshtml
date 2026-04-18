@@ -1,0 +1,103 @@
+﻿@model CapiMovil.PL.Gui.Models.ViewModels.ConductorFormViewModel
+
+@{
+    ViewData["Title"] = "Editar Conductor";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card card-soft">
+            <div class="card-body">
+                <h2 class="page-title mb-4">Editar Conductor</h2>
+
+                <form asp-action="Editar" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <input asp-for="IdConductor" type="hidden" />
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="IdUsuario" class="form-label"></label>
+                        <select asp-for="IdUsuario" asp-items="Model.Usuarios" class="form-select">
+                            <option value="">Sin usuario asociado</option>
+                        </select>
+                        <span asp-validation-for="IdUsuario" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="CodigoConductor" class="form-label"></label>
+                        <input asp-for="CodigoConductor" class="form-control" />
+                        <span asp-validation-for="CodigoConductor" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Nombres" class="form-label"></label>
+                        <input asp-for="Nombres" class="form-control" />
+                        <span asp-validation-for="Nombres" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ApellidoPaterno" class="form-label"></label>
+                            <input asp-for="ApellidoPaterno" class="form-control" />
+                            <span asp-validation-for="ApellidoPaterno" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ApellidoMaterno" class="form-label"></label>
+                            <input asp-for="ApellidoMaterno" class="form-control" />
+                            <span asp-validation-for="ApellidoMaterno" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="DNI" class="form-label"></label>
+                            <input asp-for="DNI" class="form-control" />
+                            <span asp-validation-for="DNI" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Telefono" class="form-label"></label>
+                            <input asp-for="Telefono" class="form-control" />
+                            <span asp-validation-for="Telefono" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Licencia" class="form-label"></label>
+                        <input asp-for="Licencia" class="form-control" />
+                        <span asp-validation-for="Licencia" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="CategoriaLicencia" class="form-label"></label>
+                        <input asp-for="CategoriaLicencia" class="form-control" />
+                        <span asp-validation-for="CategoriaLicencia" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Direccion" class="form-label"></label>
+                        <input asp-for="Direccion" class="form-control" />
+                        <span asp-validation-for="Direccion" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-check form-switch mb-4">
+                        <input asp-for="Estado" class="form-check-input" />
+                        <label asp-for="Estado" class="form-check-label"></label>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Actualizar</button>
+                        <a asp-action="Listar" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

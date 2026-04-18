@@ -1,0 +1,93 @@
+﻿@model List<CapiMovil.BL.BE.RolBE>
+
+@{
+    ViewData["Title"] = "Lista de Roles";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">Roles</h2>
+        <a asp-action="Crear" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Nuevo Rol
+        </a>
+    </div>
+
+    @if (TempData["ok"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["ok"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Estado</th>
+                                <th class="text-center" style="width: 220px;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.CodigoRol</td>
+                                    <td>@item.Nombre</td>
+                                    <td>
+                                        @if (item.Estado)
+                                        {
+                                            <span class="badge bg-success">Activo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactivo</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <a asp-action="Editar"
+                                               asp-route-id="@item.IdRol"
+                                               class="btn btn-sm btn-warning me-1">
+                                            <i class="bi bi-pencil-square"></i> Editar
+                                        </a>
+
+                                        <form asp-action="Eliminar"
+                                              method="post"
+                                              class="d-inline form-eliminar">
+
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@item.IdRol" />
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="bi bi-trash"></i> Eliminar
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info mb-0">
+                    No hay roles registrados.
+                </div>
+            }
+        </div>
+    </div>
+</div>

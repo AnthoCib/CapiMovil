@@ -1,0 +1,103 @@
+﻿@model CapiMovil.PL.Gui.Models.ViewModels.PadreFamiliaFormViewModel
+
+@{
+    ViewData["Title"] = "Editar Padre de Familia";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card card-soft">
+            <div class="card-body">
+                <h2 class="page-title mb-4">Editar Padre de Familia</h2>
+
+                <form asp-action="Editar" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <input asp-for="IdPadre" type="hidden" />
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="IdUsuario" class="form-label"></label>
+                        <select asp-for="IdUsuario" asp-items="Model.Usuarios" class="form-select">
+                            <option value="">Sin usuario asociado</option>
+                        </select>
+                        <span asp-validation-for="IdUsuario" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="CodigoPadre" class="form-label"></label>
+                        <input asp-for="CodigoPadre" class="form-control" />
+                        <span asp-validation-for="CodigoPadre" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Nombres" class="form-label"></label>
+                        <input asp-for="Nombres" class="form-control" />
+                        <span asp-validation-for="Nombres" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ApellidoPaterno" class="form-label"></label>
+                            <input asp-for="ApellidoPaterno" class="form-control" />
+                            <span asp-validation-for="ApellidoPaterno" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ApellidoMaterno" class="form-label"></label>
+                            <input asp-for="ApellidoMaterno" class="form-control" />
+                            <span asp-validation-for="ApellidoMaterno" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="DNI" class="form-label"></label>
+                            <input asp-for="DNI" class="form-control" />
+                            <span asp-validation-for="DNI" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Telefono" class="form-label"></label>
+                            <input asp-for="Telefono" class="form-control" />
+                            <span asp-validation-for="Telefono" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="TelefonoAlterno" class="form-label"></label>
+                        <input asp-for="TelefonoAlterno" class="form-control" />
+                        <span asp-validation-for="TelefonoAlterno" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Direccion" class="form-label"></label>
+                        <input asp-for="Direccion" class="form-control" />
+                        <span asp-validation-for="Direccion" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="CorreoContacto" class="form-label"></label>
+                        <input asp-for="CorreoContacto" class="form-control" />
+                        <span asp-validation-for="CorreoContacto" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-check form-switch mb-4">
+                        <input asp-for="Estado" class="form-check-input" />
+                        <label asp-for="Estado" class="form-check-label"></label>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Actualizar</button>
+                        <a asp-action="Listar" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

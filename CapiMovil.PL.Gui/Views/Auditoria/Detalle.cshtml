@@ -1,0 +1,60 @@
+﻿@model CapiMovil.BL.BE.AuditoriaBE
+
+@{
+    ViewData["Title"] = "Detalle de Auditoría";
+}
+
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Detalle de Auditoría</h2>
+            <p class="text-muted mb-0">Consulta completa del registro de auditoría.</p>
+        </div>
+        <a asp-action="Listar" class="btn btn-outline-secondary">Volver</a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body row g-3">
+            <div class="col-md-4">
+                <div class="text-muted small">Código</div>
+                <div class="fw-semibold">@Model.CodigoAuditoria</div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-muted small">Tabla</div>
+                <div class="fw-semibold">@Model.Tabla</div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-muted small">Acción</div>
+                <div class="fw-semibold">@Model.Accion</div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-muted small">Usuario</div>
+                <div class="fw-semibold">@Model.NombreUsuario</div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-muted small">Módulo</div>
+                <div class="fw-semibold">@Model.Modulo</div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-muted small">IP</div>
+                <div class="fw-semibold">@Model.Ip</div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-muted small">Fecha</div>
+                <div class="fw-semibold">@Model.Fecha.ToString("dd/MM/yyyy HH:mm:ss")</div>
+            </div>
+            <div class="col-12">
+                <div class="text-muted small">Observación</div>
+                <div>@Model.Observacion</div>
+            </div>
+            <div class="col-12">
+                <div class="text-muted small">Datos Antes</div>
+                <pre class="bg-light p-3 rounded">@Model.DatosAntes</pre>
+            </div>
+            <div class="col-12">
+                <div class="text-muted small">Datos Después</div>
+                <pre class="bg-light p-3 rounded">@Model.DatosDespues</pre>
+            </div>
+        </div>
+    </div>
+</div>

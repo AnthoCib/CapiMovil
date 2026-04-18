@@ -1,0 +1,72 @@
+﻿@model List<CapiMovil.BL.BE.RutaBE>
+
+@{
+    ViewData["Title"] = "Lista de Rutas";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="page-title mb-0">Lista de Rutas</h2>
+    <a asp-action="Crear" class="btn btn-primary">Nueva Ruta</a>
+</div>
+
+<div class="card card-soft">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Turno</th>
+                        <th>Horario</th>
+                        <th>Estado Ruta</th>
+                        <th>Estado</th>
+                        <th style="width:160px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.CodigoRuta</td>
+                                <td>@item.Nombre</td>
+                                <td>@item.Turno</td>
+                                <td>@item.HoraInicio.ToString(@"hh\:mm") - @item.HoraFin.ToString(@"hh\:mm")</td>
+                                <td><span class="badge bg-info">@item.EstadoRuta</span></td>
+                                <td>
+                                    @if (item.Estado)
+                                    {
+                                        <span class="badge bg-success">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactivo</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-action="Editar" asp-route-id="@item.IdRuta" class="btn btn-warning btn-sm">Editar</a>
+
+                                    <form asp-action="Eliminar" asp-route-id="@item.IdRuta" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-danger btn-sm"
+                                                onclick="return confirm('¿Desea eliminar esta ruta?');">
+                                            Eliminar
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">No hay rutas registradas.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,156 @@
+﻿@model CapiMovil.PL.Gui.Models.IncidenciaFormViewModel
+
+@{
+    ViewData["Title"] = "Editar Incidencia";
+}
+
+<div class="container-fluid py-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Editar Incidencia</h2>
+            <p class="text-muted mb-0">Actualiza la información registrada de la incidencia.</p>
+        </div>
+        <div>
+            <a asp-action="Listar" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-semibold">Datos de la Incidencia</h5>
+            @if (!string.IsNullOrWhiteSpace(Model.CodigoIncidencia))
+            {
+                <span class="badge bg-dark rounded-pill px-3 py-2">@Model.CodigoIncidencia</span>
+            }
+        </div>
+
+        <div class="card-body">
+            <form asp-action="Editar" method="post">
+                @Html.AntiForgeryToken()
+
+                <input asp-for="IdIncidencia" type="hidden" />
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label asp-for="CodigoIncidencia" class="form-label fw-semibold"></label>
+                        <input asp-for="CodigoIncidencia" class="form-control bg-light" readonly />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="IdRecorrido" class="form-label fw-semibold"></label>
+                        <select asp-for="IdRecorrido" asp-items="Model.Recorridos" class="form-select" id="IdRecorrido">
+                            <option value="">-- Seleccione un recorrido --</option>
+                        </select>
+                        <span asp-validation-for="IdRecorrido" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="IdConductor" class="form-label fw-semibold"></label>
+                        <select asp-for="IdConductor" asp-items="Model.Conductores" class="form-select" id="IdConductor">
+                            <option value="">-- Conductor automático --</option>
+                        </select>
+                        <small class="text-muted">Se actualiza automáticamente según el recorrido.</small>
+                        <span asp-validation-for="IdConductor" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="TipoIncidencia" class="form-label fw-semibold"></label>
+                        <select asp-for="TipoIncidencia" asp-items="Model.TiposIncidencia" class="form-select">
+                            <option value="">-- Seleccione --</option>
+                        </select>
+                        <span asp-validation-for="TipoIncidencia" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="EstadoIncidencia" class="form-label fw-semibold"></label>
+                        <select asp-for="EstadoIncidencia" asp-items="Model.EstadosIncidencia" class="form-select">
+                            <option value="">-- Seleccione --</option>
+                        </select>
+                        <span asp-validation-for="EstadoIncidencia" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="Prioridad" class="form-label fw-semibold"></label>
+                        <select asp-for="Prioridad" asp-items="Model.Prioridades" class="form-select">
+                            <option value="">-- Seleccione --</option>
+                        </select>
+                        <span asp-validation-for="Prioridad" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="FechaHora" class="form-label fw-semibold"></label>
+                        <input asp-for="FechaHora"
+                               type="datetime-local"
+                               class="form-control"
+                               value="@Model.FechaHora.ToString("yyyy-MM-ddTHH:mm")" />
+                        <span asp-validation-for="FechaHora" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <label asp-for="Descripcion" class="form-label fw-semibold"></label>
+                        <textarea asp-for="Descripcion" class="form-control" rows="4"></textarea>
+                        <span asp-validation-for="Descripcion" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <label asp-for="Solucion" class="form-label fw-semibold"></label>
+                        <textarea asp-for="Solucion" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Solucion" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-warning px-4">
+                        <i class="bi bi-pencil-square me-1"></i> Actualizar
+                    </button>
+                    <a asp-action="Listar" class="btn btn-light border px-4">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const recorridoSelect = document.getElementById("IdRecorrido");
+            const conductorSelect = document.getElementById("IdConductor");
+
+            async function cargarConductor() {
+                const idRecorrido = recorridoSelect.value;
+
+                if (!idRecorrido) {
+                    conductorSelect.value = "";
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/Incidencia/ObtenerConductorPorRecorrido?idRecorrido=${idRecorrido}`);
+                    const data = await response.json();
+
+                    if (data.ok && data.idConductor) {
+                        conductorSelect.value = data.idConductor;
+                    } else {
+                        conductorSelect.value = "";
+                    }
+                } catch {
+                    conductorSelect.value = "";
+                }
+            }
+
+            recorridoSelect.addEventListener("change", cargarConductor);
+
+            if (recorridoSelect.value) {
+                cargarConductor();
+            }
+        });
+    </script>
+}

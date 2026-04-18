@@ -1,0 +1,83 @@
+﻿@model CapiMovil.PL.Gui.Models.ViewModels.EventoAbordajeFormViewModel
+
+@{
+    ViewData["Title"] = "Editar Evento";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="card card-soft">
+            <div class="card-body">
+                <h2 class="page-title mb-4">Editar Evento de Abordaje</h2>
+
+                <form asp-action="Editar" method="post">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="IdEvento" type="hidden" />
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="CodigoEvento" class="form-label"></label>
+                        <input asp-for="CodigoEvento" class="form-control" readonly />
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="IdRecorrido" class="form-label"></label>
+                        <select asp-for="IdRecorrido" asp-items="Model.Recorridos" class="form-select">
+                            <option value="">Seleccione un recorrido</option>
+                        </select>
+                        <span asp-validation-for="IdRecorrido" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="IdEstudiante" class="form-label"></label>
+                        <select asp-for="IdEstudiante" asp-items="Model.Estudiantes" class="form-select">
+                            <option value="">Seleccione un estudiante</option>
+                        </select>
+                        <span asp-validation-for="IdEstudiante" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="IdParadero" class="form-label"></label>
+                        <select asp-for="IdParadero" asp-items="Model.Paraderos" class="form-select">
+                            <option value="">Seleccione un paradero</option>
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="TipoEvento" class="form-label"></label>
+                            <select asp-for="TipoEvento" asp-items="Model.TiposEvento" class="form-select"></select>
+                            <span asp-validation-for="TipoEvento" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="FechaHora" class="form-label"></label>
+                            <input asp-for="FechaHora" class="form-control" />
+                            <span asp-validation-for="FechaHora" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Observacion" class="form-label"></label>
+                        <textarea asp-for="Observacion" class="form-control"></textarea>
+                    </div>
+
+                    <div class="form-check form-switch mb-4">
+                        <input asp-for="Estado" class="form-check-input" />
+                        <label asp-for="Estado" class="form-check-label"></label>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Actualizar</button>
+                        <a asp-action="Listar" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

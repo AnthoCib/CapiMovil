@@ -1,0 +1,357 @@
+﻿using CapiMovil.BL.BC;
+using CapiMovil.BL.BE;
+using CapiMovil.PL.Gui.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+
+namespace CapiMovil.PL.Gui.Controllers
+{
+    public class IncidenciaController : Controller
+    {
+        private readonly IncidenciaBC _incidenciaBC;
+        private readonly RecorridoBC _recorridoBC;
+        private readonly ConductorBC _conductorBC;
+
+        public IncidenciaController(
+            IncidenciaBC incidenciaBC,
+            RecorridoBC recorridoBC,
+            ConductorBC conductorBC)
+        {
+            _incidenciaBC = incidenciaBC;
+            _recorridoBC = recorridoBC;
+            _conductorBC = conductorBC;
+        }
+
+        [HttpGet]
+        public IActionResult Listar()
+        {
+            List<IncidenciaBE> lista = _incidenciaBC.Listar();
+            return View(lista);
+        }
+
+        [HttpGet]
+        public IActionResult Crear()
+        {
+            IncidenciaFormViewModel vm = new IncidenciaFormViewModel
+            {
+                FechaHora = DateTime.Now,
+                EstadoIncidencia = "PENDIENTE",
+                Prioridad = "MEDIA"
+            };
+
+            CargarCombos(vm);
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Crear(IncidenciaFormViewModel vm)
+        {
+            if (!ModelState.IsValid)
+            {
+                CargarCombos(vm);
+                return View(vm);
+            }
+
+            try
+            {
+                RecorridoBE? recorrido = _recorridoBC.ListarPorId(vm.IdRecorrido);
+
+                if (recorrido == null)
+                {
+                    ModelState.AddModelError(string.Empty, "No se encontró el recorrido seleccionado.");
+                    CargarCombos(vm);
+                    return View(vm);
+                }
+
+                if (recorrido.IdConductor == Guid.Empty)
+                {
+                    ModelState.AddModelError(string.Empty, "El recorrido no tiene un conductor asociado.");
+                    CargarCombos(vm);
+                    return View(vm);
+                }
+
+                IncidenciaBE entidad = new IncidenciaBE
+                {
+                    IdRecorrido = vm.IdRecorrido,
+                    IdConductor = recorrido.IdConductor,
+                    ReportadoPor = vm.ReportadoPor,
+                    TipoIncidencia = vm.TipoIncidencia,
+                    Descripcion = vm.Descripcion,
+                    FechaHora = vm.FechaHora,
+                    EstadoIncidencia = vm.EstadoIncidencia,
+                    Prioridad = vm.Prioridad,
+                    Solucion = vm.Solucion
+                };
+
+                bool ok = _incidenciaBC.Registrar(entidad);
+
+                TempData[ok ? "ok" : "error"] = ok
+                    ? "Incidencia registrada correctamente."
+                    : "No se pudo registrar la incidencia.";
+
+                return RedirectToAction(nameof(Listar));
+            }
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ocurrió un error al registrar la incidencia.");
+            }
+
+            CargarCombos(vm);
+            return View(vm);
+        }
+
+        [HttpGet]
+        public IActionResult Editar(Guid id)
+        {
+            IncidenciaBE? entidad = _incidenciaBC.ListarPorId(id);
+
+            if (entidad == null)
+            {
+                TempData["error"] = "La incidencia no existe.";
+                return RedirectToAction(nameof(Listar));
+            }
+
+            IncidenciaFormViewModel vm = new IncidenciaFormViewModel
+            {
+                IdIncidencia = entidad.IdIncidencia,
+                CodigoIncidencia = entidad.CodigoIncidencia,
+                IdRecorrido = entidad.IdRecorrido,
+                IdConductor = entidad.IdConductor,
+                ReportadoPor = entidad.ReportadoPor,
+                TipoIncidencia = entidad.TipoIncidencia,
+                Descripcion = entidad.Descripcion,
+                FechaHora = entidad.FechaHora,
+                EstadoIncidencia = entidad.EstadoIncidencia,
+                Prioridad = entidad.Prioridad,
+                Solucion = entidad.Solucion
+            };
+
+            CargarCombos(vm);
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Editar(IncidenciaFormViewModel vm)
+        {
+            if (!ModelState.IsValid)
+            {
+                CargarCombos(vm);
+                return View(vm);
+            }
+
+            try
+            {
+                RecorridoBE? recorrido = _recorridoBC.ListarPorId(vm.IdRecorrido);
+
+                if (recorrido == null)
+                {
+                    ModelState.AddModelError(string.Empty, "No se encontró el recorrido seleccionado.");
+                    CargarCombos(vm);
+                    return View(vm);
+                }
+
+                if (recorrido.IdConductor == Guid.Empty)
+                {
+                    ModelState.AddModelError(string.Empty, "El recorrido no tiene un conductor asociado.");
+                    CargarCombos(vm);
+                    return View(vm);
+                }
+
+                IncidenciaBE entidad = new IncidenciaBE
+                {
+                    IdIncidencia = vm.IdIncidencia,
+                    IdRecorrido = vm.IdRecorrido,
+                    IdConductor = recorrido.IdConductor,
+                    ReportadoPor = vm.ReportadoPor,
+                    TipoIncidencia = vm.TipoIncidencia,
+                    Descripcion = vm.Descripcion,
+                    FechaHora = vm.FechaHora,
+                    EstadoIncidencia = vm.EstadoIncidencia,
+                    Prioridad = vm.Prioridad,
+                    Solucion = vm.Solucion
+                };
+
+                bool ok = _incidenciaBC.Actualizar(entidad);
+
+                TempData[ok ? "ok" : "error"] = ok
+                    ? "Incidencia actualizada correctamente."
+                    : "No se pudo actualizar la incidencia.";
+
+                return RedirectToAction(nameof(Listar));
+            }
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "Ocurrió un error al actualizar la incidencia.");
+            }
+
+            CargarCombos(vm);
+            return View(vm);
+        }
+
+        [HttpGet]
+        public IActionResult Detalle(Guid id)
+        {
+            IncidenciaBE? entidad = _incidenciaBC.ListarPorId(id);
+
+            if (entidad == null)
+            {
+                TempData["error"] = "La incidencia no existe.";
+                return RedirectToAction(nameof(Listar));
+            }
+
+            return View(entidad);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Eliminar(Guid id)
+        {
+            try
+            {
+                bool ok = _incidenciaBC.Eliminar(id);
+
+                TempData[ok ? "ok" : "error"] = ok
+                    ? "Incidencia eliminada correctamente."
+                    : "No se pudo eliminar la incidencia.";
+            }
+            catch (ArgumentException ex)
+            {
+                TempData["error"] = ex.Message;
+            }
+            catch (Exception)
+            {
+                TempData["error"] = "Ocurrió un error al eliminar la incidencia.";
+            }
+
+            return RedirectToAction(nameof(Listar));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Cerrar(Guid id, string solucion)
+        {
+            try
+            {
+                bool ok = _incidenciaBC.Cerrar(id, solucion);
+
+                TempData[ok ? "ok" : "error"] = ok
+                    ? "Incidencia cerrada correctamente."
+                    : "No se pudo cerrar la incidencia.";
+            }
+            catch (ArgumentException ex)
+            {
+                TempData["error"] = ex.Message;
+            }
+            catch (Exception)
+            {
+                TempData["error"] = "Ocurrió un error al cerrar la incidencia.";
+            }
+
+            return RedirectToAction(nameof(Listar));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CambiarEstado(Guid id, string estadoIncidencia)
+        {
+            try
+            {
+                bool ok = _incidenciaBC.CambiarEstado(id, estadoIncidencia);
+
+                TempData[ok ? "ok" : "error"] = ok
+                    ? "Estado actualizado correctamente."
+                    : "No se pudo actualizar el estado.";
+            }
+            catch (ArgumentException ex)
+            {
+                TempData["error"] = ex.Message;
+            }
+            catch (Exception)
+            {
+                TempData["error"] = "Ocurrió un error al cambiar el estado.";
+            }
+
+            return RedirectToAction(nameof(Listar));
+        }
+
+        [HttpGet]
+        public JsonResult ObtenerConductorPorRecorrido(Guid idRecorrido)
+        {
+            try
+            {
+                RecorridoBE? recorrido = _recorridoBC.ListarPorId(idRecorrido);
+
+                if (recorrido == null || recorrido.IdConductor == Guid.Empty)
+                {
+                    return Json(new { ok = false, idConductor = "" });
+                }
+
+                return Json(new
+                {
+                    ok = true,
+                    idConductor = recorrido.IdConductor.ToString()
+                });
+            }
+            catch
+            {
+                return Json(new { ok = false, idConductor = "" });
+            }
+        }
+
+        private void CargarCombos(IncidenciaFormViewModel vm)
+        {
+            vm.Recorridos = _recorridoBC.Listar()
+                .Select(x => new SelectListItem
+                {
+                    Value = x.IdRecorrido.ToString(),
+                    Text = x.CodigoRecorrido,
+                    Selected = x.IdRecorrido == vm.IdRecorrido
+                })
+                .ToList();
+
+            vm.Conductores = _conductorBC.Listar()
+                .Select(x => new SelectListItem
+                {
+                    Value = x.IdConductor.ToString(),
+                    Text = $"{x.CodigoConductor} - {x.Nombres} {x.ApellidoPaterno}",
+                    Selected = x.IdConductor == vm.IdConductor
+                })
+                .ToList();
+
+            vm.TiposIncidencia = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "RETRASO", Text = "RETRASO", Selected = vm.TipoIncidencia == "RETRASO" },
+                new SelectListItem { Value = "FALLA MECANICA", Text = "FALLA MECANICA", Selected = vm.TipoIncidencia == "FALLA MECANICA" },
+                new SelectListItem { Value = "ACCIDENTE", Text = "ACCIDENTE", Selected = vm.TipoIncidencia == "ACCIDENTE" },
+                new SelectListItem { Value = "DESVIO", Text = "DESVIO", Selected = vm.TipoIncidencia == "DESVIO" },
+                new SelectListItem { Value = "AUSENCIA", Text = "AUSENCIA", Selected = vm.TipoIncidencia == "AUSENCIA" },
+                new SelectListItem { Value = "OTRO", Text = "OTRO", Selected = vm.TipoIncidencia == "OTRO" }
+            };
+
+            vm.EstadosIncidencia = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "PENDIENTE", Text = "PENDIENTE", Selected = vm.EstadoIncidencia == "PENDIENTE" },
+                new SelectListItem { Value = "ATENDIDA", Text = "ATENDIDA", Selected = vm.EstadoIncidencia == "ATENDIDA" },
+                new SelectListItem { Value = "CERRADA", Text = "CERRADA", Selected = vm.EstadoIncidencia == "CERRADA" }
+            };
+
+            vm.Prioridades = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "BAJA", Text = "BAJA", Selected = vm.Prioridad == "BAJA" },
+                new SelectListItem { Value = "MEDIA", Text = "MEDIA", Selected = vm.Prioridad == "MEDIA" },
+                new SelectListItem { Value = "ALTA", Text = "ALTA", Selected = vm.Prioridad == "ALTA" },
+                new SelectListItem { Value = "CRITICA", Text = "CRITICA", Selected = vm.Prioridad == "CRITICA" }
+            };
+        }
+    }
+}

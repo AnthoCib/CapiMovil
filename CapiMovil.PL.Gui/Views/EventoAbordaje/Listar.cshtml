@@ -1,0 +1,92 @@
+﻿@model List<CapiMovil.BL.BE.EventoAbordajeBE>
+
+@{
+    ViewData["Title"] = "Eventos de Abordaje";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="page-title mb-1">Operaciones - Eventos de Abordaje</h2>
+        <p class="text-muted mb-0">Registra subidas, bajadas, ausencias y eventos de no abordaje.</p>
+    </div>
+    <a asp-action="Crear" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Nuevo Evento
+    </a>
+</div>
+
+<div class="card card-soft shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Recorrido</th>
+                        <th>Estudiante</th>
+                        <th>Paradero</th>
+                        <th>Tipo</th>
+                        <th>Fecha y Hora</th>
+                        <th style="width:160px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.CodigoEvento</td>
+                                <td>@item.Recorrido?.CodigoRecorrido</td>
+                                <td>@($"{item.Estudiante?.Nombres} {item.Estudiante?.ApellidoPaterno}")</td>
+                                <td>@(item.Paradero?.Nombre ?? "-")</td>
+                                <td>
+                                    @if (item.TipoEvento == "SUBIDA")
+                                    {
+                                        <span class="badge bg-success">SUBIDA</span>
+                                    }
+                                    else if (item.TipoEvento == "BAJADA")
+                                    {
+                                        <span class="badge bg-primary">BAJADA</span>
+                                    }
+                                    else if (item.TipoEvento == "AUSENTE")
+                                    {
+                                        <span class="badge bg-warning text-dark">AUSENTE</span>
+                                    }
+                                    else if (item.TipoEvento == "NO_ABORDO")
+                                    {
+                                        <span class="badge bg-danger">NO ABORDÓ</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-dark">@item.TipoEvento</span>
+                                    }
+                                </td>
+                                <td>@item.FechaHora.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <a asp-action="Editar" asp-route-id="@item.IdEvento" class="btn btn-warning btn-sm">Editar</a>
+
+                                    <form asp-action="Eliminar" asp-route-id="@item.IdEvento" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit"
+                                                class="btn btn-danger btn-sm"
+                                                onclick="return confirm('¿Desea eliminar este evento?');">
+                                            Eliminar
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                No hay eventos registrados.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

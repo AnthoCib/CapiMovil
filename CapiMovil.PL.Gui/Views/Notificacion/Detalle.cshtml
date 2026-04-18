@@ -1,0 +1,68 @@
+﻿@model CapiMovil.BL.BE.NotificacionBE
+
+@{
+    ViewData["Title"] = "Detalle de Notificación";
+}
+
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Detalle de Notificación</h2>
+            <p class="text-muted mb-0">Consulta la información completa de la notificación.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Editar" asp-route-id="@Model.IdNotificacion" class="btn btn-warning">Editar</a>
+            <a asp-action="Listar" class="btn btn-outline-secondary">Volver</a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body row g-3">
+            <div class="col-md-4">
+                <div class="text-muted small">Código</div>
+                <div class="fw-semibold">@Model.CodigoNotificacion</div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-muted small">Tipo</div>
+                <div><span class="badge bg-info text-dark">@Model.TipoNotificacion</span></div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-muted small">Canal</div>
+                <div><span class="badge bg-secondary">@Model.Canal</span></div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-muted small">Padre</div>
+                <div class="fw-semibold">@Model.NombrePadre</div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-muted small">Estudiante</div>
+                <div class="fw-semibold">@(!string.IsNullOrWhiteSpace(Model.NombreEstudiante) ? Model.NombreEstudiante : "-")</div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-muted small">Estado de lectura</div>
+                <div>
+                    @if (Model.Leido)
+                    {
+                        <span class="badge bg-success">LEÍDA</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">NO LEÍDA</span>
+                    }
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-muted small">Fecha de envío</div>
+                <div class="fw-semibold">@Model.FechaEnvio.ToString("dd/MM/yyyy HH:mm")</div>
+            </div>
+            <div class="col-12">
+                <div class="text-muted small">Título</div>
+                <div class="fw-semibold">@Model.Titulo</div>
+            </div>
+            <div class="col-12">
+                <div class="text-muted small">Mensaje</div>
+                <div>@Model.Mensaje</div>
+            </div>
+        </div>
+    </div>
+</div>

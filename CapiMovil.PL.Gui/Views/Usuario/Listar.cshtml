@@ -1,0 +1,77 @@
+﻿@model List<CapiMovil.BL.BE.UsuarioBE>
+
+@{
+    ViewData["Title"] = "Usuarios";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="page-title mb-0">Lista de Usuarios</h2>
+    <a asp-action="Crear" class="btn btn-primary">
+        Nuevo Usuario
+    </a>
+</div>
+
+<div class="card card-soft">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Código</th>
+                        <th>Username</th>
+                        <th>Correo</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th class="text-center" style="width: 260px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.CodigoUsuario</td>
+                                <td>@item.Username</td>
+                                <td>@item.Correo</td>
+                                <td>@item.Rol?.Nombre</td>
+                                <td>
+                                    @if (item.Estado)
+                                    {
+                                        <span class="badge bg-success">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Inactivo</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <a asp-action="Editar" asp-route-id="@item.IdUsuario" class="btn btn-warning btn-sm btn-action">
+                                        Editar
+                                    </a>
+                                   
+
+                                    <form asp-action="Eliminar" method="post" class="d-inline form-eliminar">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@item.IdUsuario" />
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-trash"></i> Eliminar
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">
+                                No hay registros.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

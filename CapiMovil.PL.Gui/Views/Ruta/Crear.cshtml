@@ -1,0 +1,82 @@
+﻿@model CapiMovil.PL.Gui.Models.ViewModels.RutaFormViewModel
+
+@{
+    ViewData["Title"] = "Registrar Ruta";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card card-soft">
+            <div class="card-body">
+                <h2 class="page-title mb-4">Registrar Ruta</h2>
+
+                <form asp-action="Crear" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Nombre" class="form-label"></label>
+                        <input asp-for="Nombre" class="form-control" />
+                        <span asp-validation-for="Nombre" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Descripcion" class="form-label"></label>
+                        <textarea asp-for="Descripcion" class="form-control"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Turno" class="form-label"></label>
+                            <select asp-for="Turno" asp-items="Model.Turnos" class="form-select"></select>
+                            <span asp-validation-for="Turno" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="HoraInicio" class="form-label"></label>
+                            <input asp-for="HoraInicio" class="form-control" />
+                            <span asp-validation-for="HoraInicio" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="HoraFin" class="form-label"></label>
+                            <input asp-for="HoraFin" class="form-control" />
+                            <span asp-validation-for="HoraFin" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="PuntoInicio" class="form-label"></label>
+                        <input asp-for="PuntoInicio" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="PuntoFin" class="form-label"></label>
+                        <input asp-for="PuntoFin" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="EstadoRuta" class="form-label"></label>
+                        <select asp-for="EstadoRuta" asp-items="Model.EstadosRuta" class="form-select"></select>
+                        <span asp-validation-for="EstadoRuta" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-check form-switch mb-4">
+                        <input asp-for="Estado" class="form-check-input" />
+                        <label asp-for="Estado" class="form-check-label"></label>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                        <a asp-action="Listar" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

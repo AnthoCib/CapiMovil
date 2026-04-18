@@ -1,0 +1,89 @@
+﻿@model CapiMovil.PL.Gui.Models.ViewModels.RecorridoFormViewModel
+
+@{
+    ViewData["Title"] = "Registrar Recorrido";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="card card-soft">
+            <div class="card-body">
+                <h2 class="page-title mb-4">Registrar Recorrido</h2>
+
+                <form asp-action="Crear" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="IdRuta" class="form-label"></label>
+                        <select asp-for="IdRuta" asp-items="Model.Rutas" class="form-select">
+                            <option value="">Seleccione una ruta</option>
+                        </select>
+                        <span asp-validation-for="IdRuta" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="IdBus" class="form-label"></label>
+                            <select asp-for="IdBus" asp-items="Model.Buses" class="form-select">
+                                <option value="">Seleccione un bus</option>
+                            </select>
+                            <span asp-validation-for="IdBus" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="IdConductor" class="form-label"></label>
+                            <select asp-for="IdConductor" asp-items="Model.Conductores" class="form-select">
+                                <option value="">Seleccione un conductor</option>
+                            </select>
+                            <span asp-validation-for="IdConductor" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Fecha" class="form-label"></label>
+                            <input asp-for="Fecha" class="form-control" />
+                            <span asp-validation-for="Fecha" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="HoraInicioProgramada" class="form-label"></label>
+                            <input asp-for="HoraInicioProgramada" class="form-control" />
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="HoraFinProgramada" class="form-label"></label>
+                            <input asp-for="HoraFinProgramada" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="EstadoRecorrido" class="form-label"></label>
+                        <select asp-for="EstadoRecorrido" asp-items="Model.EstadosRecorrido" class="form-select"></select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Observaciones" class="form-label"></label>
+                        <textarea asp-for="Observaciones" class="form-control"></textarea>
+                    </div>
+
+                    <div class="form-check form-switch mb-4">
+                        <input asp-for="Estado" class="form-check-input" />
+                        <label asp-for="Estado" class="form-check-label"></label>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                        <a asp-action="Listar" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

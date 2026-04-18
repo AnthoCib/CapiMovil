@@ -1,0 +1,320 @@
+﻿@model List<CapiMovil.BL.BE.RecorridoBE>
+
+@{
+    ViewData["Title"] = "Lista de Recorridos";
+
+    var total = Model?.Count ?? 0;
+    var programados = Model?.Count(x => x.EstadoRecorrido == "PROGRAMADO") ?? 0;
+    var enCurso = Model?.Count(x => x.EstadoRecorrido == "EN_CURSO") ?? 0;
+    var finalizados = Model?.Count(x => x.EstadoRecorrido == "FINALIZADO") ?? 0;
+    var cancelados = Model?.Count(x => x.EstadoRecorrido == "CANCELADO") ?? 0;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="page-title mb-1">Operaciones - Recorridos</h2>
+        <p class="text-muted mb-0">Administra, inicia, finaliza o cancela los recorridos programados.</p>
+    </div>
+    <a asp-action="Crear" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Nuevo Recorrido
+    </a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-2">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <small class="text-muted d-block">Total</small>
+                <h3 class="mb-0">@total</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <small class="text-muted d-block">Programados</small>
+                <h3 class="mb-0 text-primary">@programados</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <small class="text-muted d-block">En curso</small>
+                <h3 class="mb-0 text-success">@enCurso</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <small class="text-muted d-block">Finalizados</small>
+                <h3 class="mb-0 text-secondary">@finalizados</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <small class="text-muted d-block">Cancelados</small>
+                <h3 class="mb-0 text-danger">@cancelados</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card card-soft shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Ruta</th>
+                        <th>Bus</th>
+                        <th>Conductor</th>
+                        <th>Fecha</th>
+                        <th>Horario</th>
+                        <th>Estado</th>
+                        <th style="width: 280px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">@item.CodigoRecorrido</div>
+                                </td>
+
+                                <td>
+                                    <div class="fw-semibold">@item.Ruta?.Nombre</div>
+                                    <small class="text-muted">@item.Ruta?.CodigoRuta</small>
+                                </td>
+
+                                <td>
+                                    <div class="fw-semibold">@item.Bus?.Placa</div>
+                                    <small class="text-muted">@item.Bus?.CodigoBus</small>
+                                </td>
+
+                                <td>
+                                    <div class="fw-semibold">@($"{item.Conductor?.Nombres} {item.Conductor?.ApellidoPaterno}")</div>
+                                    <small class="text-muted">@item.Conductor?.CodigoConductor</small>
+                                </td>
+
+                                <td>
+                                    @item.Fecha.ToString("dd/MM/yyyy")
+                                </td>
+
+                                <td>
+                                    <div>
+                                        <small class="text-muted d-block">Programado</small>
+                                        <span>
+                                            @(item.HoraInicioProgramada?.ToString(@"hh\:mm") ?? "--:--")
+                                            -
+                                            @(item.HoraFinProgramada?.ToString(@"hh\:mm") ?? "--:--")
+                                        </span>
+                                    </div>
+
+                                    @if (item.HoraInicioReal != null || item.HoraFinReal != null)
+                                    {
+                                        <div class="mt-1">
+                                            <small class="text-muted d-block">Real</small>
+                                            <span>
+                                                @(item.HoraInicioReal?.ToString("HH:mm") ?? "--:--")
+                                                -
+                                                @(item.HoraFinReal?.ToString("HH:mm") ?? "--:--")
+                                            </span>
+                                        </div>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (item.EstadoRecorrido == "PROGRAMADO")
+                                    {
+                                        <span class="badge bg-primary">PROGRAMADO</span>
+                                    }
+                                    else if (item.EstadoRecorrido == "EN_CURSO")
+                                    {
+                                        <span class="badge bg-success">EN CURSO</span>
+                                    }
+                                    else if (item.EstadoRecorrido == "FINALIZADO")
+                                    {
+                                        <span class="badge bg-secondary">FINALIZADO</span>
+                                    }
+                                    else if (item.EstadoRecorrido == "CANCELADO")
+                                    {
+                                        <span class="badge bg-danger">CANCELADO</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-dark">@item.EstadoRecorrido</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (item.EstadoRecorrido == "PROGRAMADO")
+                                    {
+                                        <div class="d-flex flex-wrap gap-1">
+                                            <a asp-action="Editar"
+                                                   asp-route-id="@item.IdRecorrido"
+                                                   class="btn btn-warning btn-sm">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+
+                                            <form asp-action="Iniciar" asp-route-id="@item.IdRecorrido" method="post" class="d-inline form-iniciar">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-success btn-sm">
+                                                    <i class="bi bi-play-fill"></i>
+                                                </button>
+                                            </form>
+
+                                            <form asp-action="Cancelar" asp-route-id="@item.IdRecorrido" method="post" class="d-inline form-cancelar">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-secondary btn-sm">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            </form>
+
+                                            <form asp-action="Eliminar" asp-route-id="@item.IdRecorrido" method="post" class="d-inline form-eliminar">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    }
+                                    else if (item.EstadoRecorrido == "EN_CURSO")
+                                    {
+                                        <div class="d-flex flex-wrap gap-1">
+                                            <form asp-action="Finalizar" asp-route-id="@item.IdRecorrido" method="post" class="d-inline form-finalizar">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-primary btn-sm">
+                                                    <i class="bi bi-check2-circle"></i>
+                                                </button>
+                                            </form>
+
+                                            <form asp-action="Cancelar" asp-route-id="@item.IdRecorrido" method="post" class="d-inline form-cancelar">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                    <i class="bi bi-stop-circle"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">Sin acciones disponibles</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                No hay recorridos registrados.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            function confirmarFormulario(selector, titulo, texto, icono, confirmButtonText) {
+                const forms = document.querySelectorAll(selector);
+
+                forms.forEach(form => {
+                    form.addEventListener("submit", function (e) {
+                        e.preventDefault();
+
+                        Swal.fire({
+                            title: titulo,
+                            text: texto,
+                            icon: icono,
+                            showCancelButton: true,
+                            confirmButtonText: confirmButtonText,
+                            cancelButtonText: "Cancelar",
+                            reverseButtons: true
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                form.submit();
+                            }
+                        });
+                    });
+                });
+            }
+
+            confirmarFormulario(
+                ".form-iniciar",
+                "¿Iniciar recorrido?",
+                "El recorrido pasará a estado EN_CURSO.",
+                "question",
+                "Sí, iniciar"
+            );
+
+            confirmarFormulario(
+                ".form-finalizar",
+                "¿Finalizar recorrido?",
+                "El recorrido pasará a estado FINALIZADO.",
+                "success",
+                "Sí, finalizar"
+            );
+
+            confirmarFormulario(
+                ".form-cancelar",
+                "¿Cancelar recorrido?",
+                "Esta acción cambiará el estado del recorrido a CANCELADO.",
+                "warning",
+                "Sí, cancelar"
+            );
+
+            confirmarFormulario(
+                ".form-eliminar",
+                "¿Eliminar recorrido?",
+                "Se realizará una eliminación lógica del recorrido.",
+                "warning",
+                "Sí, eliminar"
+            );
+        });
+    </script>
+
+    @if (TempData["ok"] != null)
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                Swal.fire({
+                    icon: "success",
+                    title: "Correcto",
+                    text: "@TempData["ok"]"
+                });
+            });
+        </script>
+    }
+
+    @if (TempData["error"] != null)
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "@TempData["error"]"
+                });
+            });
+        </script>
+    }
+}

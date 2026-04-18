@@ -1,0 +1,74 @@
+﻿@model List<CapiMovil.BL.BE.RutaEstudianteBE>
+
+@{
+    ViewData["Title"] = "Ruta - Estudiante";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="page-title mb-0">Asignaciones Ruta - Estudiante</h2>
+    <a asp-action="Crear" class="btn btn-primary">Nueva Asignación</a>
+</div>
+
+<div class="card card-soft">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Ruta</th>
+                        <th>Estudiante</th>
+                        <th>Inicio</th>
+                        <th>Fin</th>
+                        <th>Estado Asignación</th>
+                        <th>Estado</th>
+                        <th style="width:160px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.CodigoRutaEstudiante</td>
+                                <td>@item.Ruta?.Nombre</td>
+                                <td>@($"{item.Estudiante?.Nombres} {item.Estudiante?.ApellidoPaterno}")</td>
+                                <td>@item.FechaInicioVigencia.ToString("dd/MM/yyyy")</td>
+                                <td>@(item.FechaFinVigencia?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                <td><span class="badge bg-info">@item.EstadoAsignacion</span></td>
+                                <td>
+                                    @if (item.Estado)
+                                    {
+                                        <span class="badge bg-success">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactivo</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-action="Editar" asp-route-id="@item.IdRutaEstudiante" class="btn btn-warning btn-sm">Editar</a>
+
+                                    <form asp-action="Eliminar" asp-route-id="@item.IdRutaEstudiante" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-danger btn-sm"
+                                                onclick="return confirm('¿Desea eliminar esta asignación?');">
+                                            Eliminar
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">No hay asignaciones registradas.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

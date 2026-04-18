@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Elementos de la solución/">
+    <File Path=".gitignore" />
+  </Folder>
+  <Project Path="CapiMovil.BL.BC/CapiMovil.BL.BC.csproj" />
+  <Project Path="CapiMovil.BL.BE/CapiMovil.BL.BE.csproj" />
+  <Project Path="CapiMovil.DL.DALC/CapiMovil.DL.DALC.csproj" />
+  <Project Path="CapiMovil.PL.Gui/CapiMovil.PL.Gui.csproj" />
+</Solution>
