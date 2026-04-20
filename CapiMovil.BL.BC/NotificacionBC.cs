@@ -13,6 +13,7 @@ namespace CapiMovil.BL.BC
             _notificacionDALC = notificacionDALC;
             _auditoriaBC = auditoriaBC;
         }
+
         public bool RegistrarAutomatica(
             Guid idPadre,
             Guid? idEstudiante,
@@ -34,6 +35,7 @@ namespace CapiMovil.BL.BC
 
             return Registrar(entidad);
         }
+
         public List<NotificacionBE> Listar()
         {
             return _notificacionDALC.Listar();
@@ -50,7 +52,20 @@ namespace CapiMovil.BL.BC
         public bool Registrar(NotificacionBE entidad)
         {
             Validar(entidad, true);
-            return _notificacionDALC.Registrar(entidad);
+
+            bool ok = _notificacionDALC.Registrar(entidad);
+
+            if (ok)
+            {
+                RegistrarAuditoria(
+                    "INSERT",
+                    entidad.IdNotificacion == Guid.Empty ? null : entidad.IdNotificacion,
+                    null,
+                    CrearSnapshotNotificacion(entidad),
+                    "Se registró una notificación");
+            }
+
+            return ok;
         }
 
         public bool Actualizar(NotificacionBE entidad)
@@ -59,7 +74,23 @@ namespace CapiMovil.BL.BC
                 throw new ArgumentException("El id de la notificación es inválido.");
 
             Validar(entidad, false);
-            return _notificacionDALC.Actualizar(entidad);
+
+            var antes = _notificacionDALC.ListarPorId(entidad.IdNotificacion);
+            bool ok = _notificacionDALC.Actualizar(entidad);
+
+            if (ok)
+            {
+                var despues = _notificacionDALC.ListarPorId(entidad.IdNotificacion);
+
+                RegistrarAuditoria(
+                    "UPDATE",
+                    entidad.IdNotificacion,
+                    CrearSnapshotNotificacion(antes),
+                    CrearSnapshotNotificacion(despues),
+                    "Se actualizó una notificación");
+            }
+
+            return ok;
         }
 
         public bool Eliminar(Guid id)
@@ -67,7 +98,20 @@ namespace CapiMovil.BL.BC
             if (id == Guid.Empty)
                 throw new ArgumentException("El id de la notificación es inválido.");
 
-            return _notificacionDALC.Eliminar(id);
+            var antes = _notificacionDALC.ListarPorId(id);
+            bool ok = _notificacionDALC.Eliminar(id);
+
+            if (ok)
+            {
+                RegistrarAuditoria(
+                    "DELETE",
+                    id,
+                    CrearSnapshotNotificacion(antes),
+                    null,
+                    "Se eliminó lógicamente una notificación");
+            }
+
+            return ok;
         }
 
         public bool MarcarLeida(Guid id)
@@ -75,7 +119,22 @@ namespace CapiMovil.BL.BC
             if (id == Guid.Empty)
                 throw new ArgumentException("El id de la notificación es inválido.");
 
-            return _notificacionDALC.MarcarLeida(id);
+            var antes = _notificacionDALC.ListarPorId(id);
+            bool ok = _notificacionDALC.MarcarLeida(id);
+
+            if (ok)
+            {
+                var despues = _notificacionDALC.ListarPorId(id);
+
+                RegistrarAuditoria(
+                    "UPDATE",
+                    id,
+                    CrearSnapshotNotificacion(antes),
+                    CrearSnapshotNotificacion(despues),
+                    "Se marcó la notificación como leída");
+            }
+
+            return ok;
         }
 
         public List<NotificacionBE> ListarPorPadre(Guid idPadre)
@@ -152,6 +211,27 @@ namespace CapiMovil.BL.BC
                 modulo: "Notificaciones",
                 observacion: observacion
             );
+        }
+
+        private object CrearSnapshotNotificacion(NotificacionBE? n)
+        {
+            if (n == null) return new { };
+
+            return new
+            {
+                n.IdNotificacion,
+                n.IdPadre,
+                n.IdEstudiante,
+                n.CodigoNotificacion,
+                n.Titulo,
+                n.Mensaje,
+                n.TipoNotificacion,
+                n.Canal,
+                n.Leido,
+                n.FechaLectura,
+                n.FechaEnvio,
+                n.Estado
+            };
         }
     }
 }

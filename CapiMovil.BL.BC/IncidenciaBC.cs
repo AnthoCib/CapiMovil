@@ -50,6 +50,14 @@ namespace CapiMovil.BL.BC
 
             if (ok)
             {
+                RegistrarAuditoria(
+                    "INSERT",
+                    entidad.IdIncidencia == Guid.Empty ? null : entidad.IdIncidencia,
+                    null,
+                    CrearSnapshotIncidencia(entidad),
+                    "Se registró una incidencia"
+                );
+
                 var destinatarios = _recorridoBC.ListarDestinatariosPorRecorrido(entidad.IdRecorrido);
 
                 foreach (var item in destinatarios)
@@ -75,9 +83,24 @@ namespace CapiMovil.BL.BC
 
             ValidarEntidad(entidad, esNuevo: false);
 
-            return _incidenciaDALC.Actualizar(entidad);
-        }
+            var antes = _incidenciaDALC.ListarPorId(entidad.IdIncidencia);
+            bool ok = _incidenciaDALC.Actualizar(entidad);
 
+            if (ok)
+            {
+                var despues = _incidenciaDALC.ListarPorId(entidad.IdIncidencia);
+
+                RegistrarAuditoria(
+                    "UPDATE",
+                    entidad.IdIncidencia,
+                    CrearSnapshotIncidencia(antes),
+                    CrearSnapshotIncidencia(despues),
+                    "Se actualizó una incidencia"
+                );
+            }
+
+            return ok;
+        }
         public bool CambiarEstado(Guid idIncidencia, string estadoIncidencia)
         {
             if (idIncidencia == Guid.Empty)
@@ -85,7 +108,23 @@ namespace CapiMovil.BL.BC
 
             ValidarEstado(estadoIncidencia);
 
-            return _incidenciaDALC.CambiarEstado(idIncidencia, estadoIncidencia);
+            var antes = _incidenciaDALC.ListarPorId(idIncidencia);
+            bool ok = _incidenciaDALC.CambiarEstado(idIncidencia, estadoIncidencia);
+
+            if (ok)
+            {
+                var despues = _incidenciaDALC.ListarPorId(idIncidencia);
+
+                RegistrarAuditoria(
+                    "UPDATE",
+                    idIncidencia,
+                    CrearSnapshotIncidencia(antes),
+                    CrearSnapshotIncidencia(despues),
+                    $"Se cambió el estado de la incidencia a {estadoIncidencia?.Trim().ToUpper()}"
+                );
+            }
+
+            return ok;
         }
 
         public bool Cerrar(Guid idIncidencia, string solucion)
@@ -99,7 +138,23 @@ namespace CapiMovil.BL.BC
             if (solucion.Length > 300)
                 throw new ArgumentException("La solución no puede superar los 300 caracteres.");
 
-            return _incidenciaDALC.Cerrar(idIncidencia, solucion.Trim());
+            var antes = _incidenciaDALC.ListarPorId(idIncidencia);
+            bool ok = _incidenciaDALC.Cerrar(idIncidencia, solucion.Trim());
+
+            if (ok)
+            {
+                var despues = _incidenciaDALC.ListarPorId(idIncidencia);
+
+                RegistrarAuditoria(
+                    "UPDATE",
+                    idIncidencia,
+                    CrearSnapshotIncidencia(antes),
+                    CrearSnapshotIncidencia(despues),
+                    "Se cerró una incidencia"
+                );
+            }
+
+            return ok;
         }
 
         public bool Eliminar(Guid idIncidencia)
@@ -107,7 +162,21 @@ namespace CapiMovil.BL.BC
             if (idIncidencia == Guid.Empty)
                 throw new ArgumentException("El id de la incidencia es inválido.");
 
-            return _incidenciaDALC.Eliminar(idIncidencia);
+            var antes = _incidenciaDALC.ListarPorId(idIncidencia);
+            bool ok = _incidenciaDALC.Eliminar(idIncidencia);
+
+            if (ok)
+            {
+                RegistrarAuditoria(
+                    "DELETE",
+                    idIncidencia,
+                    CrearSnapshotIncidencia(antes),
+                    null,
+                    "Se eliminó lógicamente una incidencia"
+                );
+            }
+
+            return ok;
         }
 
         private void ValidarEntidad(IncidenciaBE entidad, bool esNuevo)
@@ -181,25 +250,25 @@ namespace CapiMovil.BL.BC
                 throw new ArgumentException("La prioridad de la incidencia no es válida.");
         }
 
-        private object CrearSnapshotRecorrido(RecorridoBE? r)
+        private object CrearSnapshotIncidencia(IncidenciaBE? i)
         {
-            if (r == null) return new { };
+            if (i == null) return new { };
 
             return new
             {
-                r.IdRecorrido,
-                r.CodigoRecorrido,
-                r.IdRuta,
-                r.IdBus,
-                r.IdConductor,
-                r.Fecha,
-                r.EstadoRecorrido,
-                r.HoraInicioProgramada,
-                r.HoraFinProgramada,
-                r.HoraInicioReal,
-                r.HoraFinReal,
-                r.Observaciones,
-                r.Estado
+                i.IdIncidencia,
+                i.IdRecorrido,
+                i.IdConductor,
+                i.ReportadoPor,
+                i.CodigoIncidencia,
+                i.TipoIncidencia,
+                i.Descripcion,
+                i.FechaHora,
+                i.EstadoIncidencia,
+                i.Prioridad,
+                i.FechaCierre,
+                i.Solucion,
+                i.Estado
             };
         }
         private void RegistrarAuditoria(
