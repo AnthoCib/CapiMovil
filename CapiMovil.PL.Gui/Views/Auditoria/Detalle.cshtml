@@ -37,7 +37,7 @@
             </div>
             <div class="col-md-6">
                 <div class="text-muted small">IP</div>
-                <div class="fw-semibold">@Model.Ip</div>
+                <div class="fw-semibold">@(Model.Ip == "::1" ? "127.0.0.1 (localhost)" : Model.Ip)</div>
             </div>
             <div class="col-md-6">
                 <div class="text-muted small">Fecha</div>

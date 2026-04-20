@@ -86,14 +86,23 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.AddWithValue("@Estado", rol.Estado);
 
             cn.Open();
+            using SqlDataReader dr = cmd.ExecuteReader();
 
-            object? result = cmd.ExecuteScalar();
-
-            if (result != null)
+            if (dr.Read())
             {
-                int filas = Convert.ToInt32(result);
-                return filas > 0;
+                int filas = Convert.ToInt32(dr["FilasAfectadas"]);
+                if (filas > 0)
+                {
+                    if (dr["IdGenerado"] != DBNull.Value)
+                        rol.IdRol = (Guid)dr["IdGenerado"];
+
+                    if (dr["CodigoGenerado"] != DBNull.Value)
+                        rol.CodigoRol = dr["CodigoGenerado"]?.ToString() ?? rol.CodigoRol;
+
+                    return true;
+                }
             }
+
             return false;
         }
 
@@ -110,9 +119,15 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.AddWithValue("@Estado", rol.Estado);
 
             cn.Open();
-            int filas = cmd.ExecuteNonQuery();
+            object? result = cmd.ExecuteScalar();
 
-            return filas > 0;
+            if (result != null)
+            {
+                int filas = Convert.ToInt32(result);
+                return filas > 0;
+            }
+
+            return false;
         }
 
         public bool Eliminar(Guid idRol)

@@ -1,16 +1,20 @@
 ﻿using CapiMovil.BL.BE;
 using CapiMovil.DL.DALC;
+using Microsoft.AspNetCore.Http;
 using System.Text.Json;
+
 
 namespace CapiMovil.BL.BC
 {
     public class AuditoriaBC
     {
         private readonly AuditoriaDALC _auditoriaDALC;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AuditoriaBC(AuditoriaDALC auditoriaDALC)
+        public AuditoriaBC(AuditoriaDALC auditoriaDALC, IHttpContextAccessor httpContextAccessor)
         {
             _auditoriaDALC = auditoriaDALC;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public List<AuditoriaBE> Listar()
@@ -69,6 +73,32 @@ namespace CapiMovil.BL.BC
             string? modulo = null,
             string? observacion = null)
         {
+            var http = _httpContextAccessor.HttpContext;
+
+            Guid? usuarioIdFinal = usuarioId;
+            string? nombreUsuarioFinal = nombreUsuario;
+            string? ipFinal = ip;
+            string? userAgentFinal = userAgent;
+
+            if (http != null)
+            {
+                if (!usuarioIdFinal.HasValue)
+                {
+                    string? sessionUsuarioId = ObtenerSessionString(http.Session, "UsuarioId");
+                    if (Guid.TryParse(sessionUsuarioId, out Guid guidUsuario))
+                        usuarioIdFinal = guidUsuario;
+                }
+
+                if (string.IsNullOrWhiteSpace(nombreUsuarioFinal))
+                    nombreUsuarioFinal = ObtenerSessionString(http.Session, "Username");
+
+                if (string.IsNullOrWhiteSpace(ipFinal))
+                    ipFinal = http.Connection.RemoteIpAddress?.ToString();
+
+                if (string.IsNullOrWhiteSpace(userAgentFinal))
+                    userAgentFinal = http.Request.Headers["User-Agent"].ToString();
+            }
+
             AuditoriaBE entidad = new AuditoriaBE
             {
                 Tabla = tabla,
@@ -76,10 +106,10 @@ namespace CapiMovil.BL.BC
                 Accion = accion,
                 DatosAntes = datosAntes == null ? null : JsonSerializer.Serialize(datosAntes),
                 DatosDespues = datosDespues == null ? null : JsonSerializer.Serialize(datosDespues),
-                UsuarioId = usuarioId,
-                NombreUsuario = nombreUsuario,
-                Ip = ip,
-                UserAgent = userAgent,
+                UsuarioId = usuarioIdFinal,
+                NombreUsuario = nombreUsuarioFinal,
+                Ip = ipFinal,
+                UserAgent = userAgentFinal,
                 Modulo = modulo,
                 Observacion = observacion
             };
@@ -121,6 +151,17 @@ namespace CapiMovil.BL.BC
 
             if (!string.IsNullOrWhiteSpace(entidad.Observacion) && entidad.Observacion.Length > 250)
                 throw new ArgumentException("La observación no puede superar los 250 caracteres.");
+        }
+
+        private static string? ObtenerSessionString(ISession session, string key)
+        {
+            if (session == null || string.IsNullOrWhiteSpace(key))
+                return null;
+
+            if (session.TryGetValue(key, out byte[]? value) && value != null)
+                return System.Text.Encoding.UTF8.GetString(value);
+
+            return null;
         }
     }
 }

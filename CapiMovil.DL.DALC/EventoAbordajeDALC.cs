@@ -123,6 +123,10 @@ namespace CapiMovil.DL.DALC
                 if (filas > 0)
                 {
                     entidad.CodigoEvento = dr["CodigoGenerado"]?.ToString() ?? string.Empty;
+
+                    if (dr["IdGenerado"] != DBNull.Value)
+                        entidad.IdEvento = (Guid)dr["IdGenerado"];
+
                     return true;
                 }
             }

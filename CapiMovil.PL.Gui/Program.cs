@@ -6,6 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
+
+
 builder.Services.AddScoped<BDConexion>();
 
 
@@ -54,6 +56,7 @@ builder.Services.AddScoped<NotificacionBC>();
 
 builder.Services.AddScoped<AuditoriaDALC>();
 builder.Services.AddScoped<AuditoriaBC>();
+
 
 builder.Services.AddDistributedMemoryCache();
 
