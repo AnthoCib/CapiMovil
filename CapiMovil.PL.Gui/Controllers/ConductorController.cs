@@ -10,29 +10,118 @@ namespace CapiMovil.PL.Gui.Controllers
     {
         private readonly ConductorBC _conductorBC;
         private readonly UsuarioBC _usuarioBC;
+        private readonly RecorridoBC _recorridoBC;
+        private readonly IncidenciaBC _incidenciaBC;
 
-        public ConductorController(ConductorBC conductorBC, UsuarioBC usuarioBC)
+        public ConductorController(
+            ConductorBC conductorBC,
+            UsuarioBC usuarioBC,
+            RecorridoBC recorridoBC,
+            IncidenciaBC incidenciaBC)
         {
             _conductorBC = conductorBC;
             _usuarioBC = usuarioBC;
+            _recorridoBC = recorridoBC;
+            _incidenciaBC = incidenciaBC;
         }
 
         public IActionResult Index()
         {
-            string? usuarioId = HttpContext.Session.GetString("UsuarioId");
-            string? rol = HttpContext.Session.GetString("RolNombre");
+            IActionResult? acceso = ValidarSesionYRol("CONDUCTOR");
+            if (acceso != null)
+                return acceso;
 
-            if (string.IsNullOrEmpty(usuarioId))
-                return RedirectToAction("Login", "Auth");
+            string usuarioId = HttpContext.Session.GetString("UsuarioId")!;
+            Guid idUsuario = Guid.Parse(usuarioId);
 
-            if ((rol ?? "").Trim().ToUpperInvariant() != "CONDUCTOR")
-                return RedirectToAction("AccesoDenegado", "Auth");
+            ConductorBE? conductor = _conductorBC.Listar().FirstOrDefault(c => c.IdUsuario == idUsuario);
+
+            ViewBag.ConductorNombre = conductor?.NombreCompleto ?? "Conductor";
+            ViewBag.RecorridosHoy = 0;
+            ViewBag.IncidenciasAbiertas = 0;
+
+            if (conductor != null)
+            {
+                ViewBag.RecorridosHoy = _recorridoBC.Listar()
+                    .Count(r => r.IdConductor == conductor.IdConductor && r.Fecha.Date == DateTime.Today);
+                ViewBag.IncidenciasAbiertas = _incidenciaBC.Listar()
+                    .Count(i => i.IdConductor == conductor.IdConductor && i.EstadoIncidencia != "RESUELTA");
+            }
 
             return View();
         }
+
+        public IActionResult MiConductor()
+        {
+            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            if (acceso != null)
+                return acceso;
+
+            ConductorBE? conductor = _conductorBC.Listar().FirstOrDefault(c => c.Estado);
+
+            if (conductor == null)
+            {
+                TempData["error"] = "No hay un conductor disponible para mostrar en este momento.";
+                return RedirectToAction("Index", "PadreFamilia");
+            }
+
+            return View(conductor);
+        }
+
+        [HttpGet]
+        public IActionResult MiBus()
+        {
+            IActionResult? acceso = ValidarSesionYRol("CONDUCTOR");
+            if (acceso != null) return acceso;
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult MiRuta()
+        {
+            IActionResult? acceso = ValidarSesionYRol("CONDUCTOR");
+            if (acceso != null) return acceso;
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult Estudiantes()
+        {
+            IActionResult? acceso = ValidarSesionYRol("CONDUCTOR");
+            if (acceso != null) return acceso;
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult Recorrido()
+        {
+            IActionResult? acceso = ValidarSesionYRol("CONDUCTOR");
+            if (acceso != null) return acceso;
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult Abordaje()
+        {
+            IActionResult? acceso = ValidarSesionYRol("CONDUCTOR");
+            if (acceso != null) return acceso;
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult Incidencias()
+        {
+            IActionResult? acceso = ValidarSesionYRol("CONDUCTOR");
+            if (acceso != null) return acceso;
+            return View();
+        }
+
         [HttpGet]
         public IActionResult Listar()
         {
+            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR");
+            if (acceso != null) return acceso;
+
             var lista = _conductorBC.Listar();
             return View(lista);
         }
@@ -40,7 +129,10 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Crear()
         {
-            ConductorFormViewModel vm = new ConductorFormViewModel
+            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR");
+            if (acceso != null) return acceso;
+
+            ConductorFormViewModel vm = new()
             {
                 Estado = true,
                 Usuarios = ObtenerUsuariosDisponibles()
@@ -53,20 +145,23 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Crear(ConductorFormViewModel vm)
         {
-            if (!ModelState.IsValid)
-            {
-                vm.Usuarios = ObtenerUsuarios();
-                return View(vm);
-            }
+            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR");
+            if (acceso != null) return acceso;
 
             if (vm.IdUsuario == Guid.Empty)
                 ModelState.AddModelError(nameof(vm.IdUsuario), "Debe seleccionar un usuario.");
+
+            if (!ModelState.IsValid)
+            {
+                vm.Usuarios = ObtenerUsuariosDisponibles();
+                return View(vm);
+            }
+
             try
             {
-                ConductorBE entidad = new ConductorBE
+                ConductorBE entidad = new()
                 {
                     IdUsuario = vm.IdUsuario,
-                    CodigoConductor = vm.CodigoConductor,
                     Nombres = vm.Nombres,
                     ApellidoPaterno = vm.ApellidoPaterno,
                     ApellidoMaterno = vm.ApellidoMaterno,
@@ -89,16 +184,20 @@ namespace CapiMovil.PL.Gui.Controllers
             }
             catch (Exception ex)
             {
-                TempData["error"] = ex.Message;
+                ModelState.AddModelError(string.Empty, ex.Message);
+                ViewBag.SwalError = ex.Message;
             }
 
-            vm.Usuarios = ObtenerUsuarios();
+            vm.Usuarios = ObtenerUsuariosDisponibles();
             return View(vm);
         }
 
         [HttpGet]
         public IActionResult Editar(Guid id)
         {
+            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR");
+            if (acceso != null) return acceso;
+
             var entidad = _conductorBC.ListarPorId(id);
 
             if (entidad == null)
@@ -107,7 +206,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 return RedirectToAction(nameof(Listar));
             }
 
-            ConductorFormViewModel vm = new ConductorFormViewModel
+            ConductorFormViewModel vm = new()
             {
                 IdConductor = entidad.IdConductor,
                 IdUsuario = entidad.IdUsuario,
@@ -121,7 +220,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 Telefono = entidad.Telefono,
                 Direccion = entidad.Direccion,
                 Estado = entidad.Estado,
-                Usuarios = ObtenerUsuarios()
+                Usuarios = ObtenerUsuariosParaEdicion(entidad.IdUsuario)
             };
 
             return View(vm);
@@ -131,15 +230,21 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Editar(ConductorFormViewModel vm)
         {
+            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR");
+            if (acceso != null) return acceso;
+
+            if (vm.IdUsuario == Guid.Empty)
+                ModelState.AddModelError(nameof(vm.IdUsuario), "Debe seleccionar un usuario.");
+
             if (!ModelState.IsValid)
             {
-                vm.Usuarios = ObtenerUsuarios();
+                vm.Usuarios = ObtenerUsuariosParaEdicion(vm.IdUsuario);
                 return View(vm);
             }
 
             try
             {
-                ConductorBE entidad = new ConductorBE
+                ConductorBE entidad = new()
                 {
                     IdConductor = vm.IdConductor,
                     IdUsuario = vm.IdUsuario,
@@ -166,10 +271,11 @@ namespace CapiMovil.PL.Gui.Controllers
             }
             catch (Exception ex)
             {
-                TempData["error"] = ex.Message;
+                ModelState.AddModelError(string.Empty, ex.Message);
+                ViewBag.SwalError = ex.Message;
             }
 
-            vm.Usuarios = ObtenerUsuarios();
+            vm.Usuarios = ObtenerUsuariosParaEdicion(vm.IdUsuario);
             return View(vm);
         }
 
@@ -177,6 +283,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Eliminar(Guid id)
         {
+            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR");
+            if (acceso != null) return acceso;
+
             try
             {
                 bool ok = _conductorBC.Eliminar(id);
@@ -193,11 +302,29 @@ namespace CapiMovil.PL.Gui.Controllers
             return RedirectToAction(nameof(Listar));
         }
 
-        private List<SelectListItem> ObtenerUsuarios()
+        private IActionResult? ValidarSesionYRol(params string[] rolesPermitidos)
         {
-            var usuarios = _usuarioBC.Listar();
+            string? usuarioId = HttpContext.Session.GetString("UsuarioId");
+            string? rol = HttpContext.Session.GetString("RolNombre");
 
-            return usuarios
+            if (string.IsNullOrWhiteSpace(usuarioId))
+                return RedirectToAction("Login", "Auth");
+
+            string rolNormalizado = (rol ?? string.Empty).Trim().ToUpperInvariant();
+
+            bool permitido = rolesPermitidos
+                .Select(r => r.Trim().ToUpperInvariant())
+                .Contains(rolNormalizado);
+
+            if (!permitido)
+                return RedirectToAction("AccesoDenegado", "Auth");
+
+            return null;
+        }
+
+        private List<SelectListItem> ObtenerUsuariosDisponibles()
+        {
+            return _conductorBC.ListarUsuariosDisponibles()
                 .Select(u => new SelectListItem
                 {
                     Value = u.IdUsuario.ToString(),
@@ -206,15 +333,20 @@ namespace CapiMovil.PL.Gui.Controllers
                 .ToList();
         }
 
-        // Este método obtiene solo los usuarios que no están asignados a ningún conductor,
-        // para evitar conflictos al editar o crear un conductor nuevo.
-        private List<SelectListItem> ObtenerUsuariosDisponibles()
+        private List<SelectListItem> ObtenerUsuariosParaEdicion(Guid idUsuarioActual)
         {
-            return _conductorBC.ListarUsuariosDisponibles()
+            var disponibles = _conductorBC.ListarUsuariosDisponibles();
+            var usuarioActual = _usuarioBC.ListarPorId(idUsuarioActual);
+
+            if (usuarioActual != null && disponibles.All(x => x.IdUsuario != idUsuarioActual))
+                disponibles.Insert(0, usuarioActual);
+
+            return disponibles
                 .Select(u => new SelectListItem
                 {
                     Value = u.IdUsuario.ToString(),
-                    Text = $"{u.Username} - {u.Correo}"
+                    Text = $"{u.Username} - {u.Correo}",
+                    Selected = u.IdUsuario == idUsuarioActual
                 })
                 .ToList();
         }

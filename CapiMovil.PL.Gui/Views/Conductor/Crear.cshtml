@@ -5,90 +5,121 @@
 }
 
 <div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card card-soft">
-            <div class="card-body">
-                <h2 class="page-title mb-4">Crear Conductor</h2>
+    <div class="col-lg-9 col-xl-8">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4 p-md-5">
+                <div class="mb-4">
+                    <h2 class="fw-bold mb-1">Crear Conductor</h2>
+                    <p class="text-muted mb-0">
+                        Registre al conductor y su información de licencia para habilitarlo en recorridos.
+                    </p>
+                </div>
 
                 <form asp-action="Crear" method="post">
                     @Html.AntiForgeryToken()
 
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
+                    <div class="alert alert-info border-0 rounded-3">
+                        <strong>Código automático:</strong> el código del conductor se generará automáticamente al guardar.
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Código Conductor</label>
+                        <input class="form-control bg-light" value="Se generará automáticamente" disabled />
+                    </div>
+
+                    <hr class="my-4" />
+
                     <div class="mb-3">
-                        <label asp-for="IdUsuario" class="form-label"></label>
+                        <h5 class="fw-bold">Vinculación de usuario</h5>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="IdUsuario" class="form-label fw-semibold"></label>
                         <select asp-for="IdUsuario" asp-items="Model.Usuarios" class="form-select">
                             <option value="">-- Seleccione un usuario --</option>
                         </select>
-                        <span asp-validation-for="IdUsuario" class="text-danger"></span>
+                        <span asp-validation-for="IdUsuario" class="text-danger small"></span>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <div class="mb-3">
+                        <h5 class="fw-bold">Datos personales</h5>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="CodigoConductor" class="form-label"></label>
-                        <input asp-for="CodigoConductor" class="form-control" />
-                        <span asp-validation-for="CodigoConductor" class="text-danger"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Nombres" class="form-label"></label>
-                        <input asp-for="Nombres" class="form-control" />
-                        <span asp-validation-for="Nombres" class="text-danger"></span>
+                        <label asp-for="Nombres" class="form-label fw-semibold"></label>
+                        <input asp-for="Nombres" class="form-control" placeholder="Ingrese los nombres" />
+                        <span asp-validation-for="Nombres" class="text-danger small"></span>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label asp-for="ApellidoPaterno" class="form-label"></label>
-                            <input asp-for="ApellidoPaterno" class="form-control" />
-                            <span asp-validation-for="ApellidoPaterno" class="text-danger"></span>
+                            <label asp-for="ApellidoPaterno" class="form-label fw-semibold"></label>
+                            <input asp-for="ApellidoPaterno" class="form-control" placeholder="Ingrese el apellido paterno" />
+                            <span asp-validation-for="ApellidoPaterno" class="text-danger small"></span>
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label asp-for="ApellidoMaterno" class="form-label"></label>
-                            <input asp-for="ApellidoMaterno" class="form-control" />
-                            <span asp-validation-for="ApellidoMaterno" class="text-danger"></span>
+                            <label asp-for="ApellidoMaterno" class="form-label fw-semibold"></label>
+                            <input asp-for="ApellidoMaterno" class="form-control" placeholder="Ingrese el apellido materno" />
+                            <span asp-validation-for="ApellidoMaterno" class="text-danger small"></span>
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label asp-for="DNI" class="form-label"></label>
-                            <input asp-for="DNI" class="form-control" />
-                            <span asp-validation-for="DNI" class="text-danger"></span>
+                            <label asp-for="DNI" class="form-label fw-semibold"></label>
+                            <input asp-for="DNI" class="form-control" maxlength="8" placeholder="Ingrese el DNI" />
+                            <span asp-validation-for="DNI" class="text-danger small"></span>
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label asp-for="Telefono" class="form-label"></label>
-                            <input asp-for="Telefono" class="form-control" />
-                            <span asp-validation-for="Telefono" class="text-danger"></span>
+                            <label asp-for="Telefono" class="form-label fw-semibold"></label>
+                            <input asp-for="Telefono" class="form-control" placeholder="Ingrese el teléfono" />
+                            <span asp-validation-for="Telefono" class="text-danger small"></span>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="Licencia" class="form-label"></label>
-                        <input asp-for="Licencia" class="form-control" />
-                        <span asp-validation-for="Licencia" class="text-danger"></span>
-                    </div>
+                    <hr class="my-4" />
 
                     <div class="mb-3">
-                        <label asp-for="CategoriaLicencia" class="form-label"></label>
-                        <input asp-for="CategoriaLicencia" class="form-control" />
-                        <span asp-validation-for="CategoriaLicencia" class="text-danger"></span>
+                        <h5 class="fw-bold">Datos de licencia y contacto</h5>
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="Direccion" class="form-label"></label>
-                        <input asp-for="Direccion" class="form-control" />
-                        <span asp-validation-for="Direccion" class="text-danger"></span>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Licencia" class="form-label fw-semibold"></label>
+                            <input asp-for="Licencia" class="form-control" placeholder="Ej: Q12345678" />
+                            <span asp-validation-for="Licencia" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="CategoriaLicencia" class="form-label fw-semibold"></label>
+                            <input asp-for="CategoriaLicencia" class="form-control" placeholder="Ej: A2B" />
+                            <span asp-validation-for="CategoriaLicencia" class="text-danger small"></span>
+                        </div>
                     </div>
 
-                    <div class="form-check form-switch mb-4">
-                        <input asp-for="Estado" class="form-check-input" />
-                        <label asp-for="Estado" class="form-check-label"></label>
+                    <div class="mb-4">
+                        <label asp-for="Direccion" class="form-label fw-semibold"></label>
+                        <input asp-for="Direccion" class="form-control" placeholder="Ingrese la dirección" />
+                        <span asp-validation-for="Direccion" class="text-danger small"></span>
                     </div>
 
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">Guardar</button>
-                        <a asp-action="Listar" class="btn btn-secondary">Cancelar</a>
+                    <div class="mb-4">
+                        <h5 class="fw-bold mb-3">Estado del registro</h5>
+                        <div class="form-check form-switch">
+                            <input asp-for="Estado" class="form-check-input" />
+                            <label asp-for="Estado" class="form-check-label fw-semibold"></label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 pt-2">
+                        <button type="submit" class="btn btn-primary px-4">Guardar</button>
+                        <a asp-action="Listar" class="btn btn-outline-secondary px-4">Cancelar</a>
                     </div>
                 </form>
             </div>

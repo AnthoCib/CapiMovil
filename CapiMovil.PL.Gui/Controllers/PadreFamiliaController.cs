@@ -3,7 +3,6 @@ using CapiMovil.BL.BE;
 using CapiMovil.PL.Gui.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Data.SqlClient;
 
 namespace CapiMovil.PL.Gui.Controllers
 {
@@ -11,33 +10,126 @@ namespace CapiMovil.PL.Gui.Controllers
     {
         private readonly PadreFamiliaBC _padreFamiliaBC;
         private readonly UsuarioBC _usuarioBC;
+        private readonly EstudianteBC _estudianteBC;
+        private readonly NotificacionBC _notificacionBC;
+        private readonly EventoAbordajeBC _eventoAbordajeBC;
 
-        public PadreFamiliaController(PadreFamiliaBC padreFamiliaBC, UsuarioBC usuarioBC)
+        public PadreFamiliaController(
+            PadreFamiliaBC padreFamiliaBC,
+            UsuarioBC usuarioBC,
+            EstudianteBC estudianteBC,
+            NotificacionBC notificacionBC,
+            EventoAbordajeBC eventoAbordajeBC)
         {
             _padreFamiliaBC = padreFamiliaBC;
             _usuarioBC = usuarioBC;
+            _estudianteBC = estudianteBC;
+            _notificacionBC = notificacionBC;
+            _eventoAbordajeBC = eventoAbordajeBC;
         }
-
 
         public IActionResult Index()
         {
-            string? usuarioId = HttpContext.Session.GetString("UsuarioId");
-            string? rol = HttpContext.Session.GetString("RolNombre");
+            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            if (acceso != null)
+                return acceso;
 
-            if (string.IsNullOrEmpty(usuarioId))
-                return RedirectToAction("Login", "Auth");
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
 
-            string rolNormalizado = (rol ?? "").Trim().ToUpperInvariant();
+            ViewBag.CantidadHijos = 0;
+            ViewBag.CantidadNotificaciones = 0;
+            ViewBag.PadreNombre = "Padre de Familia";
 
-            if (rolNormalizado != "PADRE" && rolNormalizado != "PADRE DE FAMILIA")
-                return RedirectToAction("AccesoDenegado", "Auth");
+            if (padre != null)
+            {
+                ViewBag.PadreNombre = padre.NombreCompleto;
+                ViewBag.CantidadHijos = _estudianteBC.Listar().Count(e => e.IdPadre == padre.IdPadre);
+                ViewBag.CantidadNotificaciones = _notificacionBC.Listar().Count(n => n.IdPadre == padre.IdPadre && !n.Leido);
+            }
 
             return View();
         }
 
         [HttpGet]
+        public IActionResult MisHijos()
+        {
+            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            List<EstudianteBE> hijos = padre == null
+                ? new List<EstudianteBE>()
+                : _estudianteBC.Listar().Where(e => e.IdPadre == padre.IdPadre).ToList();
+
+            return View(hijos);
+        }
+
+        [HttpGet]
+        public IActionResult Notificaciones()
+        {
+            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            List<NotificacionBE> notificaciones = padre == null
+                ? new List<NotificacionBE>()
+                : _notificacionBC.Listar().Where(n => n.IdPadre == padre.IdPadre).ToList();
+
+            return View(notificaciones);
+        }
+
+        [HttpGet]
+        public IActionResult MiRuta()
+        {
+            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            if (acceso != null)
+                return acceso;
+
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult MiParadero()
+        {
+            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            if (acceso != null)
+                return acceso;
+
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult MisEventos()
+        {
+            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            if (padre == null)
+                return View(new List<EventoAbordajeBE>());
+
+            HashSet<Guid> idsHijos = _estudianteBC.Listar()
+                .Where(e => e.IdPadre == padre.IdPadre)
+                .Select(e => e.IdEstudiante)
+                .ToHashSet();
+
+            List<EventoAbordajeBE> eventos = _eventoAbordajeBC.Listar()
+                .Where(e => idsHijos.Contains(e.IdEstudiante))
+                .OrderByDescending(e => e.FechaHora)
+                .ToList();
+
+            return View(eventos);
+        }
+
+        [HttpGet]
         public IActionResult Listar()
         {
+            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR");
+            if (acceso != null) return acceso;
+
             var lista = _padreFamiliaBC.Listar();
             return View(lista);
         }
@@ -45,7 +137,10 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Crear()
         {
-            PadreFamiliaFormViewModel vm = new PadreFamiliaFormViewModel
+            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR");
+            if (acceso != null) return acceso;
+
+            PadreFamiliaFormViewModel vm = new()
             {
                 Estado = true,
                 Usuarios = ObtenerUsuariosDisponibles()
@@ -58,17 +153,21 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Crear(PadreFamiliaFormViewModel vm)
         {
+            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR");
+            if (acceso != null) return acceso;
+
+            if (vm.IdUsuario == Guid.Empty)
+                ModelState.AddModelError(nameof(vm.IdUsuario), "Debe seleccionar un usuario.");
+
             if (!ModelState.IsValid)
             {
                 vm.Usuarios = ObtenerUsuariosDisponibles();
                 return View(vm);
             }
-            if (vm.IdUsuario == Guid.Empty)
-                ModelState.AddModelError(nameof(vm.IdUsuario), "Debe seleccionar un usuario.");
 
             try
             {
-                PadreFamiliaBE entidad = new PadreFamiliaBE
+                PadreFamiliaBE entidad = new()
                 {
                     IdUsuario = vm.IdUsuario,
                     Nombres = vm.Nombres,
@@ -91,29 +190,11 @@ namespace CapiMovil.PL.Gui.Controllers
                 if (ok)
                     return RedirectToAction(nameof(Listar));
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                if (ex.Number == 2627 || ex.Number == 2601)
-                {
-                    if (ex.Message.Contains("UQ_Padre_DNI"))
-                    {
-                        ModelState.AddModelError(nameof(vm.DNI), "El DNI ya está registrado.");
-                        ViewBag.SwalError = "El DNI ya está registrado.";
-                    }
-                    else
-                    {
-                        ModelState.AddModelError(string.Empty, "Ya existe un registro con esos datos.");
-                        ViewBag.SwalError = "Ya existe un registro con esos datos.";
-                    }
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Ocurrió un error al registrar al padre de familia.");
-                    ViewBag.SwalError = "Ocurrió un error al registrar al padre de familia.";
-                }
-
+                ModelState.AddModelError(string.Empty, ex.Message);
+                ViewBag.SwalError = ex.Message;
             }
-
 
             vm.Usuarios = ObtenerUsuariosDisponibles();
             return View(vm);
@@ -122,6 +203,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Editar(Guid id)
         {
+            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR");
+            if (acceso != null) return acceso;
+
             var entidad = _padreFamiliaBC.ListarPorId(id);
 
             if (entidad == null)
@@ -130,7 +214,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 return RedirectToAction(nameof(Listar));
             }
 
-            PadreFamiliaFormViewModel vm = new PadreFamiliaFormViewModel
+            PadreFamiliaFormViewModel vm = new()
             {
                 IdPadre = entidad.IdPadre,
                 IdUsuario = entidad.IdUsuario,
@@ -144,7 +228,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 Direccion = entidad.Direccion,
                 CorreoContacto = entidad.CorreoContacto,
                 Estado = entidad.Estado,
-                Usuarios = ObtenerUsuarios()
+                Usuarios = ObtenerUsuariosParaEdicion(entidad.IdUsuario)
             };
 
             return View(vm);
@@ -154,15 +238,21 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Editar(PadreFamiliaFormViewModel vm)
         {
+            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR");
+            if (acceso != null) return acceso;
+
+            if (vm.IdUsuario == Guid.Empty)
+                ModelState.AddModelError(nameof(vm.IdUsuario), "Debe seleccionar un usuario.");
+
             if (!ModelState.IsValid)
             {
-                vm.Usuarios = ObtenerUsuarios();
+                vm.Usuarios = ObtenerUsuariosParaEdicion(vm.IdUsuario);
                 return View(vm);
             }
 
             try
             {
-                PadreFamiliaBE entidad = new PadreFamiliaBE
+                PadreFamiliaBE entidad = new()
                 {
                     IdPadre = vm.IdPadre,
                     IdUsuario = vm.IdUsuario,
@@ -189,10 +279,11 @@ namespace CapiMovil.PL.Gui.Controllers
             }
             catch (Exception ex)
             {
-                TempData["error"] = ex.Message;
+                ModelState.AddModelError(string.Empty, ex.Message);
+                ViewBag.SwalError = ex.Message;
             }
 
-            vm.Usuarios = ObtenerUsuarios();
+            vm.Usuarios = ObtenerUsuariosParaEdicion(vm.IdUsuario);
             return View(vm);
         }
 
@@ -200,6 +291,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Eliminar(Guid id)
         {
+            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR");
+            if (acceso != null) return acceso;
+
             try
             {
                 bool ok = _padreFamiliaBC.Eliminar(id);
@@ -216,11 +310,38 @@ namespace CapiMovil.PL.Gui.Controllers
             return RedirectToAction(nameof(Listar));
         }
 
-        private List<SelectListItem> ObtenerUsuarios()
+        private IActionResult? ValidarSesionYRol(params string[] rolesPermitidos)
         {
-            var usuarios = _usuarioBC.Listar();
+            string? usuarioId = HttpContext.Session.GetString("UsuarioId");
+            string? rol = HttpContext.Session.GetString("RolNombre");
 
-            return usuarios
+            if (string.IsNullOrWhiteSpace(usuarioId))
+                return RedirectToAction("Login", "Auth");
+
+            string rolNormalizado = (rol ?? string.Empty).Trim().ToUpperInvariant();
+
+            bool permitido = rolesPermitidos
+                .Select(r => r.Trim().ToUpperInvariant())
+                .Contains(rolNormalizado);
+
+            if (!permitido)
+                return RedirectToAction("AccesoDenegado", "Auth");
+
+            return null;
+        }
+
+        private PadreFamiliaBE? ObtenerPadreAutenticado()
+        {
+            string? usuarioId = HttpContext.Session.GetString("UsuarioId");
+            if (!Guid.TryParse(usuarioId, out Guid idUsuario))
+                return null;
+
+            return _padreFamiliaBC.Listar().FirstOrDefault(p => p.IdUsuario == idUsuario);
+        }
+
+        private List<SelectListItem> ObtenerUsuariosDisponibles()
+        {
+            return _padreFamiliaBC.ListarUsuariosDisponibles()
                 .Select(u => new SelectListItem
                 {
                     Value = u.IdUsuario.ToString(),
@@ -229,15 +350,20 @@ namespace CapiMovil.PL.Gui.Controllers
                 .ToList();
         }
 
-        // Este método obtiene solo los usuarios que no están vinculados a ningún padre de familia,
-        // para evitar conflictos al editar.
-        private List<SelectListItem> ObtenerUsuariosDisponibles()
+        private List<SelectListItem> ObtenerUsuariosParaEdicion(Guid idUsuarioActual)
         {
-            return _padreFamiliaBC.ListarUsuariosDisponibles()
+            var disponibles = _padreFamiliaBC.ListarUsuariosDisponibles();
+            var usuarioActual = _usuarioBC.ListarPorId(idUsuarioActual);
+
+            if (usuarioActual != null && disponibles.All(x => x.IdUsuario != idUsuarioActual))
+                disponibles.Insert(0, usuarioActual);
+
+            return disponibles
                 .Select(u => new SelectListItem
                 {
                     Value = u.IdUsuario.ToString(),
-                    Text = $"{u.Username} - {u.Correo}"
+                    Text = $"{u.Username} - {u.Correo}",
+                    Selected = u.IdUsuario == idUsuarioActual
                 })
                 .ToList();
         }

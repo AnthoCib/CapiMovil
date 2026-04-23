@@ -1,5 +1,54 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    ViewData["Title"] = "Panel del Conductor";
 }
+
+<div class="mb-4">
+    <h2 class="fw-bold">Bienvenido, @ViewBag.ConductorNombre</h2>
+    <p class="text-muted mb-0">Desde aquí puede acceder rápidamente a sus operaciones del día.</p>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h6 class="text-muted">Recorridos de hoy</h6>
+                <h3 class="fw-bold">@ViewBag.RecorridosHoy</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h6 class="text-muted">Incidencias abiertas</h6>
+                <h3 class="fw-bold">@ViewBag.IncidenciasAbiertas</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-md-6 col-xl-3">
+        <a class="card text-decoration-none shadow-sm border-0 h-100" asp-controller="Conductor" asp-action="Recorrido">
+            <div class="card-body">
+                <h5 class="card-title">Mis recorridos</h5>
+                <p class="card-text text-muted">Consulte y gestione su operación diaria.</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <a class="card text-decoration-none shadow-sm border-0 h-100" asp-controller="Conductor" asp-action="Abordaje">
+            <div class="card-body">
+                <h5 class="card-title">Registrar abordajes</h5>
+                <p class="card-text text-muted">Registre subidas y bajadas de estudiantes.</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <a class="card text-decoration-none shadow-sm border-0 h-100" asp-controller="Conductor" asp-action="Incidencias">
+            <div class="card-body">
+                <h5 class="card-title">Incidencias</h5>
+                <p class="card-text text-muted">Reporte y actualice incidencias operativas.</p>
+            </div>
+        </a>
+    </div>
+</div>

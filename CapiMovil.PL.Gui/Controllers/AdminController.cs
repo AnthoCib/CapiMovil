@@ -12,7 +12,8 @@ namespace CapiMovil.PL.Gui.Controllers
             if (string.IsNullOrEmpty(usuarioId))
                 return RedirectToAction("Login", "Auth");
 
-            if ((rol ?? "").Trim().ToUpperInvariant() != "ADMINISTRADOR")
+            string rolNormalizado = (rol ?? "").Trim().ToUpperInvariant();
+            if (rolNormalizado != "ADMINISTRADOR" && rolNormalizado != "ADMIN")
                 return RedirectToAction("AccesoDenegado", "Auth");
 
             return View();

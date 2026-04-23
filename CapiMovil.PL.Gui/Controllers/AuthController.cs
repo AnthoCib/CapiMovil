@@ -21,6 +21,7 @@ namespace CapiMovil.PL.Gui.Controllers
             return rolNormalizado switch
             {
                 "ADMINISTRADOR" => RedirectToAction("Index", "Admin"),
+                "ADMIN" => RedirectToAction("Index", "Admin"),
                 "CONDUCTOR" => RedirectToAction("Index", "Conductor"),
                 "PADRE" => RedirectToAction("Index", "PadreFamilia"),
                 "PADRE DE FAMILIA" => RedirectToAction("Index", "PadreFamilia"),
