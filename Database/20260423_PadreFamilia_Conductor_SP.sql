@@ -80,13 +80,43 @@ BEGIN
     SET NOCOUNT ON;
 
     DECLARE @Correlativo INT;
+    DECLARE @Fragmento VARCHAR(6);
 
-    SELECT @Correlativo = ISNULL(MAX(TRY_CONVERT(INT, RIGHT(CodigoPadre, 6))), 0) + 1
-    FROM dbo.PadreFamilia;
+    SET @Fragmento =
+        UPPER(LEFT(LTRIM(RTRIM(ISNULL(@Nombres, 'X'))), 2)) +
+        UPPER(LEFT(LTRIM(RTRIM(ISNULL(@ApellidoPaterno, 'X'))), 2)) +
+        UPPER(LEFT(LTRIM(RTRIM(ISNULL(@ApellidoMaterno, 'X'))), 2));
 
-    SET @CodigoGenerado = CONCAT('PAD-', RIGHT(CONCAT('000000', @Correlativo), 6));
+    BEGIN TRANSACTION;
 
-    INSERT INTO dbo.PadreFamilia
+    BEGIN TRY
+        IF OBJECT_ID('dbo.CorrelativoDocumento', 'U') IS NOT NULL
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM dbo.CorrelativoDocumento WITH (UPDLOCK, HOLDLOCK) WHERE TipoDocumento = 'PADRE')
+            BEGIN
+                INSERT INTO dbo.CorrelativoDocumento (TipoDocumento, UltimoNumero, FechaActualizacion)
+                VALUES ('PADRE', 0, GETDATE());
+            END
+
+            UPDATE dbo.CorrelativoDocumento
+               SET UltimoNumero = UltimoNumero + 1,
+                   FechaActualizacion = GETDATE()
+             WHERE TipoDocumento = 'PADRE';
+
+            SELECT @Correlativo = UltimoNumero
+              FROM dbo.CorrelativoDocumento WITH (UPDLOCK, HOLDLOCK)
+             WHERE TipoDocumento = 'PADRE';
+        END
+        ELSE
+        BEGIN
+            SELECT @Correlativo = ISNULL(MAX(TRY_CAST(RIGHT(CodigoPadre, 4) AS INT)), 0) + 1
+            FROM dbo.PadreFamilia
+            WHERE CodigoPadre LIKE 'PAD-%[0-9][0-9][0-9][0-9]';
+        END
+
+        SET @CodigoGenerado = CONCAT('PAD-', @Fragmento, RIGHT(CONCAT('0000', @Correlativo), 4));
+
+        INSERT INTO dbo.PadreFamilia
     (
         IdPadre,
         IdUsuario,
@@ -104,26 +134,37 @@ BEGIN
         FechaActualizacion,
         FechaEliminacion
     )
-    VALUES
-    (
-        NEWID(),
-        @IdUsuario,
-        @CodigoGenerado,
-        @Nombres,
-        @ApellidoPaterno,
-        @ApellidoMaterno,
-        NULLIF(@DNI, ''),
-        NULLIF(@Telefono, ''),
-        NULLIF(@TelefonoAlterno, ''),
-        NULLIF(@Direccion, ''),
-        NULLIF(@CorreoContacto, ''),
-        @Estado,
-        SYSUTCDATETIME(),
-        NULL,
-        NULL
-    );
+        VALUES
+        (
+            NEWID(),
+            @IdUsuario,
+            @CodigoGenerado,
+            @Nombres,
+            @ApellidoPaterno,
+            @ApellidoMaterno,
+            NULLIF(@DNI, ''),
+            NULLIF(@Telefono, ''),
+            NULLIF(@TelefonoAlterno, ''),
+            NULLIF(@Direccion, ''),
+            NULLIF(@CorreoContacto, ''),
+            @Estado,
+            SYSUTCDATETIME(),
+            NULL,
+            NULL
+        );
 
-    SELECT @@ROWCOUNT AS FilasAfectadas;
+        COMMIT TRANSACTION;
+
+        SELECT
+            @@ROWCOUNT AS FilasAfectadas,
+            @CodigoGenerado AS CodigoGenerado;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+
+        THROW;
+    END CATCH
 END
 GO
 
@@ -287,13 +328,43 @@ BEGIN
     SET NOCOUNT ON;
 
     DECLARE @Correlativo INT;
+    DECLARE @Fragmento VARCHAR(6);
 
-    SELECT @Correlativo = ISNULL(MAX(TRY_CONVERT(INT, RIGHT(CodigoConductor, 6))), 0) + 1
-    FROM dbo.Conductor;
+    SET @Fragmento =
+        UPPER(LEFT(LTRIM(RTRIM(ISNULL(@Nombres, 'X'))), 2)) +
+        UPPER(LEFT(LTRIM(RTRIM(ISNULL(@ApellidoPaterno, 'X'))), 2)) +
+        UPPER(LEFT(LTRIM(RTRIM(ISNULL(@ApellidoMaterno, 'X'))), 2));
 
-    SET @CodigoGenerado = CONCAT('CON-', RIGHT(CONCAT('000000', @Correlativo), 6));
+    BEGIN TRANSACTION;
 
-    INSERT INTO dbo.Conductor
+    BEGIN TRY
+        IF OBJECT_ID('dbo.CorrelativoDocumento', 'U') IS NOT NULL
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM dbo.CorrelativoDocumento WITH (UPDLOCK, HOLDLOCK) WHERE TipoDocumento = 'CONDUCTOR')
+            BEGIN
+                INSERT INTO dbo.CorrelativoDocumento (TipoDocumento, UltimoNumero, FechaActualizacion)
+                VALUES ('CONDUCTOR', 0, GETDATE());
+            END
+
+            UPDATE dbo.CorrelativoDocumento
+               SET UltimoNumero = UltimoNumero + 1,
+                   FechaActualizacion = GETDATE()
+             WHERE TipoDocumento = 'CONDUCTOR';
+
+            SELECT @Correlativo = UltimoNumero
+              FROM dbo.CorrelativoDocumento WITH (UPDLOCK, HOLDLOCK)
+             WHERE TipoDocumento = 'CONDUCTOR';
+        END
+        ELSE
+        BEGIN
+            SELECT @Correlativo = ISNULL(MAX(TRY_CAST(RIGHT(CodigoConductor, 4) AS INT)), 0) + 1
+            FROM dbo.Conductor
+            WHERE CodigoConductor LIKE 'CON-%[0-9][0-9][0-9][0-9]';
+        END
+
+        SET @CodigoGenerado = CONCAT('CON-', @Fragmento, RIGHT(CONCAT('0000', @Correlativo), 4));
+
+        INSERT INTO dbo.Conductor
     (
         IdConductor,
         IdUsuario,
@@ -311,26 +382,37 @@ BEGIN
         FechaActualizacion,
         FechaEliminacion
     )
-    VALUES
-    (
-        NEWID(),
-        @IdUsuario,
-        @CodigoGenerado,
-        @Nombres,
-        @ApellidoPaterno,
-        @ApellidoMaterno,
-        NULLIF(@DNI, ''),
-        @Licencia,
-        NULLIF(@CategoriaLicencia, ''),
-        NULLIF(@Telefono, ''),
-        NULLIF(@Direccion, ''),
-        @Estado,
-        SYSUTCDATETIME(),
-        NULL,
-        NULL
-    );
+        VALUES
+        (
+            NEWID(),
+            @IdUsuario,
+            @CodigoGenerado,
+            @Nombres,
+            @ApellidoPaterno,
+            @ApellidoMaterno,
+            NULLIF(@DNI, ''),
+            @Licencia,
+            NULLIF(@CategoriaLicencia, ''),
+            NULLIF(@Telefono, ''),
+            NULLIF(@Direccion, ''),
+            @Estado,
+            SYSUTCDATETIME(),
+            NULL,
+            NULL
+        );
 
-    SELECT @@ROWCOUNT AS FilasAfectadas;
+        COMMIT TRANSACTION;
+
+        SELECT
+            @@ROWCOUNT AS FilasAfectadas,
+            @CodigoGenerado AS CodigoGenerado;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+
+        THROW;
+    END CATCH
 END
 GO
 
@@ -701,33 +783,36 @@ BEGIN
         UPPER(LEFT(LTRIM(RTRIM(ISNULL(@ApellidoPaterno, 'X'))), 2)) +
         UPPER(LEFT(LTRIM(RTRIM(ISNULL(@ApellidoMaterno, 'X'))), 2));
 
-    IF OBJECT_ID('dbo.CorrelativoDocumento', 'U') IS NOT NULL
-    BEGIN
-        IF NOT EXISTS (SELECT 1 FROM dbo.CorrelativoDocumento WHERE TipoDocumento = 'ESTUDIANTE')
+    BEGIN TRANSACTION;
+
+    BEGIN TRY
+        IF OBJECT_ID('dbo.CorrelativoDocumento', 'U') IS NOT NULL
         BEGIN
-            INSERT INTO dbo.CorrelativoDocumento (TipoDocumento, UltimoNumero, FechaActualizacion)
-            VALUES ('ESTUDIANTE', 0, GETDATE());
+            IF NOT EXISTS (SELECT 1 FROM dbo.CorrelativoDocumento WITH (UPDLOCK, HOLDLOCK) WHERE TipoDocumento = 'ESTUDIANTE')
+            BEGIN
+                INSERT INTO dbo.CorrelativoDocumento (TipoDocumento, UltimoNumero, FechaActualizacion)
+                VALUES ('ESTUDIANTE', 0, GETDATE());
+            END
+
+            UPDATE dbo.CorrelativoDocumento
+               SET UltimoNumero = UltimoNumero + 1,
+                   FechaActualizacion = GETDATE()
+             WHERE TipoDocumento = 'ESTUDIANTE';
+
+            SELECT @Correlativo = UltimoNumero
+              FROM dbo.CorrelativoDocumento WITH (UPDLOCK, HOLDLOCK)
+             WHERE TipoDocumento = 'ESTUDIANTE';
+        END
+        ELSE
+        BEGIN
+            SELECT @Correlativo = ISNULL(MAX(TRY_CAST(RIGHT(CodigoEstudiante, 4) AS INT)), 0) + 1
+            FROM dbo.Estudiante
+            WHERE CodigoEstudiante LIKE 'EST-%[0-9][0-9][0-9][0-9]';
         END
 
-        UPDATE dbo.CorrelativoDocumento
-           SET UltimoNumero = UltimoNumero + 1,
-               FechaActualizacion = GETDATE()
-         WHERE TipoDocumento = 'ESTUDIANTE';
+        SET @CodigoGenerado = CONCAT('EST-', @Fragmento, RIGHT(CONCAT('0000', @Correlativo), 4));
 
-        SELECT @Correlativo = UltimoNumero
-          FROM dbo.CorrelativoDocumento
-         WHERE TipoDocumento = 'ESTUDIANTE';
-    END
-    ELSE
-    BEGIN
-        SELECT @Correlativo = ISNULL(MAX(TRY_CAST(RIGHT(CodigoEstudiante, 4) AS INT)), 0) + 1
-        FROM dbo.Estudiante
-        WHERE CodigoEstudiante LIKE 'EST-%[0-9][0-9][0-9][0-9]';
-    END
-
-    SET @CodigoGenerado = CONCAT('EST-', @Fragmento, RIGHT(CONCAT('0000', @Correlativo), 4));
-
-    INSERT INTO dbo.Estudiante
+        INSERT INTO dbo.Estudiante
     (
         IdPadre,
         CodigoEstudiante,
@@ -746,28 +831,37 @@ BEGIN
         Observaciones,
         Estado
     )
-    VALUES
-    (
-        @IdPadre,
-        @CodigoGenerado,
-        @Nombres,
-        @ApellidoPaterno,
-        @ApellidoMaterno,
-        @DNI,
-        @FechaNacimiento,
-        @Genero,
-        @Grado,
-        @Seccion,
-        @Direccion,
-        @LatitudCasa,
-        @LongitudCasa,
-        @FotoUrl,
-        @Observaciones,
-        @Estado
-    );
+        VALUES
+        (
+            @IdPadre,
+            @CodigoGenerado,
+            @Nombres,
+            @ApellidoPaterno,
+            @ApellidoMaterno,
+            @DNI,
+            @FechaNacimiento,
+            @Genero,
+            @Grado,
+            @Seccion,
+            @Direccion,
+            @LatitudCasa,
+            @LongitudCasa,
+            @FotoUrl,
+            @Observaciones,
+            @Estado
+        );
 
-    SELECT
-        @@ROWCOUNT AS FilasAfectadas,
-        @CodigoGenerado AS CodigoGenerado;
+        COMMIT TRANSACTION;
+
+        SELECT
+            @@ROWCOUNT AS FilasAfectadas,
+            @CodigoGenerado AS CodigoGenerado;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+
+        THROW;
+    END CATCH
 END
 GO

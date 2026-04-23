@@ -73,11 +73,13 @@ namespace CapiMovil.DL.DALC
             codigoOutput.Direction = ParameterDirection.Output;
 
             cn.Open();
-            int filas = cmd.ExecuteNonQuery();
+            using SqlDataReader dr = cmd.ExecuteReader();
 
-            if (filas > 0)
+            if (dr.Read() && Convert.ToInt32(dr["FilasAfectadas"]) > 0)
             {
-                padre.CodigoPadre = codigoOutput.Value?.ToString() ?? string.Empty;
+                padre.CodigoPadre = dr["CodigoGenerado"]?.ToString()
+                    ?? codigoOutput.Value?.ToString()
+                    ?? string.Empty;
                 return true;
             }
 
