@@ -232,8 +232,8 @@ namespace CapiMovil.PL.Gui.Controllers
                     NombreEstudiante = estudiante.NombreCompleto,
                     Ruta = $"{r.Ruta?.CodigoRuta} - {r.Ruta?.Nombre}",
                     Paradero = paradaSubida?.Nombre,
-                    RecorridoHoy = recorridoHoy?.CodigoRecorrido,
-                    EstadoRecorrido = recorridoHoy?.EstadoRecorrido,
+                    RecorridoDeHoy = recorridoHoy?.CodigoRecorrido ?? "Sin recorrido asignado hoy",
+                    Estado = recorridoHoy?.EstadoRecorrido ?? "Sin estado disponible",
                     UltimoEvento = ultimoEvento?.TipoEvento,
                     FechaUltimoEvento = ultimoEvento?.FechaHora
                 };
