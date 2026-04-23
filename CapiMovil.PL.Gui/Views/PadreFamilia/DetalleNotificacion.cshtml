@@ -1,0 +1,15 @@
+@model CapiMovil.BL.BE.NotificacionBE
+@{
+    ViewData["Title"] = "Detalle de Notificación";
+}
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <h2 class="fw-bold mb-3">@Model.Titulo</h2>
+        <p><strong>Tipo:</strong> @Model.TipoNotificacion</p>
+        <p><strong>Canal:</strong> @Model.Canal</p>
+        <p><strong>Fecha:</strong> @Model.FechaEnvio.ToString("dd/MM/yyyy HH:mm")</p>
+        <p><strong>Mensaje:</strong></p>
+        <div class="border rounded p-3 bg-light">@Model.Mensaje</div>
+        <a asp-action="Notificaciones" class="btn btn-outline-secondary mt-3">Volver</a>
+    </div>
+</div>

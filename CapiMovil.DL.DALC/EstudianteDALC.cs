@@ -32,6 +32,9 @@ namespace CapiMovil.DL.DALC
                 {
                     IdEstudiante = dr.GetGuid(dr.GetOrdinal("IdEstudiante")),
                     IdPadre = dr.GetGuid(dr.GetOrdinal("IdPadre")),
+                    CodigoEstudiante = ExisteColumna(dr, "CodigoEstudiante") && dr["CodigoEstudiante"] != DBNull.Value
+                        ? dr["CodigoEstudiante"].ToString() ?? string.Empty
+                        : string.Empty,
                     Nombres = dr["Nombres"].ToString() ?? string.Empty,
                     ApellidoPaterno = dr["ApellidoPaterno"].ToString() ?? string.Empty,
                     ApellidoMaterno = dr["ApellidoMaterno"].ToString() ?? string.Empty,
@@ -105,7 +108,6 @@ namespace CapiMovil.DL.DALC
 
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@IdPadre", estudiante.IdPadre);
-            cmd.Parameters.AddWithValue("@CodigoEstudiante", estudiante.CodigoEstudiante);
             cmd.Parameters.AddWithValue("@Nombres", estudiante.Nombres);
             cmd.Parameters.AddWithValue("@ApellidoPaterno", estudiante.ApellidoPaterno);
             cmd.Parameters.AddWithValue("@ApellidoMaterno", estudiante.ApellidoMaterno);
@@ -120,11 +122,16 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.AddWithValue("@FotoUrl", (object?)estudiante.FotoUrl ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Observaciones", (object?)estudiante.Observaciones ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Estado", estudiante.Estado);
-
             cn.Open();
-            int filas = cmd.ExecuteNonQuery();
+            using SqlDataReader dr = cmd.ExecuteReader();
 
-            return filas > 0;
+            if (RegistroResultadoDALC.EsRegistroExitoso(dr, out int filas, out string codigoGenerado, out string? mensaje))
+            {
+                estudiante.CodigoEstudiante = codigoGenerado;
+                return true;
+            }
+
+            return false;
         }
 
         public bool Actualizar(EstudianteBE estudiante)
@@ -203,6 +210,18 @@ namespace CapiMovil.DL.DALC
 
             return lista;
         }
+
+        private static bool ExisteColumna(SqlDataReader dr, string nombreColumna)
+        {
+            for (int i = 0; i < dr.FieldCount; i++)
+            {
+                if (dr.GetName(i).Equals(nombreColumna, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            return false;
+        }
+
         public Guid ObtenerPadrePorEstudiante(Guid idEstudiante)
         {
             using SqlConnection cn = _bdConexion.ObtenerConexion();

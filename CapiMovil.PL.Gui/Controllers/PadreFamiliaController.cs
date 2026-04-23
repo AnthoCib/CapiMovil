@@ -1,9 +1,9 @@
 ﻿using CapiMovil.BL.BC;
 using CapiMovil.BL.BE;
+using CapiMovil.PL.Gui.Infrastructure;
 using CapiMovil.PL.Gui.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Data.SqlClient;
 
 namespace CapiMovil.PL.Gui.Controllers
 {
@@ -11,33 +11,370 @@ namespace CapiMovil.PL.Gui.Controllers
     {
         private readonly PadreFamiliaBC _padreFamiliaBC;
         private readonly UsuarioBC _usuarioBC;
+        private readonly EstudianteBC _estudianteBC;
+        private readonly NotificacionBC _notificacionBC;
+        private readonly EventoAbordajeBC _eventoAbordajeBC;
+        private readonly RutaEstudianteBC _rutaEstudianteBC;
+        private readonly RecorridoBC _recorridoBC;
+        private readonly ParaderoBC _paraderoBC;
+        private readonly IncidenciaBC _incidenciaBC;
 
-        public PadreFamiliaController(PadreFamiliaBC padreFamiliaBC, UsuarioBC usuarioBC)
+        public PadreFamiliaController(
+            PadreFamiliaBC padreFamiliaBC,
+            UsuarioBC usuarioBC,
+            EstudianteBC estudianteBC,
+            NotificacionBC notificacionBC,
+            EventoAbordajeBC eventoAbordajeBC,
+            RutaEstudianteBC rutaEstudianteBC,
+            RecorridoBC recorridoBC,
+            ParaderoBC paraderoBC,
+            IncidenciaBC incidenciaBC)
         {
             _padreFamiliaBC = padreFamiliaBC;
             _usuarioBC = usuarioBC;
+            _estudianteBC = estudianteBC;
+            _notificacionBC = notificacionBC;
+            _eventoAbordajeBC = eventoAbordajeBC;
+            _rutaEstudianteBC = rutaEstudianteBC;
+            _recorridoBC = recorridoBC;
+            _paraderoBC = paraderoBC;
+            _incidenciaBC = incidenciaBC;
         }
-
 
         public IActionResult Index()
         {
-            string? usuarioId = HttpContext.Session.GetString("UsuarioId");
-            string? rol = HttpContext.Session.GetString("RolNombre");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
+            if (acceso != null)
+                return acceso;
 
-            if (string.IsNullOrEmpty(usuarioId))
-                return RedirectToAction("Login", "Auth");
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            if (padre == null)
+            {
+                TempData["error"] = "No existe un padre de familia vinculado al usuario autenticado.";
+                return RedirectToAction("SesionInvalida", "Auth");
+            }
 
-            string rolNormalizado = (rol ?? "").Trim().ToUpperInvariant();
+            List<EstudianteBE> hijos = ObtenerHijos(padre.IdPadre);
+            HashSet<Guid> idsHijos = hijos.Select(h => h.IdEstudiante).ToHashSet();
 
-            if (rolNormalizado != "PADRE" && rolNormalizado != "PADRE DE FAMILIA")
-                return RedirectToAction("AccesoDenegado", "Auth");
+            PadreDashboardViewModel vm = new()
+            {
+                NombrePadre = padre.NombreCompleto,
+                CantidadHijos = hijos.Count,
+                CantidadNotificacionesPendientes = _notificacionBC.ListarNoLeidasPorPadre(padre.IdPadre).Count,
+                CantidadEventosRecientes = _eventoAbordajeBC.Listar()
+                    .Count(e => idsHijos.Contains(e.IdEstudiante) && e.FechaHora >= DateTime.Today.AddDays(-7))
+            };
 
-            return View();
+            return View(vm);
+        }
+
+        [HttpGet]
+        public IActionResult MisHijos()
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            List<EstudianteBE> hijos = padre == null ? new() : ObtenerHijos(padre.IdPadre);
+
+            return View(hijos);
+        }
+
+        [HttpGet]
+        public IActionResult DetalleHijo(Guid idEstudiante)
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            if (padre == null)
+                return RedirectToAction(nameof(MisHijos));
+
+            EstudianteBE? estudiante = _estudianteBC.Listar()
+                .FirstOrDefault(e => e.IdEstudiante == idEstudiante && e.IdPadre == padre.IdPadre);
+
+            if (estudiante == null)
+            {
+                TempData["error"] = "No tiene acceso al estudiante solicitado.";
+                return RedirectToAction(nameof(MisHijos));
+            }
+
+            RutaEstudianteBE? ruta = _rutaEstudianteBC.Listar()
+                .Where(re => re.IdEstudiante == estudiante.IdEstudiante && re.Estado)
+                .OrderByDescending(re => re.FechaInicioVigencia)
+                .FirstOrDefault();
+
+            ParaderoBE? subida = ruta?.IdParaderoSubida.HasValue == true ? _paraderoBC.ListarPorId(ruta.IdParaderoSubida.Value) : null;
+            ParaderoBE? bajada = ruta?.IdParaderoBajada.HasValue == true ? _paraderoBC.ListarPorId(ruta.IdParaderoBajada.Value) : null;
+
+            List<EventoAbordajeBE> eventos = _eventoAbordajeBC.Listar()
+                .Where(e => e.IdEstudiante == estudiante.IdEstudiante)
+                .OrderByDescending(e => e.FechaHora)
+                .Take(20)
+                .ToList();
+
+            PadreHijoDetalleViewModel vm = new()
+            {
+                Estudiante = estudiante,
+                RutaAsignada = ruta,
+                ParaderoSubida = subida,
+                ParaderoBajada = bajada,
+                EventosRecientes = eventos
+            };
+
+            return View(vm);
+        }
+
+        [HttpGet]
+        public IActionResult Notificaciones()
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            List<NotificacionBE> notificaciones = padre == null
+                ? new List<NotificacionBE>()
+                : _notificacionBC.ListarPorPadre(padre.IdPadre)
+                    .OrderByDescending(n => n.FechaEnvio)
+                    .ToList();
+
+            return View(notificaciones);
+        }
+
+        [HttpGet]
+        public IActionResult DetalleNotificacion(Guid idNotificacion)
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            if (padre == null)
+                return RedirectToAction(nameof(Notificaciones));
+
+            NotificacionBE? notificacion = _notificacionBC.ListarPorId(idNotificacion);
+            if (notificacion == null || notificacion.IdPadre != padre.IdPadre)
+            {
+                TempData["error"] = "No tiene acceso a la notificación solicitada.";
+                return RedirectToAction(nameof(Notificaciones));
+            }
+
+            return View(notificacion);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult MarcarNotificacionLeida(Guid idNotificacion)
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            if (padre == null)
+                return RedirectToAction(nameof(Notificaciones));
+
+            NotificacionBE? notificacion = _notificacionBC.ListarPorId(idNotificacion);
+            if (notificacion == null || notificacion.IdPadre != padre.IdPadre)
+            {
+                TempData["error"] = "No tiene permiso para actualizar esta notificación.";
+                return RedirectToAction(nameof(Notificaciones));
+            }
+
+            bool ok = _notificacionBC.MarcarLeida(idNotificacion);
+            TempData[ok ? "ok" : "error"] = ok ? "Notificación marcada como leída." : "No se pudo actualizar la notificación.";
+            return RedirectToAction(nameof(Notificaciones));
+        }
+
+        [HttpGet]
+        public IActionResult Seguimiento()
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            if (padre == null)
+                return View(new List<PadreSeguimientoItemViewModel>());
+
+            List<EstudianteBE> hijos = ObtenerHijos(padre.IdPadre);
+            HashSet<Guid> idsHijos = hijos.Select(h => h.IdEstudiante).ToHashSet();
+            Dictionary<Guid, EstudianteBE> hijosDict = hijos.ToDictionary(h => h.IdEstudiante, h => h);
+
+            List<RutaEstudianteBE> rutas = _rutaEstudianteBC.Listar()
+                .Where(r => r.Estado && idsHijos.Contains(r.IdEstudiante))
+                .ToList();
+
+            List<EventoAbordajeBE> eventos = _eventoAbordajeBC.Listar();
+            List<RecorridoBE> recorridos = _recorridoBC.Listar();
+
+            List<PadreSeguimientoItemViewModel> vm = rutas.Select(r =>
+            {
+                EstudianteBE estudiante = hijosDict[r.IdEstudiante];
+                ParaderoBE? paradaSubida = r.IdParaderoSubida.HasValue ? _paraderoBC.ListarPorId(r.IdParaderoSubida.Value) : null;
+
+                RecorridoBE? recorridoHoy = recorridos
+                    .Where(x => x.IdRuta == r.IdRuta && x.Fecha.Date == DateTime.Today)
+                    .OrderByDescending(x => x.Fecha)
+                    .FirstOrDefault();
+
+                EventoAbordajeBE? ultimoEvento = eventos
+                    .Where(e => e.IdEstudiante == r.IdEstudiante)
+                    .OrderByDescending(e => e.FechaHora)
+                    .FirstOrDefault();
+
+                return new PadreSeguimientoItemViewModel
+                {
+                    CodigoEstudiante = estudiante.CodigoEstudiante,
+                    NombreEstudiante = estudiante.NombreCompleto,
+                    Ruta = $"{r.Ruta?.CodigoRuta} - {r.Ruta?.Nombre}",
+                    Paradero = paradaSubida?.Nombre,
+                    RecorridoDeHoy = recorridoHoy?.CodigoRecorrido ?? "Sin recorrido asignado hoy",
+                    Estado = recorridoHoy?.EstadoRecorrido ?? "Sin estado disponible",
+                    UltimoEvento = ultimoEvento?.TipoEvento,
+                    FechaUltimoEvento = ultimoEvento?.FechaHora
+                };
+            }).ToList();
+
+            return View(vm);
+        }
+
+        [HttpGet]
+        public IActionResult MiRuta()
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            if (padre == null)
+                return View(new List<PadreRutaInfoViewModel>());
+
+            List<EstudianteBE> hijos = ObtenerHijos(padre.IdPadre);
+            Dictionary<Guid, EstudianteBE> hijosDict = hijos.ToDictionary(h => h.IdEstudiante, h => h);
+
+            List<RutaEstudianteBE> rutasHijos = _rutaEstudianteBC.Listar()
+                .Where(re => re.Estado && hijosDict.ContainsKey(re.IdEstudiante))
+                .ToList();
+
+            List<PadreRutaInfoViewModel> vm = rutasHijos
+                .Select(re =>
+                {
+                    RecorridoBE? recorrido = _recorridoBC.Listar()
+                        .Where(r => r.IdRuta == re.IdRuta)
+                        .OrderByDescending(r => r.Fecha)
+                        .FirstOrDefault();
+
+                    EstudianteBE hijo = hijosDict[re.IdEstudiante];
+
+                    return new PadreRutaInfoViewModel
+                    {
+                        CodigoEstudiante = hijo.CodigoEstudiante,
+                        NombreEstudiante = hijo.NombreCompleto,
+                        CodigoRuta = re.Ruta?.CodigoRuta ?? string.Empty,
+                        NombreRuta = re.Ruta?.Nombre ?? string.Empty,
+                        CodigoRecorrido = recorrido?.CodigoRecorrido,
+                        EstadoRecorrido = recorrido?.EstadoRecorrido,
+                        PlacaBus = recorrido?.Bus?.Placa,
+                        NombreConductor = recorrido?.Conductor?.NombreCompleto,
+                        FechaRecorrido = recorrido?.Fecha
+                    };
+                })
+                .OrderBy(x => x.NombreEstudiante)
+                .ToList();
+
+            return View(vm);
+        }
+
+        [HttpGet]
+        public IActionResult MiParadero()
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            if (padre == null)
+                return View(new List<PadreParaderoInfoViewModel>());
+
+            List<EstudianteBE> hijos = ObtenerHijos(padre.IdPadre);
+            Dictionary<Guid, EstudianteBE> hijosDict = hijos.ToDictionary(h => h.IdEstudiante, h => h);
+
+            List<PadreParaderoInfoViewModel> vm = _rutaEstudianteBC.Listar()
+                .Where(re => re.Estado && hijosDict.ContainsKey(re.IdEstudiante))
+                .Select(re =>
+                {
+                    ParaderoBE? subida = re.IdParaderoSubida.HasValue ? _paraderoBC.ListarPorId(re.IdParaderoSubida.Value) : null;
+                    ParaderoBE? bajada = re.IdParaderoBajada.HasValue ? _paraderoBC.ListarPorId(re.IdParaderoBajada.Value) : null;
+                    EstudianteBE hijo = hijosDict[re.IdEstudiante];
+
+                    return new PadreParaderoInfoViewModel
+                    {
+                        CodigoEstudiante = hijo.CodigoEstudiante,
+                        NombreEstudiante = hijo.NombreCompleto,
+                        ParaderoSubida = subida?.Nombre,
+                        DireccionSubida = subida?.Direccion,
+                        ParaderoBajada = bajada?.Nombre,
+                        DireccionBajada = bajada?.Direccion
+                    };
+                })
+                .OrderBy(x => x.NombreEstudiante)
+                .ToList();
+
+            return View(vm);
+        }
+
+        [HttpGet]
+        public IActionResult MisEventos(Guid? idEstudiante)
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            if (padre == null)
+                return View(new List<EventoAbordajeBE>());
+
+            HashSet<Guid> idsHijos = ObtenerHijos(padre.IdPadre)
+                .Select(e => e.IdEstudiante)
+                .ToHashSet();
+
+            List<EventoAbordajeBE> eventos = _eventoAbordajeBC.Listar()
+                .Where(e => idsHijos.Contains(e.IdEstudiante))
+                .OrderByDescending(e => e.FechaHora)
+                .ToList();
+
+            if (idEstudiante.HasValue)
+                eventos = eventos.Where(e => e.IdEstudiante == idEstudiante.Value).ToList();
+
+            return View(eventos);
+        }
+
+        [HttpGet]
+        public IActionResult Incidencias()
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            if (padre == null)
+                return View(new List<IncidenciaBE>());
+
+            List<IncidenciaBE> incidencias = _incidenciaBC.ListarPorPadre(padre.IdPadre);
+            return View(incidencias);
         }
 
         [HttpGet]
         public IActionResult Listar()
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             var lista = _padreFamiliaBC.Listar();
             return View(lista);
         }
@@ -45,7 +382,10 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Crear()
         {
-            PadreFamiliaFormViewModel vm = new PadreFamiliaFormViewModel
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
+            PadreFamiliaFormViewModel vm = new()
             {
                 Estado = true,
                 Usuarios = ObtenerUsuariosDisponibles()
@@ -58,17 +398,21 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Crear(PadreFamiliaFormViewModel vm)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
+            if (vm.IdUsuario == Guid.Empty)
+                ModelState.AddModelError(nameof(vm.IdUsuario), "Debe seleccionar un usuario.");
+
             if (!ModelState.IsValid)
             {
                 vm.Usuarios = ObtenerUsuariosDisponibles();
                 return View(vm);
             }
-            if (vm.IdUsuario == Guid.Empty)
-                ModelState.AddModelError(nameof(vm.IdUsuario), "Debe seleccionar un usuario.");
 
             try
             {
-                PadreFamiliaBE entidad = new PadreFamiliaBE
+                PadreFamiliaBE entidad = new()
                 {
                     IdUsuario = vm.IdUsuario,
                     Nombres = vm.Nombres,
@@ -84,36 +428,21 @@ namespace CapiMovil.PL.Gui.Controllers
 
                 bool ok = _padreFamiliaBC.Registrar(entidad);
 
-                TempData[ok ? "ok" : "error"] = ok
-                    ? "Padre de familia registrado correctamente."
-                    : "No se pudo registrar el padre de familia.";
-
                 if (ok)
+                {
+                    TempData["ok"] = "Padre de familia registrado correctamente.";
                     return RedirectToAction(nameof(Listar));
+                }
+
+                const string mensajeError = "No se pudo registrar el padre de familia.";
+                ModelState.AddModelError(string.Empty, mensajeError);
+                ViewBag.SwalError = mensajeError;
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                if (ex.Number == 2627 || ex.Number == 2601)
-                {
-                    if (ex.Message.Contains("UQ_Padre_DNI"))
-                    {
-                        ModelState.AddModelError(nameof(vm.DNI), "El DNI ya está registrado.");
-                        ViewBag.SwalError = "El DNI ya está registrado.";
-                    }
-                    else
-                    {
-                        ModelState.AddModelError(string.Empty, "Ya existe un registro con esos datos.");
-                        ViewBag.SwalError = "Ya existe un registro con esos datos.";
-                    }
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Ocurrió un error al registrar al padre de familia.");
-                    ViewBag.SwalError = "Ocurrió un error al registrar al padre de familia.";
-                }
-
+                ModelState.AddModelError(string.Empty, ex.Message);
+                ViewBag.SwalError = ex.Message;
             }
-
 
             vm.Usuarios = ObtenerUsuariosDisponibles();
             return View(vm);
@@ -122,6 +451,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Editar(Guid id)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             var entidad = _padreFamiliaBC.ListarPorId(id);
 
             if (entidad == null)
@@ -130,7 +462,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 return RedirectToAction(nameof(Listar));
             }
 
-            PadreFamiliaFormViewModel vm = new PadreFamiliaFormViewModel
+            PadreFamiliaFormViewModel vm = new()
             {
                 IdPadre = entidad.IdPadre,
                 IdUsuario = entidad.IdUsuario,
@@ -144,7 +476,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 Direccion = entidad.Direccion,
                 CorreoContacto = entidad.CorreoContacto,
                 Estado = entidad.Estado,
-                Usuarios = ObtenerUsuarios()
+                Usuarios = ObtenerUsuariosParaEdicion(entidad.IdUsuario)
             };
 
             return View(vm);
@@ -154,15 +486,21 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Editar(PadreFamiliaFormViewModel vm)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
+            if (vm.IdUsuario == Guid.Empty)
+                ModelState.AddModelError(nameof(vm.IdUsuario), "Debe seleccionar un usuario.");
+
             if (!ModelState.IsValid)
             {
-                vm.Usuarios = ObtenerUsuarios();
+                vm.Usuarios = ObtenerUsuariosParaEdicion(vm.IdUsuario);
                 return View(vm);
             }
 
             try
             {
-                PadreFamiliaBE entidad = new PadreFamiliaBE
+                PadreFamiliaBE entidad = new()
                 {
                     IdPadre = vm.IdPadre,
                     IdUsuario = vm.IdUsuario,
@@ -189,10 +527,11 @@ namespace CapiMovil.PL.Gui.Controllers
             }
             catch (Exception ex)
             {
-                TempData["error"] = ex.Message;
+                ModelState.AddModelError(string.Empty, ex.Message);
+                ViewBag.SwalError = ex.Message;
             }
 
-            vm.Usuarios = ObtenerUsuarios();
+            vm.Usuarios = ObtenerUsuariosParaEdicion(vm.IdUsuario);
             return View(vm);
         }
 
@@ -200,6 +539,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Eliminar(Guid id)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             try
             {
                 bool ok = _padreFamiliaBC.Eliminar(id);
@@ -216,11 +558,27 @@ namespace CapiMovil.PL.Gui.Controllers
             return RedirectToAction(nameof(Listar));
         }
 
-        private List<SelectListItem> ObtenerUsuarios()
+        private PadreFamiliaBE? ObtenerPadreAutenticado()
         {
-            var usuarios = _usuarioBC.Listar();
+            string? usuarioId = HttpContext.Session.GetString("UsuarioId");
+            if (!Guid.TryParse(usuarioId, out Guid idUsuario))
+                return null;
 
-            return usuarios
+            return _padreFamiliaBC.ObtenerPorIdUsuario(idUsuario);
+        }
+
+        private List<EstudianteBE> ObtenerHijos(Guid idPadre)
+        {
+            return _estudianteBC.Listar()
+                .Where(e => e.IdPadre == idPadre)
+                .OrderBy(e => e.ApellidoPaterno)
+                .ThenBy(e => e.Nombres)
+                .ToList();
+        }
+
+        private List<SelectListItem> ObtenerUsuariosDisponibles()
+        {
+            return _padreFamiliaBC.ListarUsuariosDisponibles()
                 .Select(u => new SelectListItem
                 {
                     Value = u.IdUsuario.ToString(),
@@ -229,15 +587,20 @@ namespace CapiMovil.PL.Gui.Controllers
                 .ToList();
         }
 
-        // Este método obtiene solo los usuarios que no están vinculados a ningún padre de familia,
-        // para evitar conflictos al editar.
-        private List<SelectListItem> ObtenerUsuariosDisponibles()
+        private List<SelectListItem> ObtenerUsuariosParaEdicion(Guid idUsuarioActual)
         {
-            return _padreFamiliaBC.ListarUsuariosDisponibles()
+            var disponibles = _padreFamiliaBC.ListarUsuariosDisponibles();
+            var usuarioActual = _usuarioBC.ListarPorId(idUsuarioActual);
+
+            if (usuarioActual != null && disponibles.All(x => x.IdUsuario != idUsuarioActual))
+                disponibles.Insert(0, usuarioActual);
+
+            return disponibles
                 .Select(u => new SelectListItem
                 {
                     Value = u.IdUsuario.ToString(),
-                    Text = $"{u.Username} - {u.Correo}"
+                    Text = $"{u.Username} - {u.Correo}",
+                    Selected = u.IdUsuario == idUsuarioActual
                 })
                 .ToList();
         }

@@ -53,7 +53,6 @@ namespace CapiMovil.PL.Gui.Controllers
                 EstudianteBE entidad = new EstudianteBE
                 {
                     IdPadre = vm.IdPadre,
-                    CodigoEstudiante = vm.CodigoEstudiante,
                     Nombres = vm.Nombres,
                     ApellidoPaterno = vm.ApellidoPaterno,
                     ApellidoMaterno = vm.ApellidoMaterno,
@@ -72,16 +71,20 @@ namespace CapiMovil.PL.Gui.Controllers
 
                 bool ok = _estudianteBC.Registrar(entidad);
 
-                TempData[ok ? "ok" : "error"] = ok
-                    ? "Estudiante registrado correctamente."
-                    : "No se pudo registrar el estudiante.";
-
                 if (ok)
+                {
+                    TempData["ok"] = "Estudiante registrado correctamente.";
                     return RedirectToAction(nameof(Listar));
+                }
+
+                const string mensajeError = "No se pudo registrar el estudiante.";
+                ModelState.AddModelError(string.Empty, mensajeError);
+                ViewBag.SwalError = mensajeError;
             }
             catch (Exception ex)
             {
-                TempData["error"] = ex.Message;
+                ModelState.AddModelError(string.Empty, ex.Message);
+                ViewBag.SwalError = ex.Message;
             }
 
             vm.Padres = ObtenerPadres();
@@ -143,7 +146,6 @@ namespace CapiMovil.PL.Gui.Controllers
                 {
                     IdEstudiante = vm.IdEstudiante,
                     IdPadre = vm.IdPadre,
-                    CodigoEstudiante = vm.CodigoEstudiante,
                     Nombres = vm.Nombres,
                     ApellidoPaterno = vm.ApellidoPaterno,
                     ApellidoMaterno = vm.ApellidoMaterno,

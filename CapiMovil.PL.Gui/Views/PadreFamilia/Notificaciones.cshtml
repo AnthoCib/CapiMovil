@@ -1,0 +1,50 @@
+@model List<CapiMovil.BL.BE.NotificacionBE>
+@{
+    ViewData["Title"] = "Notificaciones";
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <h2 class="fw-bold mb-3">Notificaciones</h2>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-primary">
+                    <tr><th>Título</th><th>Tipo</th><th>Canal</th><th>Fecha</th><th>Estado</th><th></th></tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.Titulo</td>
+                                <td>@item.TipoNotificacion</td>
+                                <td>@item.Canal</td>
+                                <td>@item.FechaEnvio.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    @if (item.Leido)
+                                    {
+                                        <span class="badge bg-success">Leída</span>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="MarcarNotificacionLeida" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="idNotificacion" value="@item.IdNotificacion" />
+                                            <button type="submit" class="btn btn-sm btn-outline-primary">Marcar leída</button>
+                                        </form>
+                                    }
+                                </td>
+                                <td><a asp-action="DetalleNotificacion" asp-route-idNotificacion="@item.IdNotificacion" class="btn btn-sm btn-outline-secondary">Ver</a></td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="6" class="text-center text-muted">No hay notificaciones disponibles.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

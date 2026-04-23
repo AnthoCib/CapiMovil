@@ -33,7 +33,8 @@ namespace CapiMovil.BL.BC
             if (string.IsNullOrWhiteSpace(entidad.Nombres))
                 throw new ArgumentException("Nombres obligatorios.");
 
-          
+            ValidarCoordenadas(entidad.LatitudCasa, entidad.LongitudCasa);
+
             return _dalc.Registrar(entidad);
         }
 
@@ -41,6 +42,14 @@ namespace CapiMovil.BL.BC
         {
             if (entidad.IdEstudiante == Guid.Empty)
                 throw new ArgumentException("Id inválido.");
+
+            if (string.IsNullOrWhiteSpace(entidad.CodigoEstudiante))
+            {
+                EstudianteBE? actual = _dalc.ListarPorId(entidad.IdEstudiante);
+                entidad.CodigoEstudiante = actual?.CodigoEstudiante ?? string.Empty;
+            }
+
+            ValidarCoordenadas(entidad.LatitudCasa, entidad.LongitudCasa);
 
             return _dalc.Actualizar(entidad);
         }
@@ -59,6 +68,15 @@ namespace CapiMovil.BL.BC
                 throw new ArgumentException("El id del estudiante es inválido.");
 
             return _dalc.ObtenerPadrePorEstudiante(idEstudiante);
+        }
+
+        private static void ValidarCoordenadas(decimal? latitud, decimal? longitud)
+        {
+            if (latitud.HasValue && (latitud < -90m || latitud > 90m))
+                throw new ArgumentException("La latitud de casa debe estar entre -90 y 90.");
+
+            if (longitud.HasValue && (longitud < -180m || longitud > 180m))
+                throw new ArgumentException("La longitud de casa debe estar entre -180 y 180.");
         }
     }
 }

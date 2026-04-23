@@ -108,14 +108,10 @@ namespace CapiMovil.DL.DALC
             cn.Open();
             using SqlDataReader dr = cmd.ExecuteReader();
 
-            if (dr.Read())
+            if (RegistroResultadoDALC.EsRegistroExitoso(dr, out int filas, out string codigoGenerado, out string? mensaje))
             {
-                int filas = Convert.ToInt32(dr["FilasAfectadas"]);
-                if (filas > 0)
-                {
-                    entidad.CodigoParadero = dr["CodigoGenerado"]?.ToString() ?? string.Empty;
+                entidad.CodigoParadero = codigoGenerado;
                     return true;
-                }
             }
 
             return false;
@@ -190,6 +186,15 @@ namespace CapiMovil.DL.DALC
                     IdRuta = dr.GetGuid(dr.GetOrdinal("IdRuta")),
                     CodigoParadero = dr["CodigoParadero"]?.ToString() ?? string.Empty,
                     Nombre = dr["Nombre"]?.ToString() ?? string.Empty,
+                    Direccion = ExisteColumna(dr, "Direccion") && dr["Direccion"] != DBNull.Value
+                        ? dr["Direccion"]?.ToString() ?? string.Empty
+                        : string.Empty,
+                    Latitud = ExisteColumna(dr, "Latitud") && dr["Latitud"] != DBNull.Value
+                        ? Convert.ToDecimal(dr["Latitud"])
+                        : null,
+                    Longitud = ExisteColumna(dr, "Longitud") && dr["Longitud"] != DBNull.Value
+                        ? Convert.ToDecimal(dr["Longitud"])
+                        : null,
                     OrdenParada = Convert.ToInt32(dr["OrdenParada"])
                 });
             }
@@ -219,6 +224,17 @@ namespace CapiMovil.DL.DALC
             }
 
             return lista;
+        }
+
+        private static bool ExisteColumna(SqlDataReader dr, string nombreColumna)
+        {
+            for (int i = 0; i < dr.FieldCount; i++)
+            {
+                if (dr.GetName(i).Equals(nombreColumna, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            return false;
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Data.SqlClient;
 
 namespace CapiMovil.DL.DALC
 {
-    public class ConductorDALC :ICrudDALC<ConductorBE>
+    public class ConductorDALC : ICrudDALC<ConductorBE>
     {
         private readonly BDConexion _bdConexion;
 
@@ -15,35 +15,20 @@ namespace CapiMovil.DL.DALC
 
         public List<ConductorBE> Listar()
         {
-            List<ConductorBE> lista = new List<ConductorBE>();
+            List<ConductorBE> lista = new();
 
             using SqlConnection cn = _bdConexion.ObtenerConexion();
-            using SqlCommand cmd = new SqlCommand("sp_Conductor_Listar", cn);
-
-            cmd.CommandType = CommandType.StoredProcedure;
+            using SqlCommand cmd = new("sp_Conductor_Listar", cn)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
 
             cn.Open();
             using SqlDataReader dr = cmd.ExecuteReader();
 
             while (dr.Read())
             {
-                lista.Add(new ConductorBE
-                {
-                    IdConductor = dr.GetGuid(dr.GetOrdinal("IdConductor")),
-                    IdUsuario = dr["IdUsuario"] != DBNull.Value ? Guid.Parse(dr["IdUsuario"].ToString()!) : Guid.Empty,
-                    Nombres = dr["Nombres"].ToString() ?? string.Empty,
-                    ApellidoPaterno = dr["ApellidoPaterno"].ToString() ?? string.Empty,
-                    ApellidoMaterno = dr["ApellidoMaterno"].ToString() ?? string.Empty,
-                    DNI = dr["DNI"] == DBNull.Value ? null : dr["DNI"].ToString(),
-                    Licencia = dr["Licencia"].ToString() ?? string.Empty,
-                    CategoriaLicencia = dr["CategoriaLicencia"] == DBNull.Value ? null : dr["CategoriaLicencia"].ToString(),
-                    Telefono = dr["Telefono"] == DBNull.Value ? null : dr["Telefono"].ToString(),
-                    Direccion = dr["Direccion"] == DBNull.Value ? null : dr["Direccion"].ToString(),
-                    Estado = Convert.ToBoolean(dr["Estado"]),
-                    FechaCreacion = Convert.ToDateTime(dr["FechaCreacion"]),
-                    FechaActualizacion = dr["FechaActualizacion"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaActualizacion"]),
-                    FechaEliminacion = dr["FechaEliminacion"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaEliminacion"])
-                });
+                lista.Add(MapearConductor(dr));
             }
 
             return lista;
@@ -51,59 +36,70 @@ namespace CapiMovil.DL.DALC
 
         public ConductorBE? ListarPorId(Guid idConductor)
         {
-            ConductorBE? entidad = null;
-
             using SqlConnection cn = _bdConexion.ObtenerConexion();
-            using SqlCommand cmd = new SqlCommand("sp_Conductor_ObtenerPorId", cn);
+            using SqlCommand cmd = new("sp_Conductor_ListarPorId", cn)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
 
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.AddWithValue("@IdConductor", idConductor);
+            cmd.Parameters.Add("@IdConductor", SqlDbType.UniqueIdentifier).Value = idConductor;
 
             cn.Open();
             using SqlDataReader dr = cmd.ExecuteReader();
 
-            if (dr.Read())
-            {
-                entidad = new ConductorBE
-                {
-                    IdConductor = dr.GetGuid(dr.GetOrdinal("IdConductor")),  
-                    IdUsuario = dr["IdUsuario"] != DBNull.Value ? Guid.Parse(dr["IdUsuario"].ToString()!) : Guid.Empty,
-                    CodigoConductor = dr["CodigoConductor"].ToString() ?? string.Empty,
-                    Nombres = dr["Nombres"].ToString() ?? string.Empty,
-                    ApellidoPaterno = dr["ApellidoPaterno"].ToString() ?? string.Empty,
-                    ApellidoMaterno = dr["ApellidoMaterno"].ToString() ?? string.Empty,
-                    DNI = dr["DNI"] == DBNull.Value ? null : dr["DNI"].ToString(),
-                    Licencia = dr["Licencia"].ToString() ?? string.Empty,
-                    CategoriaLicencia = dr["CategoriaLicencia"] == DBNull.Value ? null : dr["CategoriaLicencia"].ToString(),
-                    Telefono = dr["Telefono"] == DBNull.Value ? null : dr["Telefono"].ToString(),
-                    Direccion = dr["Direccion"] == DBNull.Value ? null : dr["Direccion"].ToString(),
-                    Estado = Convert.ToBoolean(dr["Estado"]),
-                    FechaCreacion = Convert.ToDateTime(dr["FechaCreacion"]),
-                    FechaActualizacion = dr["FechaActualizacion"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaActualizacion"]),
-                    FechaEliminacion = dr["FechaEliminacion"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaEliminacion"])
-                };
-            }
-
-            return entidad;
+            return dr.Read() ? MapearConductor(dr) : null;
         }
 
         public bool Registrar(ConductorBE conductor)
         {
             using SqlConnection cn = _bdConexion.ObtenerConexion();
-            using SqlCommand cmd = new SqlCommand("sp_Conductor_Registrar", cn);
+            using SqlCommand cmd = new("sp_Conductor_Registrar", cn)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
 
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.AddWithValue("@IdUsuario", (object?)conductor.IdUsuario ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@CodigoConductor", conductor.CodigoConductor);
-            cmd.Parameters.AddWithValue("@Nombres", conductor.Nombres);
-            cmd.Parameters.AddWithValue("@ApellidoPaterno", conductor.ApellidoPaterno);
-            cmd.Parameters.AddWithValue("@ApellidoMaterno", conductor.ApellidoMaterno);
-            cmd.Parameters.AddWithValue("@DNI", (object?)conductor.DNI ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@Licencia", conductor.Licencia);
-            cmd.Parameters.AddWithValue("@CategoriaLicencia", (object?)conductor.CategoriaLicencia ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@Telefono", (object?)conductor.Telefono ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@Direccion", (object?)conductor.Direccion ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@Estado", conductor.Estado);
+            cmd.Parameters.Add("@IdUsuario", SqlDbType.UniqueIdentifier).Value = conductor.IdUsuario;
+            cmd.Parameters.Add("@Nombres", SqlDbType.VarChar, 80).Value = conductor.Nombres;
+            cmd.Parameters.Add("@ApellidoPaterno", SqlDbType.VarChar, 60).Value = conductor.ApellidoPaterno;
+            cmd.Parameters.Add("@ApellidoMaterno", SqlDbType.VarChar, 60).Value = conductor.ApellidoMaterno;
+            cmd.Parameters.Add("@DNI", SqlDbType.VarChar, 8).Value = (object?)conductor.DNI ?? DBNull.Value;
+            cmd.Parameters.Add("@Licencia", SqlDbType.VarChar, 30).Value = conductor.Licencia;
+            cmd.Parameters.Add("@CategoriaLicencia", SqlDbType.VarChar, 10).Value = (object?)conductor.CategoriaLicencia ?? DBNull.Value;
+            cmd.Parameters.Add("@Telefono", SqlDbType.VarChar, 20).Value = (object?)conductor.Telefono ?? DBNull.Value;
+            cmd.Parameters.Add("@Direccion", SqlDbType.VarChar, 200).Value = (object?)conductor.Direccion ?? DBNull.Value;
+            cmd.Parameters.Add("@Estado", SqlDbType.Bit).Value = conductor.Estado;
+
+            cn.Open();
+            using SqlDataReader dr = cmd.ExecuteReader();
+
+            if (RegistroResultadoDALC.EsRegistroExitoso(dr, out int filas, out string codigoGenerado, out string? mensaje))
+            {
+                conductor.CodigoConductor = codigoGenerado;
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool Actualizar(ConductorBE conductor)
+        {
+            using SqlConnection cn = _bdConexion.ObtenerConexion();
+            using SqlCommand cmd = new("sp_Conductor_Actualizar", cn)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            cmd.Parameters.Add("@IdConductor", SqlDbType.UniqueIdentifier).Value = conductor.IdConductor;
+            cmd.Parameters.Add("@IdUsuario", SqlDbType.UniqueIdentifier).Value = conductor.IdUsuario;
+            cmd.Parameters.Add("@Nombres", SqlDbType.VarChar, 80).Value = conductor.Nombres;
+            cmd.Parameters.Add("@ApellidoPaterno", SqlDbType.VarChar, 60).Value = conductor.ApellidoPaterno;
+            cmd.Parameters.Add("@ApellidoMaterno", SqlDbType.VarChar, 60).Value = conductor.ApellidoMaterno;
+            cmd.Parameters.Add("@DNI", SqlDbType.VarChar, 8).Value = (object?)conductor.DNI ?? DBNull.Value;
+            cmd.Parameters.Add("@Licencia", SqlDbType.VarChar, 30).Value = conductor.Licencia;
+            cmd.Parameters.Add("@CategoriaLicencia", SqlDbType.VarChar, 10).Value = (object?)conductor.CategoriaLicencia ?? DBNull.Value;
+            cmd.Parameters.Add("@Telefono", SqlDbType.VarChar, 20).Value = (object?)conductor.Telefono ?? DBNull.Value;
+            cmd.Parameters.Add("@Direccion", SqlDbType.VarChar, 200).Value = (object?)conductor.Direccion ?? DBNull.Value;
+            cmd.Parameters.Add("@Estado", SqlDbType.Bit).Value = conductor.Estado;
 
             cn.Open();
             int filas = cmd.ExecuteNonQuery();
@@ -111,44 +107,15 @@ namespace CapiMovil.DL.DALC
             return filas > 0;
         }
 
-        public bool Actualizar(ConductorBE conductor)
-        {
-            using SqlConnection cn = _bdConexion.ObtenerConexion();
-            using SqlCommand cmd = new SqlCommand("sp_Conductor_Actualizar", cn);
-
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.AddWithValue("@IdConductor", conductor.IdConductor);
-            cmd.Parameters.AddWithValue("@IdUsuario", (object?)conductor.IdUsuario ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@CodigoConductor", conductor.CodigoConductor);
-            cmd.Parameters.AddWithValue("@Nombres", conductor.Nombres);
-            cmd.Parameters.AddWithValue("@ApellidoPaterno", conductor.ApellidoPaterno);
-            cmd.Parameters.AddWithValue("@ApellidoMaterno", conductor.ApellidoMaterno);
-            cmd.Parameters.AddWithValue("@DNI", (object?)conductor.DNI ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@Licencia", conductor.Licencia);
-            cmd.Parameters.AddWithValue("@CategoriaLicencia", (object?)conductor.CategoriaLicencia ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@Telefono", (object?)conductor.Telefono ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@Direccion", (object?)conductor.Direccion ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@Estado", conductor.Estado);
-
-            cn.Open();
-            object? result = cmd.ExecuteScalar();
-
-            if (result != null)
-            {
-                int filas = Convert.ToInt32(result);
-                return filas > 0;
-            }
-
-            return false;
-        }
-
         public bool Eliminar(Guid idConductor)
         {
             using SqlConnection cn = _bdConexion.ObtenerConexion();
-            using SqlCommand cmd = new SqlCommand("sp_Conductor_EliminarLogico", cn);
+            using SqlCommand cmd = new("sp_Conductor_Eliminar", cn)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
 
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.AddWithValue("@IdConductor", idConductor);
+            cmd.Parameters.Add("@IdConductor", SqlDbType.UniqueIdentifier).Value = idConductor;
 
             cn.Open();
             int filas = cmd.ExecuteNonQuery();
@@ -158,39 +125,84 @@ namespace CapiMovil.DL.DALC
 
         public List<UsuarioBE> ListarUsuariosDisponibles()
         {
-            List<UsuarioBE> lista = new List<UsuarioBE>();
+            List<UsuarioBE> lista = new();
 
             using SqlConnection cn = _bdConexion.ObtenerConexion();
-            using SqlCommand cmd = new SqlCommand("sp_Usuario_ListarDisponiblesParaConductor", cn);
-
-            cmd.CommandType = CommandType.StoredProcedure;
+            using SqlCommand cmd = new("sp_Usuario_ListarDisponiblesParaConductor", cn)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
 
             cn.Open();
-
             using SqlDataReader dr = cmd.ExecuteReader();
 
             while (dr.Read())
             {
-                UsuarioBE usuario = new UsuarioBE
+                lista.Add(new UsuarioBE
                 {
-                    IdUsuario = dr["IdUsuario"] != DBNull.Value ? Guid.Parse(dr["IdUsuario"].ToString()!) : Guid.Empty,
+                    IdUsuario = dr.GetGuid(dr.GetOrdinal("IdUsuario")),
                     Username = dr["Username"]?.ToString(),
                     Correo = dr["Correo"]?.ToString(),
                     Estado = dr["Estado"] != DBNull.Value && Convert.ToBoolean(dr["Estado"])
-                };
-
-                lista.Add(usuario);
+                });
             }
 
             return lista;
         }
+
         public bool ExistePorIdUsuario(Guid idUsuario)
+            => ExistePorIdUsuario(idUsuario, null);
+
+        public bool ExistePorIdUsuario(Guid idUsuario, Guid? idConductorExcluir)
         {
             using SqlConnection cn = _bdConexion.ObtenerConexion();
-            using SqlCommand cmd = new SqlCommand("sp_Conductor_ExistePorIdUsuario", cn);
+            using SqlCommand cmd = new("sp_Conductor_ExistePorIdUsuario", cn)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
 
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.AddWithValue("@IdUsuario", idUsuario);
+            cmd.Parameters.Add("@IdUsuario", SqlDbType.UniqueIdentifier).Value = idUsuario;
+            cmd.Parameters.Add("@IdConductorExcluir", SqlDbType.UniqueIdentifier).Value = (object?)idConductorExcluir ?? DBNull.Value;
+
+            cn.Open();
+
+            object? result = cmd.ExecuteScalar();
+            return result != null && Convert.ToInt32(result) > 0;
+        }
+
+        public bool ExistePorDni(string dni)
+            => ExistePorDni(dni, null);
+
+        public bool ExistePorDni(string dni, Guid? idConductorExcluir)
+        {
+            using SqlConnection cn = _bdConexion.ObtenerConexion();
+            using SqlCommand cmd = new("sp_Conductor_ExistePorDni", cn)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            cmd.Parameters.Add("@DNI", SqlDbType.VarChar, 8).Value = dni.Trim();
+            cmd.Parameters.Add("@IdConductorExcluir", SqlDbType.UniqueIdentifier).Value = (object?)idConductorExcluir ?? DBNull.Value;
+
+            cn.Open();
+
+            object? result = cmd.ExecuteScalar();
+            return result != null && Convert.ToInt32(result) > 0;
+        }
+
+        public bool ExistePorLicencia(string licencia)
+            => ExistePorLicencia(licencia, null);
+
+        public bool ExistePorLicencia(string licencia, Guid? idConductorExcluir)
+        {
+            using SqlConnection cn = _bdConexion.ObtenerConexion();
+            using SqlCommand cmd = new("sp_Conductor_ExistePorLicencia", cn)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            cmd.Parameters.Add("@Licencia", SqlDbType.VarChar, 30).Value = licencia.Trim().ToUpperInvariant();
+            cmd.Parameters.Add("@IdConductorExcluir", SqlDbType.UniqueIdentifier).Value = (object?)idConductorExcluir ?? DBNull.Value;
 
             cn.Open();
 
@@ -203,9 +215,10 @@ namespace CapiMovil.DL.DALC
             List<ConductorBE> lista = new();
 
             using SqlConnection cn = _bdConexion.ObtenerConexion();
-            using SqlCommand cmd = new SqlCommand("sp_Conductor_ListarActivos", cn);
-
-            cmd.CommandType = CommandType.StoredProcedure;
+            using SqlCommand cmd = new("sp_Conductor_ListarActivos", cn)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
 
             cn.Open();
             using SqlDataReader dr = cmd.ExecuteReader();
@@ -223,6 +236,44 @@ namespace CapiMovil.DL.DALC
             }
 
             return lista;
+        }
+
+        public ConductorBE? ObtenerPorIdUsuario(Guid idUsuario)
+        {
+            using SqlConnection cn = _bdConexion.ObtenerConexion();
+            using SqlCommand cmd = new("sp_Conductor_ListarPorIdUsuario", cn)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            cmd.Parameters.Add("@IdUsuario", SqlDbType.UniqueIdentifier).Value = idUsuario;
+
+            cn.Open();
+            using SqlDataReader dr = cmd.ExecuteReader();
+
+            return dr.Read() ? MapearConductor(dr) : null;
+        }
+
+        private static ConductorBE MapearConductor(SqlDataReader dr)
+        {
+            return new ConductorBE
+            {
+                IdConductor = dr.GetGuid(dr.GetOrdinal("IdConductor")),
+                IdUsuario = dr.GetGuid(dr.GetOrdinal("IdUsuario")),
+                CodigoConductor = dr["CodigoConductor"]?.ToString() ?? string.Empty,
+                Nombres = dr["Nombres"]?.ToString() ?? string.Empty,
+                ApellidoPaterno = dr["ApellidoPaterno"]?.ToString() ?? string.Empty,
+                ApellidoMaterno = dr["ApellidoMaterno"]?.ToString() ?? string.Empty,
+                DNI = dr["DNI"] == DBNull.Value ? null : dr["DNI"].ToString(),
+                Licencia = dr["Licencia"]?.ToString() ?? string.Empty,
+                CategoriaLicencia = dr["CategoriaLicencia"] == DBNull.Value ? null : dr["CategoriaLicencia"].ToString(),
+                Telefono = dr["Telefono"] == DBNull.Value ? null : dr["Telefono"].ToString(),
+                Direccion = dr["Direccion"] == DBNull.Value ? null : dr["Direccion"].ToString(),
+                Estado = Convert.ToBoolean(dr["Estado"]),
+                FechaCreacion = Convert.ToDateTime(dr["FechaCreacion"]),
+                FechaActualizacion = dr["FechaActualizacion"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaActualizacion"]),
+                FechaEliminacion = dr["FechaEliminacion"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaEliminacion"])
+            };
         }
     }
 }

@@ -1,0 +1,34 @@
+@model List<CapiMovil.PL.Gui.Models.ViewModels.PadreParaderoInfoViewModel>
+@{
+    ViewData["Title"] = "Mi Paradero";
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <h2 class="fw-bold mb-3">Paraderos asignados</h2>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-primary">
+                    <tr><th>Estudiante</th><th>Subida</th><th>Bajada</th></tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.CodigoEstudiante - @item.NombreEstudiante</td>
+                                <td><strong>@item.ParaderoSubida</strong><br/><small class="text-muted">@item.DireccionSubida</small></td>
+                                <td><strong>@item.ParaderoBajada</strong><br/><small class="text-muted">@item.DireccionBajada</small></td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="3" class="text-center text-muted">No hay paraderos asignados para tus hijos.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

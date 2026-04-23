@@ -46,7 +46,7 @@
                                     }
                                 </td>
                                 <td>
-                                    <a asp-action="Editar" asp-route-id="@item.IdRuta" class="btn btn-warning btn-sm">Editar</a>
+                                    <a asp-action="Editar" asp-route-id="@item.IdRuta" class="btn btn-warning btn-sm"><i class="bi bi-pencil-square me-1"></i>Editar</a>
 
                                     <form asp-action="Eliminar" asp-route-id="@item.IdRuta" method="post" class="d-inline">
                                         @Html.AntiForgeryToken()

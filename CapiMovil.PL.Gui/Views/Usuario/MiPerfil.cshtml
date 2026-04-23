@@ -1,0 +1,20 @@
+@model CapiMovil.BL.BE.UsuarioBE
+@{
+    ViewData["Title"] = "Mi Perfil";
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <h2 class="fw-bold mb-3">Mi Perfil</h2>
+        <div class="row g-3">
+            <div class="col-md-4"><strong>Código:</strong> @Model.CodigoUsuario</div>
+            <div class="col-md-4"><strong>Usuario:</strong> @Model.Username</div>
+            <div class="col-md-4"><strong>Correo:</strong> @Model.Correo</div>
+            <div class="col-md-4"><strong>Rol:</strong> @Model.Rol?.Nombre</div>
+            <div class="col-md-4"><strong>Estado:</strong> @(Model.Estado ? "Activo" : "Inactivo")</div>
+        </div>
+        <div class="mt-3 d-flex gap-2">
+            <a asp-action="CambiarPassword" class="btn btn-outline-primary">Cambiar contraseña</a>
+        </div>
+    </div>
+</div>

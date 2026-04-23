@@ -1,5 +1,6 @@
 ﻿using CapiMovil.BL.BC;
 using CapiMovil.BL.BE;
+using CapiMovil.PL.Gui.Infrastructure;
 using CapiMovil.PL.Gui.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -25,6 +26,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Listar()
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             List<IncidenciaBE> lista = _incidenciaBC.Listar();
             return View(lista);
         }
@@ -32,6 +36,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Crear()
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             IncidenciaFormViewModel vm = new IncidenciaFormViewModel
             {
                 FechaHora = DateTime.Now,
@@ -47,6 +54,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Crear(IncidenciaFormViewModel vm)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             if (!ModelState.IsValid)
             {
                 CargarCombos(vm);
@@ -60,13 +70,6 @@ namespace CapiMovil.PL.Gui.Controllers
                 if (recorrido == null)
                 {
                     ModelState.AddModelError(string.Empty, "No se encontró el recorrido seleccionado.");
-                    CargarCombos(vm);
-                    return View(vm);
-                }
-
-                if (recorrido.IdConductor == Guid.Empty)
-                {
-                    ModelState.AddModelError(string.Empty, "El recorrido no tiene un conductor asociado.");
                     CargarCombos(vm);
                     return View(vm);
                 }
@@ -108,6 +111,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Editar(Guid id)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             IncidenciaBE? entidad = _incidenciaBC.ListarPorId(id);
 
             if (entidad == null)
@@ -139,6 +145,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Editar(IncidenciaFormViewModel vm)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             if (!ModelState.IsValid)
             {
                 CargarCombos(vm);
@@ -152,13 +161,6 @@ namespace CapiMovil.PL.Gui.Controllers
                 if (recorrido == null)
                 {
                     ModelState.AddModelError(string.Empty, "No se encontró el recorrido seleccionado.");
-                    CargarCombos(vm);
-                    return View(vm);
-                }
-
-                if (recorrido.IdConductor == Guid.Empty)
-                {
-                    ModelState.AddModelError(string.Empty, "El recorrido no tiene un conductor asociado.");
                     CargarCombos(vm);
                     return View(vm);
                 }
@@ -201,6 +203,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Detalle(Guid id)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             IncidenciaBE? entidad = _incidenciaBC.ListarPorId(id);
 
             if (entidad == null)
@@ -216,6 +221,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Eliminar(Guid id)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             try
             {
                 bool ok = _incidenciaBC.Eliminar(id);
@@ -240,6 +248,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Cerrar(Guid id, string solucion)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             try
             {
                 bool ok = _incidenciaBC.Cerrar(id, solucion);
@@ -264,6 +275,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult CambiarEstado(Guid id, string estadoIncidencia)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             try
             {
                 bool ok = _incidenciaBC.CambiarEstado(id, estadoIncidencia);
@@ -287,6 +301,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public JsonResult ObtenerConductorPorRecorrido(Guid idRecorrido)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return Json(new { ok = false, idConductor = "" });
+
             try
             {
                 RecorridoBE? recorrido = _recorridoBC.ListarPorId(idRecorrido);
