@@ -47,23 +47,7 @@
 
 <div class="conductor-op-shell">
     <div class="row g-3 g-xl-4">
-        <aside class="col-12 col-xl-2">
-            <div class="conductor-op-sidebar card border-0 shadow-sm h-100">
-                <div class="card-body p-3">
-                    <div class="fw-bold mb-3"><i class="bi bi-bus-front-fill me-2"></i>CapiMovil</div>
-                    <nav class="nav flex-column gap-2 conductor-op-nav">
-                        <a asp-action="Index" class="nav-link"><i class="bi bi-grid"></i>Dashboard</a>
-                        <a asp-action="Estudiantes" class="nav-link"><i class="bi bi-people"></i>Estudiantes</a>
-                        <a asp-action="Recorrido" class="nav-link"><i class="bi bi-signpost"></i>Recorridos</a>
-                        <a asp-action="MiRuta" class="nav-link active"><i class="bi bi-geo-alt"></i>Tracking</a>
-                        <a asp-action="Abordaje" class="nav-link"><i class="bi bi-check2-square"></i>Abordaje</a>
-                    </nav>
-                    <a asp-action="MiRuta" class="btn btn-op-live w-100 mt-3"><i class="bi bi-broadcast-pin me-2"></i>Live Tracking</a>
-                </div>
-            </div>
-        </aside>
-
-        <section class="col-12 col-xl-7">
+        <section class="col-12 col-xl-8">
             <div class="card border-0 shadow-sm mb-3 conductor-op-header">
                 <div class="card-body p-4">
                     @if (Model.RecorridoOperacion == null)

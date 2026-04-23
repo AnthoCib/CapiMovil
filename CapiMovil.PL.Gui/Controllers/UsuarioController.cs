@@ -266,13 +266,15 @@ namespace CapiMovil.PL.Gui.Controllers
         }
         private IActionResult RedirigirSegunRol()
         {
-            if (User.IsInRole("ADMIN"))
+            var rolSesion = (HttpContext.Session.GetString("RolNombre") ?? string.Empty).Trim().ToUpperInvariant();
+
+            if (rolSesion is "ADMIN" or "ADMINISTRADOR")
                 return RedirectToAction("Index", "Admin");
 
-            if (User.IsInRole("CONDUCTOR"))
+            if (rolSesion == "CONDUCTOR")
                 return RedirectToAction("Index", "Conductor");
 
-            if (User.IsInRole("PADRE"))
+            if (rolSesion is "PADRE" or "PADRE DE FAMILIA")
                 return RedirectToAction("Index", "PadreFamilia");
 
             return RedirectToAction("Index", "Home");
