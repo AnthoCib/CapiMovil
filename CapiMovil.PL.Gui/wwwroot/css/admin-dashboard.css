@@ -4,6 +4,32 @@
     padding: 1rem;
 }
 
+.admin-portal {
+    background: #f6f3ea;
+}
+
+.admin-portal-shell {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 1rem;
+    padding: 1rem;
+    min-height: calc(100vh - 72px);
+}
+
+.admin-global-sidebar {
+    position: sticky;
+    top: 1rem;
+    align-self: start;
+}
+
+.admin-global-main {
+    min-width: 0;
+}
+
+.admin-content {
+    padding-bottom: 1rem;
+}
+
 .admin-side,
 .admin-topbar,
 .admin-welcome,
@@ -49,6 +75,10 @@
 .admin-nav .nav-link.active {
     background: #f0efe9;
     color: #121418;
+}
+
+.admin-portal .admin-nav .nav-link {
+    font-weight: 500;
 }
 
 .btn-admin-highlight {
@@ -191,7 +221,98 @@
 
 .x-small { font-size: .74rem; }
 
+/* Base visual consistente para vistas admin (listas/formularios) */
+.admin-portal .page-title {
+    color: #1f2937;
+    font-size: 1.35rem;
+}
+
+.admin-portal .card-soft,
+.admin-portal .card.shadow-sm {
+    border-radius: 1rem !important;
+    border: 1px solid #ece8dd !important;
+    box-shadow: 0 .4rem 1rem rgba(15, 23, 42, .05) !important;
+    background: #fffdf8;
+}
+
+.admin-portal .table {
+    margin-bottom: 0;
+}
+
+.admin-portal .table thead th {
+    border-bottom: 0;
+    background: #f3efe4;
+    color: #374151;
+    font-weight: 600;
+}
+
+.admin-portal .table tbody tr:hover {
+    background: #fffaf0;
+}
+
+.admin-portal .btn-primary {
+    background: #d8a93d;
+    border-color: #d8a93d;
+    color: #2f2500;
+    font-weight: 600;
+}
+
+.admin-portal .btn-primary:hover {
+    background: #c5952d;
+    border-color: #c5952d;
+    color: #2f2500;
+}
+
+.admin-portal .btn-warning {
+    background: #eab76d;
+    border-color: #eab76d;
+    color: #342300;
+}
+
+.admin-portal .btn-danger {
+    background: #e87878;
+    border-color: #e87878;
+}
+
+.admin-portal .form-control,
+.admin-portal .form-select {
+    border-radius: .75rem;
+    border-color: #e4dece;
+}
+
+.admin-portal .form-control:focus,
+.admin-portal .form-select:focus {
+    border-color: #d4ae5d;
+    box-shadow: 0 0 0 .18rem rgba(212, 174, 93, .25);
+}
+
+.admin-portal .badge.bg-success,
+.admin-portal .badge.text-bg-success {
+    background: #d1fae5 !important;
+    color: #065f46 !important;
+}
+
+.admin-portal .badge.bg-danger,
+.admin-portal .badge.text-bg-danger {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+}
+
+.admin-portal .badge.bg-warning,
+.admin-portal .badge.text-bg-warning {
+    background: #fef3c7 !important;
+    color: #92400e !important;
+}
+
 @media (max-width: 1199.98px) {
+    .admin-portal-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-global-sidebar {
+        position: static;
+    }
+
     .admin-dashboard-shell {
         padding: .75rem;
     }
