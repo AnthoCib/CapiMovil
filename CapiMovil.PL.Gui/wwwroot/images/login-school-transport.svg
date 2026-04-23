@@ -1,0 +1,26 @@
+<svg width="680" height="420" viewBox="0 0 680 420" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ilustración de bus escolar moderno">
+  <rect width="680" height="420" rx="24" fill="#E8F0F6"/>
+  <circle cx="92" cy="86" r="34" fill="#F4BF42" opacity="0.9"/>
+  <circle cx="592" cy="74" r="26" fill="#A9C6DA" opacity="0.8"/>
+  <path d="M44 326C130 251 246 202 352 211C460 220 543 252 633 326" stroke="#C6D7E4" stroke-width="20" stroke-linecap="round"/>
+
+  <rect x="154" y="154" width="372" height="146" rx="22" fill="#F4BF42"/>
+  <rect x="180" y="173" width="210" height="68" rx="12" fill="#FFFFFF" opacity="0.92"/>
+  <rect x="402" y="173" width="95" height="68" rx="12" fill="#1A3B5E" opacity="0.9"/>
+  <rect x="184" y="248" width="220" height="20" rx="10" fill="#CF8E2B" opacity="0.85"/>
+  <rect x="418" y="248" width="77" height="20" rx="10" fill="#CF8E2B" opacity="0.85"/>
+
+  <circle cx="236" cy="304" r="29" fill="#1A3B5E"/>
+  <circle cx="236" cy="304" r="12" fill="#BFD2E2"/>
+  <circle cx="454" cy="304" r="29" fill="#1A3B5E"/>
+  <circle cx="454" cy="304" r="12" fill="#BFD2E2"/>
+
+  <path d="M154 192C154 172.118 170.118 156 190 156H300C319.882 156 336 172.118 336 192V241H154V192Z" fill="#FFFFFF" opacity="0.92"/>
+  <path d="M415 174H495V241H415V174Z" fill="#2E5D84"/>
+
+  <rect x="250" y="104" width="176" height="34" rx="17" fill="#1A3B5E"/>
+  <text x="338" y="126" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="15" font-weight="700">CapiMovil School Ride</text>
+
+  <circle cx="553" cy="273" r="48" fill="#FFFFFF" opacity="0.68"/>
+  <path d="M536 273L548 285L571 262" stroke="#1E7F61" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
