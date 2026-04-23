@@ -33,7 +33,6 @@ namespace CapiMovil.BL.BC
             if (string.IsNullOrWhiteSpace(entidad.Nombres))
                 throw new ArgumentException("Nombres obligatorios.");
 
-            entidad.CodigoEstudiante = GenerarCodigoEstudiante();
             return _dalc.Registrar(entidad);
         }
 
@@ -57,20 +56,6 @@ namespace CapiMovil.BL.BC
                 throw new ArgumentException("Id inválido.");
 
             return _dalc.Eliminar(id);
-        }
-
-        private string GenerarCodigoEstudiante()
-        {
-            List<EstudianteBE> lista = _dalc.Listar();
-
-            int correlativo = lista
-                .Select(e => (e.CodigoEstudiante ?? string.Empty).Trim().ToUpperInvariant())
-                .Where(c => c.StartsWith("EST"))
-                .Select(c => c.Length > 3 && int.TryParse(c.Substring(3), out int n) ? n : 0)
-                .DefaultIfEmpty(0)
-                .Max() + 1;
-
-            return $"EST{correlativo:D4}";
         }
 
         public Guid ObtenerPadrePorEstudiante(Guid idEstudiante)

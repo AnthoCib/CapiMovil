@@ -670,3 +670,104 @@ BEGIN
     ORDER BY i.FechaHora DESC;
 END
 GO
+GO
+CREATE OR ALTER PROCEDURE dbo.sp_Estudiante_Registrar
+    @IdPadre UNIQUEIDENTIFIER,
+    @CodigoEstudiante VARCHAR(20) = NULL,
+    @Nombres VARCHAR(80),
+    @ApellidoPaterno VARCHAR(60),
+    @ApellidoMaterno VARCHAR(60),
+    @DNI VARCHAR(8) = NULL,
+    @FechaNacimiento DATE = NULL,
+    @Genero VARCHAR(1) = NULL,
+    @Grado VARCHAR(30) = NULL,
+    @Seccion VARCHAR(20) = NULL,
+    @Direccion VARCHAR(200) = NULL,
+    @LatitudCasa DECIMAL(10,7) = NULL,
+    @LongitudCasa DECIMAL(10,7) = NULL,
+    @FotoUrl VARCHAR(250) = NULL,
+    @Observaciones VARCHAR(300) = NULL,
+    @Estado BIT,
+    @CodigoGenerado VARCHAR(20) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @Correlativo INT;
+    DECLARE @Fragmento NVARCHAR(6);
+
+    SET @Fragmento =
+        UPPER(LEFT(LTRIM(RTRIM(ISNULL(@Nombres, 'X'))), 2)) +
+        UPPER(LEFT(LTRIM(RTRIM(ISNULL(@ApellidoPaterno, 'X'))), 2)) +
+        UPPER(LEFT(LTRIM(RTRIM(ISNULL(@ApellidoMaterno, 'X'))), 2));
+
+    IF OBJECT_ID('dbo.CorrelativoDocumento', 'U') IS NOT NULL
+    BEGIN
+        IF NOT EXISTS (SELECT 1 FROM dbo.CorrelativoDocumento WHERE TipoDocumento = 'ESTUDIANTE')
+        BEGIN
+            INSERT INTO dbo.CorrelativoDocumento (TipoDocumento, UltimoNumero, FechaActualizacion)
+            VALUES ('ESTUDIANTE', 0, GETDATE());
+        END
+
+        UPDATE dbo.CorrelativoDocumento
+           SET UltimoNumero = UltimoNumero + 1,
+               FechaActualizacion = GETDATE()
+         WHERE TipoDocumento = 'ESTUDIANTE';
+
+        SELECT @Correlativo = UltimoNumero
+          FROM dbo.CorrelativoDocumento
+         WHERE TipoDocumento = 'ESTUDIANTE';
+    END
+    ELSE
+    BEGIN
+        SELECT @Correlativo = ISNULL(MAX(TRY_CAST(RIGHT(CodigoEstudiante, 4) AS INT)), 0) + 1
+        FROM dbo.Estudiante
+        WHERE CodigoEstudiante LIKE 'EST-%[0-9][0-9][0-9][0-9]';
+    END
+
+    SET @CodigoGenerado = CONCAT('EST-', @Fragmento, RIGHT(CONCAT('0000', @Correlativo), 4));
+
+    INSERT INTO dbo.Estudiante
+    (
+        IdPadre,
+        CodigoEstudiante,
+        Nombres,
+        ApellidoPaterno,
+        ApellidoMaterno,
+        DNI,
+        FechaNacimiento,
+        Genero,
+        Grado,
+        Seccion,
+        Direccion,
+        LatitudCasa,
+        LongitudCasa,
+        FotoUrl,
+        Observaciones,
+        Estado
+    )
+    VALUES
+    (
+        @IdPadre,
+        @CodigoGenerado,
+        @Nombres,
+        @ApellidoPaterno,
+        @ApellidoMaterno,
+        @DNI,
+        @FechaNacimiento,
+        @Genero,
+        @Grado,
+        @Seccion,
+        @Direccion,
+        @LatitudCasa,
+        @LongitudCasa,
+        @FotoUrl,
+        @Observaciones,
+        @Estado
+    );
+
+    SELECT
+        @@ROWCOUNT AS FilasAfectadas,
+        @CodigoGenerado AS CodigoGenerado;
+END
+GO

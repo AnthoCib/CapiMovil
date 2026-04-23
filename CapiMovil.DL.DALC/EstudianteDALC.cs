@@ -108,7 +108,7 @@ namespace CapiMovil.DL.DALC
 
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@IdPadre", estudiante.IdPadre);
-            cmd.Parameters.AddWithValue("@CodigoEstudiante", estudiante.CodigoEstudiante);
+            cmd.Parameters.AddWithValue("@CodigoEstudiante", DBNull.Value);
             cmd.Parameters.AddWithValue("@Nombres", estudiante.Nombres);
             cmd.Parameters.AddWithValue("@ApellidoPaterno", estudiante.ApellidoPaterno);
             cmd.Parameters.AddWithValue("@ApellidoMaterno", estudiante.ApellidoMaterno);
@@ -123,11 +123,22 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.AddWithValue("@FotoUrl", (object?)estudiante.FotoUrl ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Observaciones", (object?)estudiante.Observaciones ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Estado", estudiante.Estado);
+            SqlParameter codigoOutput = cmd.Parameters.Add("@CodigoGenerado", SqlDbType.VarChar, 20);
+            codigoOutput.Direction = ParameterDirection.Output;
 
             cn.Open();
-            int filas = cmd.ExecuteNonQuery();
+            using SqlDataReader dr = cmd.ExecuteReader();
 
-            return filas > 0;
+            if (dr.Read())
+            {
+                int filas = Convert.ToInt32(dr["FilasAfectadas"]);
+                estudiante.CodigoEstudiante = dr["CodigoGenerado"]?.ToString()
+                    ?? codigoOutput.Value?.ToString()
+                    ?? string.Empty;
+                return filas > 0;
+            }
+
+            return false;
         }
 
         public bool Actualizar(EstudianteBE estudiante)
