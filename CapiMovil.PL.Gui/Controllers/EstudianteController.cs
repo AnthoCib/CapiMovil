@@ -71,16 +71,20 @@ namespace CapiMovil.PL.Gui.Controllers
 
                 bool ok = _estudianteBC.Registrar(entidad);
 
-                TempData[ok ? "ok" : "error"] = ok
-                    ? "Estudiante registrado correctamente."
-                    : "No se pudo registrar el estudiante.";
-
                 if (ok)
+                {
+                    TempData["ok"] = "Estudiante registrado correctamente.";
                     return RedirectToAction(nameof(Listar));
+                }
+
+                const string mensajeError = "No se pudo registrar el estudiante.";
+                ModelState.AddModelError(string.Empty, mensajeError);
+                ViewBag.SwalError = mensajeError;
             }
             catch (Exception ex)
             {
-                TempData["error"] = ex.Message;
+                ModelState.AddModelError(string.Empty, ex.Message);
+                ViewBag.SwalError = ex.Message;
             }
 
             vm.Padres = ObtenerPadres();

@@ -418,12 +418,15 @@ namespace CapiMovil.PL.Gui.Controllers
 
                 bool ok = _conductorBC.Registrar(entidad);
 
-                TempData[ok ? "ok" : "error"] = ok
-                    ? "Conductor registrado correctamente."
-                    : "No se pudo registrar el conductor.";
-
                 if (ok)
+                {
+                    TempData["ok"] = "Conductor registrado correctamente.";
                     return RedirectToAction(nameof(Listar));
+                }
+
+                const string mensajeError = "No se pudo registrar el conductor.";
+                ModelState.AddModelError(string.Empty, mensajeError);
+                ViewBag.SwalError = mensajeError;
             }
             catch (Exception ex)
             {

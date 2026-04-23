@@ -428,12 +428,15 @@ namespace CapiMovil.PL.Gui.Controllers
 
                 bool ok = _padreFamiliaBC.Registrar(entidad);
 
-                TempData[ok ? "ok" : "error"] = ok
-                    ? "Padre de familia registrado correctamente."
-                    : "No se pudo registrar el padre de familia.";
-
                 if (ok)
+                {
+                    TempData["ok"] = "Padre de familia registrado correctamente.";
                     return RedirectToAction(nameof(Listar));
+                }
+
+                const string mensajeError = "No se pudo registrar el padre de familia.";
+                ModelState.AddModelError(string.Empty, mensajeError);
+                ViewBag.SwalError = mensajeError;
             }
             catch (Exception ex)
             {
