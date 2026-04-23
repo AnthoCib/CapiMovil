@@ -290,7 +290,7 @@ namespace CapiMovil.DL.DALC
                 {
                     IdPadre = dr.GetGuid(dr.GetOrdinal("IdPadre")),
                     IdEstudiante = dr.GetGuid(dr.GetOrdinal("IdEstudiante"))
-                });.
+                });
             }
 
             return lista;
