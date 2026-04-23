@@ -53,7 +53,6 @@ namespace CapiMovil.PL.Gui.Controllers
                 EstudianteBE entidad = new EstudianteBE
                 {
                     IdPadre = vm.IdPadre,
-                    CodigoEstudiante = vm.CodigoEstudiante,
                     Nombres = vm.Nombres,
                     ApellidoPaterno = vm.ApellidoPaterno,
                     ApellidoMaterno = vm.ApellidoMaterno,
@@ -143,7 +142,6 @@ namespace CapiMovil.PL.Gui.Controllers
                 {
                     IdEstudiante = vm.IdEstudiante,
                     IdPadre = vm.IdPadre,
-                    CodigoEstudiante = vm.CodigoEstudiante,
                     Nombres = vm.Nombres,
                     ApellidoPaterno = vm.ApellidoPaterno,
                     ApellidoMaterno = vm.ApellidoMaterno,
