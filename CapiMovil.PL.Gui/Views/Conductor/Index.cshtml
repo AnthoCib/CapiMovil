@@ -8,26 +8,28 @@
         "EN_CURSO" => "text-bg-success",
         "PROGRAMADO" => "text-bg-warning",
         "FINALIZADO" => "text-bg-secondary",
-        _ => "text-bg-light"
+        _ => "text-bg-light text-dark"
     };
 }
 
-<div class="conductor-shell">
-    <section class="card border-0 shadow-sm mb-4 conductor-hero">
-        <div class="card-body p-4 p-lg-5">
-            <h1 class="h3 fw-bold mb-1">Hola, @Model.NombreConductor</h1>
-            <p class="text-muted mb-0">Aquí tienes el resumen de tu jornada para hoy.</p>
-        </div>
+<div class="conductor-dashboard">
+    <section class="conductor-welcome-card mb-4">
+        <h1 class="h3 fw-bold mb-1">Hola, @Model.NombreConductor</h1>
+        <p class="text-muted mb-0">Aquí tienes el resumen de tu jornada para hoy.</p>
     </section>
 
-    <div class="row g-3 mb-4">
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-0 pt-4 px-4">
-                    <h2 class="h5 fw-bold mb-1">Mi Recorrido de Hoy</h2>
-                    <p class="text-muted mb-0">Estado y datos de la ruta asignada.</p>
-                </div>
-                <div class="card-body px-4 pb-4">
+    <div class="row g-4 mb-4 align-items-stretch">
+        <div class="col-xl-8">
+            <section class="card border-0 shadow-sm h-100 conductor-soft-card">
+                <div class="card-body p-4 p-xl-5">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-4">
+                        <div>
+                            <p class="text-uppercase conductor-label mb-1">Operación de hoy</p>
+                            <h2 class="h4 fw-bold mb-0">Mi Recorrido de Hoy</h2>
+                        </div>
+                        <span class="badge rounded-pill @badgeEstado px-3 py-2">@estado.Replace("_", " ")</span>
+                    </div>
+
                     @if (recorrido == null)
                     {
                         <div class="alert alert-info mb-0">No tienes recorrido programado para hoy.</div>
@@ -35,121 +37,121 @@
                     else
                     {
                         <div class="row g-3">
-                            <div class="col-md-6 col-xl-4"><span class="text-muted d-block">Código</span><strong>@recorrido.CodigoRecorrido</strong></div>
-                            <div class="col-md-6 col-xl-4"><span class="text-muted d-block">Ruta</span><strong>@(recorrido.Ruta?.Nombre ?? "-")</strong></div>
-                            <div class="col-md-6 col-xl-4"><span class="text-muted d-block">Bus</span><strong>@(recorrido.Bus?.Placa ?? "-")</strong></div>
-                            <div class="col-md-6 col-xl-4"><span class="text-muted d-block">Estado</span><span class="badge @badgeEstado">@estado.Replace("_", " ")</span></div>
-                            <div class="col-md-6 col-xl-4"><span class="text-muted d-block">Hora programada</span><strong>@(recorrido.HoraInicioProgramada?.ToString(@"hh\:mm") ?? "--:--")</strong></div>
-                            <div class="col-md-6 col-xl-4"><span class="text-muted d-block">Recorridos hoy</span><strong>@Model.RecorridosHoy</strong></div>
+                            <div class="col-sm-6 col-lg-4">
+                                <p class="conductor-data-label mb-1">Código del recorrido</p>
+                                <p class="conductor-data-value mb-0">@recorrido.CodigoRecorrido</p>
+                            </div>
+                            <div class="col-sm-6 col-lg-4">
+                                <p class="conductor-data-label mb-1">Ruta</p>
+                                <p class="conductor-data-value mb-0">@(recorrido.Ruta?.Nombre ?? "-")</p>
+                            </div>
+                            <div class="col-sm-6 col-lg-4">
+                                <p class="conductor-data-label mb-1">Bus</p>
+                                <p class="conductor-data-value mb-0">@(recorrido.Bus?.Placa ?? "-")</p>
+                            </div>
+                            <div class="col-sm-6 col-lg-4">
+                                <p class="conductor-data-label mb-1">Hora programada</p>
+                                <p class="conductor-data-value mb-0">@(recorrido.HoraInicioProgramada?.ToString(@"hh\:mm") ?? "--:--")</p>
+                            </div>
+                            <div class="col-sm-6 col-lg-4">
+                                <p class="conductor-data-label mb-1">Recorridos hoy</p>
+                                <p class="conductor-data-value mb-0">@Model.RecorridosHoy</p>
+                            </div>
+                            <div class="col-sm-6 col-lg-4">
+                                <p class="conductor-data-label mb-1">Estudiantes activos</p>
+                                <p class="conductor-data-value mb-0">@Model.EstudiantesRutaActiva</p>
+                            </div>
                         </div>
                     }
                 </div>
-            </div>
+            </section>
         </div>
 
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-                    <h2 class="h6 fw-bold mb-0">Alertas / Incidencias</h2>
-                    <span class="badge text-bg-danger">@Model.IncidenciasAbiertas</span>
-                </div>
-                <div class="card-body px-3 pb-3">
+        <div class="col-xl-4">
+            <section class="card border-0 shadow-sm h-100 conductor-soft-card">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="h5 fw-bold mb-0">Alertas / Incidencias</h2>
+                        <span class="badge rounded-pill text-bg-danger">@Model.IncidenciasAbiertas</span>
+                    </div>
+
                     @if (Model.AlertasRecientes.Any())
                     {
-                        @foreach (var alerta in Model.AlertasRecientes)
-                        {
-                            <div class="border rounded-3 p-2 mb-2 bg-light-subtle">
-                                <div class="small fw-semibold">@alerta.TipoIncidencia</div>
-                                <div class="x-small text-muted">@alerta.Descripcion</div>
-                                <div class="x-small text-muted">@alerta.FechaHora.ToString("dd/MM HH:mm")</div>
-                            </div>
-                        }
+                        <div class="d-flex flex-column gap-2 mb-3">
+                            @foreach (var alerta in Model.AlertasRecientes)
+                            {
+                                @await Html.PartialAsync("_DashboardAlertItem", alerta)
+                            }
+                        </div>
                     }
                     else
                     {
-                        <div class="text-muted small">Sin incidencias recientes.</div>
+                        <p class="text-muted small mb-3">Sin incidencias recientes registradas.</p>
                     }
 
-                    <a asp-action="Incidencias" class="btn btn-outline-secondary btn-sm w-100 mt-2">
+                    <a asp-action="Incidencias" class="btn btn-outline-secondary btn-sm w-100">
                         <i class="bi bi-clock-history me-1"></i>Ver historial de alertas
                     </a>
                 </div>
-            </div>
+            </section>
         </div>
     </div>
 
-    <div class="row g-3 mb-4">
+    <div class="row g-4 mb-4">
         <div class="col-md-6 col-xl-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <h3 class="h6 fw-bold">Ruta Escolar 1</h3>
-                    <p class="text-muted small mb-3">Etapa de recojo</p>
-                    <a asp-action="MiRuta" class="btn btn-light border">Ver más detalles</a>
-                </div>
-            </div>
+            @await Html.PartialAsync("_DashboardRouteStageCard", ("Ruta Escolar 1", "Etapa de recojo", "MiRuta", "bi-signpost-split"))
         </div>
         <div class="col-md-6 col-xl-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <h3 class="h6 fw-bold">Ruta Escolar 2</h3>
-                    <p class="text-muted small mb-3">Etapa de retorno</p>
-                    <a asp-action="Recorrido" class="btn btn-light border">Ver más detalles</a>
-                </div>
-            </div>
+            @await Html.PartialAsync("_DashboardRouteStageCard", ("Ruta Escolar 2", "Etapa de retorno", "Recorrido", "bi-arrow-left-right"))
         </div>
         <div class="col-xl-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <h3 class="h6 fw-bold">Estudiantes en ruta</h3>
-                    <div class="display-6 fw-bold">@Model.EstudiantesRutaActiva</div>
-                    <p class="text-muted small mb-0">Asignados para la operación de hoy.</p>
+            <section class="card border-0 shadow-sm h-100 conductor-soft-card">
+                <div class="card-body p-4 d-flex flex-column justify-content-center">
+                    <p class="text-uppercase conductor-label mb-2">Resumen rápido</p>
+                    <p class="display-6 fw-bold mb-1">@Model.EstudiantesRutaActiva</p>
+                    <p class="text-muted mb-0">Estudiantes asignados para la operación de hoy.</p>
                 </div>
-            </div>
+            </section>
         </div>
     </div>
 
-    <section class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white border-0 pt-4 px-4">
-            <h2 class="h5 fw-bold mb-0">Estudiantes en Ruta</h2>
-        </div>
-        <div class="card-body p-3">
+    <section class="card border-0 shadow-sm mb-4 conductor-soft-card">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h5 fw-bold mb-0">Estudiantes en Ruta</h2>
+                <span class="text-muted small">@Model.EstudiantesEnRuta.Count estudiantes visibles</span>
+            </div>
+
             @if (Model.EstudiantesEnRuta.Any())
             {
-                @foreach (var item in Model.EstudiantesEnRuta)
-                {
-                    <div class="d-flex align-items-center justify-content-between border rounded-3 p-2 mb-2">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="conductor-avatar">@((item.Nombre?.Length ?? 0) > 0 ? item.Nombre[0] : 'E')</span>
-                            <div>
-                                <div class="fw-semibold small">@item.Nombre</div>
-                                <div class="x-small text-muted">@item.Parada · @item.Hora</div>
-                            </div>
-                        </div>
-                        <span class="badge @(item.Estado == "ABORDÓ" ? "text-bg-success" : item.Estado == "DESCENDIÓ" ? "text-bg-info" : "text-bg-warning")">@item.Estado</span>
-                    </div>
-                }
+                <div class="d-flex flex-column gap-2">
+                    @foreach (var item in Model.EstudiantesEnRuta)
+                    {
+                        @await Html.PartialAsync("_DashboardStudentItem", item)
+                    }
+                </div>
             }
             else
             {
-                <div class="text-muted small">No hay estudiantes asociados para mostrar.</div>
+                <p class="text-muted small mb-0">No hay estudiantes asociados para mostrar.</p>
             }
         </div>
     </section>
 
-    <div class="d-grid">
+    <div class="d-grid d-md-flex justify-content-md-end">
         @if (Model.PuedeIniciarRecorrido && recorrido != null)
         {
-            <form asp-action="IniciarRecorrido" method="post">
+            <form asp-action="IniciarRecorrido" method="post" class="w-100 w-md-auto">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="idRecorrido" value="@recorrido.IdRecorrido" />
-                <button type="submit" class="btn btn-warning btn-lg fw-semibold">
+                <button type="submit" class="btn btn-warning btn-lg fw-semibold conductor-primary-action">
                     <i class="bi bi-play-circle me-2"></i>Iniciar Recorrido de Recojo
                 </button>
             </form>
         }
         else
         {
-            <button class="btn btn-warning btn-lg fw-semibold" disabled>
+            <button class="btn btn-warning btn-lg fw-semibold conductor-primary-action" disabled>
                 <i class="bi bi-play-circle me-2"></i>Iniciar Recorrido de Recojo
             </button>
         }
