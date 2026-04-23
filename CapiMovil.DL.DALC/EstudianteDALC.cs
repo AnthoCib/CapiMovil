@@ -108,7 +108,6 @@ namespace CapiMovil.DL.DALC
 
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@IdPadre", estudiante.IdPadre);
-            cmd.Parameters.AddWithValue("@CodigoEstudiante", DBNull.Value);
             cmd.Parameters.AddWithValue("@Nombres", estudiante.Nombres);
             cmd.Parameters.AddWithValue("@ApellidoPaterno", estudiante.ApellidoPaterno);
             cmd.Parameters.AddWithValue("@ApellidoMaterno", estudiante.ApellidoMaterno);

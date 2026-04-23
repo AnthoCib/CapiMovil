@@ -78,6 +78,7 @@ CREATE OR ALTER PROCEDURE dbo.sp_PadreFamilia_Registrar
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
     DECLARE @Correlativo INT;
     DECLARE @Fragmento VARCHAR(6);
@@ -92,20 +93,19 @@ BEGIN
     BEGIN TRY
         IF OBJECT_ID('dbo.CorrelativoDocumento', 'U') IS NOT NULL
         BEGIN
-            IF NOT EXISTS (SELECT 1 FROM dbo.CorrelativoDocumento WITH (UPDLOCK, HOLDLOCK) WHERE TipoDocumento = 'PADRE')
+            IF NOT EXISTS (SELECT 1 FROM dbo.CorrelativoDocumento WITH (UPDLOCK, HOLDLOCK) WHERE TipoCodigo = 'PADRE')
             BEGIN
-                INSERT INTO dbo.CorrelativoDocumento (TipoDocumento, UltimoNumero, FechaActualizacion)
-                VALUES ('PADRE', 0, GETDATE());
+                INSERT INTO dbo.CorrelativoDocumento (TipoCodigo, UltimoNumero)
+                VALUES ('PADRE', 0);
             END
 
             UPDATE dbo.CorrelativoDocumento
-               SET UltimoNumero = UltimoNumero + 1,
-                   FechaActualizacion = GETDATE()
-             WHERE TipoDocumento = 'PADRE';
+               SET UltimoNumero = UltimoNumero + 1
+             WHERE TipoCodigo = 'PADRE';
 
             SELECT @Correlativo = UltimoNumero
               FROM dbo.CorrelativoDocumento WITH (UPDLOCK, HOLDLOCK)
-             WHERE TipoDocumento = 'PADRE';
+             WHERE TipoCodigo = 'PADRE';
         END
         ELSE
         BEGIN
@@ -326,6 +326,7 @@ CREATE OR ALTER PROCEDURE dbo.sp_Conductor_Registrar
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
     DECLARE @Correlativo INT;
     DECLARE @Fragmento VARCHAR(6);
@@ -340,20 +341,19 @@ BEGIN
     BEGIN TRY
         IF OBJECT_ID('dbo.CorrelativoDocumento', 'U') IS NOT NULL
         BEGIN
-            IF NOT EXISTS (SELECT 1 FROM dbo.CorrelativoDocumento WITH (UPDLOCK, HOLDLOCK) WHERE TipoDocumento = 'CONDUCTOR')
+            IF NOT EXISTS (SELECT 1 FROM dbo.CorrelativoDocumento WITH (UPDLOCK, HOLDLOCK) WHERE TipoCodigo = 'CONDUCTOR')
             BEGIN
-                INSERT INTO dbo.CorrelativoDocumento (TipoDocumento, UltimoNumero, FechaActualizacion)
-                VALUES ('CONDUCTOR', 0, GETDATE());
+                INSERT INTO dbo.CorrelativoDocumento (TipoCodigo, UltimoNumero)
+                VALUES ('CONDUCTOR', 0);
             END
 
             UPDATE dbo.CorrelativoDocumento
-               SET UltimoNumero = UltimoNumero + 1,
-                   FechaActualizacion = GETDATE()
-             WHERE TipoDocumento = 'CONDUCTOR';
+               SET UltimoNumero = UltimoNumero + 1
+             WHERE TipoCodigo = 'CONDUCTOR';
 
             SELECT @Correlativo = UltimoNumero
               FROM dbo.CorrelativoDocumento WITH (UPDLOCK, HOLDLOCK)
-             WHERE TipoDocumento = 'CONDUCTOR';
+             WHERE TipoCodigo = 'CONDUCTOR';
         END
         ELSE
         BEGIN
@@ -755,7 +755,6 @@ GO
 GO
 CREATE OR ALTER PROCEDURE dbo.sp_Estudiante_Registrar
     @IdPadre UNIQUEIDENTIFIER,
-    @CodigoEstudiante VARCHAR(20) = NULL,
     @Nombres VARCHAR(80),
     @ApellidoPaterno VARCHAR(60),
     @ApellidoMaterno VARCHAR(60),
@@ -774,6 +773,7 @@ CREATE OR ALTER PROCEDURE dbo.sp_Estudiante_Registrar
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
     DECLARE @Correlativo INT;
     DECLARE @Fragmento NVARCHAR(6);
@@ -788,20 +788,19 @@ BEGIN
     BEGIN TRY
         IF OBJECT_ID('dbo.CorrelativoDocumento', 'U') IS NOT NULL
         BEGIN
-            IF NOT EXISTS (SELECT 1 FROM dbo.CorrelativoDocumento WITH (UPDLOCK, HOLDLOCK) WHERE TipoDocumento = 'ESTUDIANTE')
+            IF NOT EXISTS (SELECT 1 FROM dbo.CorrelativoDocumento WITH (UPDLOCK, HOLDLOCK) WHERE TipoCodigo = 'ESTUDIANTE')
             BEGIN
-                INSERT INTO dbo.CorrelativoDocumento (TipoDocumento, UltimoNumero, FechaActualizacion)
-                VALUES ('ESTUDIANTE', 0, GETDATE());
+                INSERT INTO dbo.CorrelativoDocumento (TipoCodigo, UltimoNumero)
+                VALUES ('ESTUDIANTE', 0);
             END
 
             UPDATE dbo.CorrelativoDocumento
-               SET UltimoNumero = UltimoNumero + 1,
-                   FechaActualizacion = GETDATE()
-             WHERE TipoDocumento = 'ESTUDIANTE';
+               SET UltimoNumero = UltimoNumero + 1
+             WHERE TipoCodigo = 'ESTUDIANTE';
 
             SELECT @Correlativo = UltimoNumero
               FROM dbo.CorrelativoDocumento WITH (UPDLOCK, HOLDLOCK)
-             WHERE TipoDocumento = 'ESTUDIANTE';
+             WHERE TipoCodigo = 'ESTUDIANTE';
         END
         ELSE
         BEGIN

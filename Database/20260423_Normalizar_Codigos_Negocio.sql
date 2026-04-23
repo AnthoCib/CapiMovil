@@ -11,10 +11,28 @@
 */
 
 SET NOCOUNT ON;
+SET XACT_ABORT ON;
 
 BEGIN TRANSACTION;
 
 BEGIN TRY
+    DECLARE @InicioPadre INT = (
+        SELECT ISNULL(MAX(TRY_CAST(RIGHT(CodigoPadre, 4) AS INT)), 0)
+        FROM dbo.PadreFamilia
+        WHERE CodigoPadre LIKE 'PAD-%[0-9][0-9][0-9][0-9]'
+    );
+
+    DECLARE @InicioConductor INT = (
+        SELECT ISNULL(MAX(TRY_CAST(RIGHT(CodigoConductor, 4) AS INT)), 0)
+        FROM dbo.Conductor
+        WHERE CodigoConductor LIKE 'CON-%[0-9][0-9][0-9][0-9]'
+    );
+
+    DECLARE @InicioEstudiante INT = (
+        SELECT ISNULL(MAX(TRY_CAST(RIGHT(CodigoEstudiante, 4) AS INT)), 0)
+        FROM dbo.Estudiante
+        WHERE CodigoEstudiante LIKE 'EST-%[0-9][0-9][0-9][0-9]'
+    );
     /* ========================
        PREVIEW (sin cambios)
        ======================== */
@@ -49,7 +67,7 @@ BEGIN TRY
            OR p.CodigoPadre NOT LIKE 'PAD-[A-Z][A-Z][A-Z][A-Z][A-Z][A-Z][0-9][0-9][0-9][0-9]'
     )
     UPDATE p
-       SET p.CodigoPadre = CONCAT('PAD-', b.Fragmento, RIGHT(CONCAT('0000', b.Nro), 4))
+       SET p.CodigoPadre = CONCAT('PAD-', b.Fragmento, RIGHT(CONCAT('0000', @InicioPadre + b.Nro), 4))
     FROM dbo.PadreFamilia p
     INNER JOIN Base b ON b.IdPadre = p.IdPadre;
 
@@ -69,7 +87,7 @@ BEGIN TRY
            OR c.CodigoConductor NOT LIKE 'CON-[A-Z][A-Z][A-Z][A-Z][A-Z][A-Z][0-9][0-9][0-9][0-9]'
     )
     UPDATE c
-       SET c.CodigoConductor = CONCAT('CON-', b.Fragmento, RIGHT(CONCAT('0000', b.Nro), 4))
+       SET c.CodigoConductor = CONCAT('CON-', b.Fragmento, RIGHT(CONCAT('0000', @InicioConductor + b.Nro), 4))
     FROM dbo.Conductor c
     INNER JOIN Base b ON b.IdConductor = c.IdConductor;
 
@@ -89,7 +107,7 @@ BEGIN TRY
            OR e.CodigoEstudiante NOT LIKE 'EST-[A-Z][A-Z][A-Z][A-Z][A-Z][A-Z][0-9][0-9][0-9][0-9]'
     )
     UPDATE e
-       SET e.CodigoEstudiante = CONCAT('EST-', b.Fragmento, RIGHT(CONCAT('0000', b.Nro), 4))
+       SET e.CodigoEstudiante = CONCAT('EST-', b.Fragmento, RIGHT(CONCAT('0000', @InicioEstudiante + b.Nro), 4))
     FROM dbo.Estudiante e
     INNER JOIN Base b ON b.IdEstudiante = e.IdEstudiante;
 
