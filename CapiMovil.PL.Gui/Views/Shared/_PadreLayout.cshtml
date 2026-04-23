@@ -44,11 +44,14 @@
 
                     <nav class="nav flex-column gap-2 pf-layout-nav">
                         <a asp-controller="PadreFamilia" asp-action="Index" class="@NavClass("Index")"><i class="bi bi-grid"></i>Dashboard</a>
+                        <a asp-controller="PadreFamilia" asp-action="MapaEnVivo" class="@NavClass("MapaEnVivo")"><i class="bi bi-broadcast-pin"></i>Mapa en Vivo</a>
+                        <a asp-controller="PadreFamilia" asp-action="Historial" class="@NavClass("Historial")"><i class="bi bi-clock-history"></i>Historial</a>
                         <a asp-controller="PadreFamilia" asp-action="MisHijos" class="@NavClass("MisHijos")"><i class="bi bi-people"></i>Mis Hijos</a>
                         <a asp-controller="PadreFamilia" asp-action="Seguimiento" class="@NavClass("Seguimiento")"><i class="bi bi-geo-alt"></i>Seguimiento</a>
                         <a asp-controller="PadreFamilia" asp-action="Notificaciones" class="@NavClass("Notificaciones")"><i class="bi bi-bell"></i>Notificaciones</a>
                         <a asp-controller="PadreFamilia" asp-action="MisEventos" class="@NavClass("MisEventos")"><i class="bi bi-clock-history"></i>Actividad</a>
                         <a asp-controller="PadreFamilia" asp-action="Incidencias" class="@NavClass("Incidencias")"><i class="bi bi-exclamation-triangle"></i>Incidencias</a>
+                        <a asp-controller="Usuario" asp-action="CambiarPassword" class="nav-link"><i class="bi bi-sliders"></i>Ajustes</a>
                         <a asp-controller="Usuario" asp-action="MiPerfil" class="nav-link"><i class="bi bi-person-circle"></i>Mi Perfil</a>
                     </nav>
 

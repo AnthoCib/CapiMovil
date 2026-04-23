@@ -1,0 +1,64 @@
+@model CapiMovil.PL.Gui.Models.ViewModels.PadreHistorialViewModel
+@{
+    ViewData["Title"] = "Historial de Viajes";
+}
+
+<div class="pf-dashboard">
+    <section class="pf-card p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <div>
+                <h1 class="h5 pf-title mb-1">Historial de Viajes</h1>
+                <p class="pf-subtitle mb-0">Consulta viajes, estados y eventos del servicio escolar.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <span class="pf-badge-soft pf-badge-info">Total: @Model.TotalViajes</span>
+                <span class="pf-badge-soft pf-badge-success">Seguros: @Model.ViajesSeguros</span>
+            </div>
+        </div>
+
+        <form asp-action="Historial" method="get" class="row g-2 align-items-end">
+            <div class="col-md-3"><label class="form-label small">Desde</label><input type="date" name="fechaDesde" value="@Model.FechaDesde.ToString("yyyy-MM-dd")" class="form-control" /></div>
+            <div class="col-md-3"><label class="form-label small">Hasta</label><input type="date" name="fechaHasta" value="@Model.FechaHasta.ToString("yyyy-MM-dd")" class="form-control" /></div>
+            <div class="col-md-4">
+                <label class="form-label small">Filtro rápido</label>
+                <div class="d-flex gap-2 flex-wrap">
+                    <span class="pf-badge-soft pf-badge-muted">Todos los viajes</span>
+                    <span class="pf-badge-soft pf-badge-info">Recogida Mañana</span>
+                    <span class="pf-badge-soft pf-badge-warning">Entrega Tarde</span>
+                    <span class="pf-badge-soft pf-badge-danger">Excepciones</span>
+                </div>
+            </div>
+            <div class="col-md-2 d-grid"><button type="submit" class="btn btn-outline-primary">Aplicar</button></div>
+        </form>
+    </section>
+
+    @if (Model.Viajes.Any())
+    {
+        <div class="row g-3">
+            @foreach (var viaje in Model.Viajes)
+            {
+                var stateClass = viaje.TieneIncidencia ? "pf-badge-danger" : "pf-badge-success";
+                <div class="col-md-6">
+                    <article class="pf-card p-3 h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong>@viaje.Ruta</strong>
+                            <span class="pf-badge-soft @stateClass">@(viaje.TieneIncidencia ? "Con incidencia" : "Viaje seguro")</span>
+                        </div>
+                        <div class="pf-student-meta mb-2">@viaje.Fecha?.ToString("dd/MM/yyyy") · @viaje.Hora</div>
+                        <div class="pf-data-grid mb-2">
+                            <div class="pf-data-cell"><small>Estudiante</small>@viaje.Estudiante</div>
+                            <div class="pf-data-cell"><small>Tipo</small>@viaje.TipoRecorrido</div>
+                            <div class="pf-data-cell"><small>Estado</small>@viaje.Estado</div>
+                            <div class="pf-data-cell"><small>Conductor</small>@viaje.Conductor</div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye me-1"></i>Ver detalles</button>
+                    </article>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        @await Html.PartialAsync("_EmptyState", ("Sin historial disponible", "No se encontraron viajes en el rango de fechas seleccionado.", "bi-clock-history"))
+    }
+</div>

@@ -41,8 +41,8 @@
                 </div>
                 <div class="pf-list-item">
                     <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-semibold">Historial de eventos</span>
-                        <a asp-action="MisEventos" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-right"></i></a>
+                        <span class="fw-semibold">Historial de viajes</span>
+                        <a asp-action="Historial" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-right"></i></a>
                     </div>
                 </div>
             </section>
@@ -52,7 +52,7 @@
     <section class="pf-card p-3 mb-3">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="h5 pf-title mb-0">Actividad Reciente</h2>
-            <a asp-action="MisEventos" class="btn btn-sm btn-outline-secondary"><i class="bi bi-clock-history me-1"></i>Ver historial</a>
+            <a asp-action="Historial" class="btn btn-sm btn-outline-secondary"><i class="bi bi-clock-history me-1"></i>Ver historial</a>
         </div>
         <div class="row g-2">
             <div class="col-md-4"><div class="pf-list-item"><strong>Notificaciones</strong><p class="mb-0 pf-student-meta">@Model.CantidadNotificacionesPendientes pendientes por revisar.</p></div></div>
@@ -65,7 +65,7 @@
         <h2 class="h6 pf-title mb-2">Accesos rápidos</h2>
         <div class="row g-2">
             <div class="col-sm-4"><a class="pf-action-link" asp-action="Seguimiento"><i class="bi bi-broadcast-pin me-2"></i>Rastreo en Vivo</a></div>
-            <div class="col-sm-4"><a class="pf-action-link" asp-action="MisEventos"><i class="bi bi-clock-history me-2"></i>Historial</a></div>
+            <div class="col-sm-4"><a class="pf-action-link" asp-action="Historial"><i class="bi bi-clock-history me-2"></i>Historial</a></div>
             <div class="col-sm-4"><a class="pf-action-link" asp-action="Incidencias"><i class="bi bi-telephone me-2"></i>Contacto</a></div>
         </div>
     </section>

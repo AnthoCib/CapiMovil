@@ -244,6 +244,133 @@ namespace CapiMovil.PL.Gui.Controllers
         }
 
         [HttpGet]
+        public IActionResult MapaEnVivo(Guid? idEstudiante)
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            if (padre == null)
+                return View(new PadreMapaEnVivoViewModel());
+
+            List<EstudianteBE> hijos = ObtenerHijos(padre.IdPadre);
+            if (!hijos.Any())
+                return View(new PadreMapaEnVivoViewModel { MensajeEstado = "No hay hijos asociados para rastreo en vivo." });
+
+            EstudianteBE estudianteSeleccionado = idEstudiante.HasValue
+                ? hijos.FirstOrDefault(h => h.IdEstudiante == idEstudiante.Value) ?? hijos.First()
+                : hijos.First();
+
+            RutaEstudianteBE? asignacion = _rutaEstudianteBC.Listar()
+                .Where(r => r.Estado && r.IdEstudiante == estudianteSeleccionado.IdEstudiante)
+                .OrderByDescending(r => r.FechaInicioVigencia)
+                .FirstOrDefault();
+
+            RecorridoBE? recorridoActivo = asignacion == null
+                ? null
+                : _recorridoBC.Listar()
+                    .Where(r => r.IdRuta == asignacion.IdRuta && r.Fecha.Date == DateTime.Today)
+                    .OrderByDescending(r => r.Fecha)
+                    .FirstOrDefault();
+
+            EventoAbordajeBE? ultimoEvento = _eventoAbordajeBC.Listar()
+                .Where(e => e.IdEstudiante == estudianteSeleccionado.IdEstudiante)
+                .OrderByDescending(e => e.FechaHora)
+                .FirstOrDefault();
+
+            ParaderoBE? proximaParada = asignacion?.IdParaderoBajada.HasValue == true
+                ? _paraderoBC.ListarPorId(asignacion.IdParaderoBajada.Value)
+                : null;
+
+            string mensajeEstado = recorridoActivo == null
+                ? "No existe recorrido activo en este momento."
+                : string.Equals(recorridoActivo.EstadoRecorrido, "EN_CURSO", StringComparison.OrdinalIgnoreCase)
+                    ? "¡El autobús está cerca!"
+                    : "Recorrido programado. Revisa el ETA del abordaje.";
+
+            PadreMapaEnVivoViewModel vm = new()
+            {
+                Estudiante = estudianteSeleccionado,
+                HijosDisponibles = hijos,
+                RecorridoActivo = recorridoActivo,
+                RutaAsignada = asignacion,
+                UltimoEvento = ultimoEvento,
+                ProximaParada = proximaParada,
+                Conductor = recorridoActivo?.Conductor?.NombreCompleto,
+                Bus = recorridoActivo?.Bus?.Placa,
+                EstadoSeguridad = ultimoEvento == null ? "Sin eventos recientes" : "Monitoreo activo",
+                ETA = recorridoActivo?.HoraInicioProgramada?.ToString(@"hh\:mm"),
+                MensajeEstado = mensajeEstado,
+                TieneRastreoDisponible = recorridoActivo != null
+            };
+
+            return View(vm);
+        }
+
+        [HttpGet]
+        public IActionResult Historial(DateTime? fechaDesde, DateTime? fechaHasta)
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            if (padre == null)
+                return View(new PadreHistorialViewModel());
+
+            DateTime inicio = (fechaDesde ?? DateTime.Today.AddDays(-30)).Date;
+            DateTime fin = (fechaHasta ?? DateTime.Today).Date;
+
+            List<EstudianteBE> hijos = ObtenerHijos(padre.IdPadre);
+            HashSet<Guid> idsHijos = hijos.Select(h => h.IdEstudiante).ToHashSet();
+
+            Dictionary<Guid, EstudianteBE> hijosDict = hijos.ToDictionary(h => h.IdEstudiante, h => h);
+            List<RutaEstudianteBE> rutas = _rutaEstudianteBC.Listar().Where(r => r.Estado && idsHijos.Contains(r.IdEstudiante)).ToList();
+            List<RecorridoBE> recorridos = _recorridoBC.Listar()
+                .Where(r => r.Fecha.Date >= inicio && r.Fecha.Date <= fin)
+                .ToList();
+            List<EventoAbordajeBE> eventos = _eventoAbordajeBC.Listar()
+                .Where(e => e.FechaHora.Date >= inicio && e.FechaHora.Date <= fin && idsHijos.Contains(e.IdEstudiante))
+                .OrderByDescending(e => e.FechaHora)
+                .ToList();
+
+            List<PadreHistorialViajeItemViewModel> viajes = rutas
+                .Select(r =>
+                {
+                    EstudianteBE hijo = hijosDict[r.IdEstudiante];
+                    RecorridoBE? recorrido = recorridos.FirstOrDefault(x => x.IdRuta == r.IdRuta);
+                    EventoAbordajeBE? ultimoEvento = eventos.FirstOrDefault(x => x.IdEstudiante == r.IdEstudiante);
+
+                    return new PadreHistorialViajeItemViewModel
+                    {
+                        Estudiante = hijo.NombreCompleto,
+                        Fecha = recorrido?.Fecha ?? ultimoEvento?.FechaHora.Date,
+                        TipoRecorrido = recorrido?.EstadoRecorrido ?? "Programado",
+                        Ruta = $"{r.Ruta?.CodigoRuta} - {r.Ruta?.Nombre}",
+                        Hora = ultimoEvento?.FechaHora.ToString("HH:mm") ?? "--:--",
+                        Estado = recorrido?.EstadoRecorrido ?? "Sin estado",
+                        Conductor = recorrido?.Conductor?.NombreCompleto ?? "No disponible",
+                        TieneIncidencia = _incidenciaBC.ListarPorPadre(padre.IdPadre)
+                            .Any(i => string.Equals(i.CodigoRecorrido, recorrido?.CodigoRecorrido, StringComparison.OrdinalIgnoreCase))
+                    };
+                })
+                .OrderByDescending(v => v.Fecha)
+                .ToList();
+
+            PadreHistorialViewModel vm = new()
+            {
+                FechaDesde = inicio,
+                FechaHasta = fin,
+                TotalViajes = viajes.Count,
+                ViajesSeguros = viajes.Count(v => !v.TieneIncidencia),
+                Viajes = viajes
+            };
+
+            return View(vm);
+        }
+
+        [HttpGet]
         public IActionResult MiRuta()
         {
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);

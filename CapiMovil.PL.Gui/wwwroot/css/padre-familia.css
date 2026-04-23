@@ -67,6 +67,16 @@
     padding: 1rem;
 }
 
+.pf-dashboard .pf-card { border-radius: 1rem; }
+
+.pf-map-placeholder {
+    min-height: 420px;
+    border-radius: .95rem;
+    border: 1px dashed #d4d8df;
+    background: linear-gradient(145deg, #f9fbfe 0%, #edf3fb 100%);
+    color: #5f6f85;
+}
+
 .pf-hero,
 .pf-card {
     border: 1px solid #ece8dd;
