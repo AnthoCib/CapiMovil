@@ -32,6 +32,9 @@ namespace CapiMovil.DL.DALC
                 {
                     IdEstudiante = dr.GetGuid(dr.GetOrdinal("IdEstudiante")),
                     IdPadre = dr.GetGuid(dr.GetOrdinal("IdPadre")),
+                    CodigoEstudiante = ExisteColumna(dr, "CodigoEstudiante") && dr["CodigoEstudiante"] != DBNull.Value
+                        ? dr["CodigoEstudiante"].ToString() ?? string.Empty
+                        : string.Empty,
                     Nombres = dr["Nombres"].ToString() ?? string.Empty,
                     ApellidoPaterno = dr["ApellidoPaterno"].ToString() ?? string.Empty,
                     ApellidoMaterno = dr["ApellidoMaterno"].ToString() ?? string.Empty,
@@ -203,6 +206,18 @@ namespace CapiMovil.DL.DALC
 
             return lista;
         }
+
+        private static bool ExisteColumna(SqlDataReader dr, string nombreColumna)
+        {
+            for (int i = 0; i < dr.FieldCount; i++)
+            {
+                if (dr.GetName(i).Equals(nombreColumna, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            return false;
+        }
+
         public Guid ObtenerPadrePorEstudiante(Guid idEstudiante)
         {
             using SqlConnection cn = _bdConexion.ObtenerConexion();

@@ -25,6 +25,15 @@ namespace CapiMovil.BL.BC
             return _dalc.ListarPorId(id);
         }
 
+
+        public PadreFamiliaBE? ObtenerPorIdUsuario(Guid idUsuario)
+        {
+            if (idUsuario == Guid.Empty)
+                throw new ArgumentException("Id de usuario inválido.");
+
+            return _dalc.ObtenerPorIdUsuario(idUsuario);
+        }
+
         public List<UsuarioBE> ListarUsuariosDisponibles()
         {
             return _dalc.ListarUsuariosDisponibles();

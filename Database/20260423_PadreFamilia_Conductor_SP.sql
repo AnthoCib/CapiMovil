@@ -594,3 +594,32 @@ BEGIN
     ORDER BY i.FechaHora DESC;
 END
 GO
+GO
+CREATE OR ALTER PROCEDURE dbo.sp_PadreFamilia_ListarPorIdUsuario
+    @IdUsuario UNIQUEIDENTIFIER
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT TOP 1
+        p.IdPadre,
+        p.IdUsuario,
+        p.CodigoPadre,
+        p.Nombres,
+        p.ApellidoPaterno,
+        p.ApellidoMaterno,
+        p.DNI,
+        p.Telefono,
+        p.TelefonoAlterno,
+        p.Direccion,
+        p.CorreoContacto,
+        p.Estado,
+        p.FechaCreacion,
+        p.FechaActualizacion,
+        p.FechaEliminacion
+    FROM dbo.PadreFamilia p
+    WHERE p.IdUsuario = @IdUsuario
+      AND p.Estado = 1
+      AND p.FechaEliminacion IS NULL;
+END
+GO

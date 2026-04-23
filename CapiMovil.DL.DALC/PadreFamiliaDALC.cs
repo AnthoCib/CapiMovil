@@ -153,6 +153,23 @@ namespace CapiMovil.DL.DALC
             return lista;
         }
 
+
+        public PadreFamiliaBE? ObtenerPorIdUsuario(Guid idUsuario)
+        {
+            using SqlConnection cn = _bdConexion.ObtenerConexion();
+            using SqlCommand cmd = new("sp_PadreFamilia_ListarPorIdUsuario", cn)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            cmd.Parameters.Add("@IdUsuario", SqlDbType.UniqueIdentifier).Value = idUsuario;
+
+            cn.Open();
+            using SqlDataReader dr = cmd.ExecuteReader();
+
+            return dr.Read() ? MapearPadreFamilia(dr) : null;
+        }
+
         public bool ExistePorIdUsuario(Guid idUsuario)
             => ExistePorIdUsuario(idUsuario, null);
 
