@@ -1,150 +1,157 @@
 @model CapiMovil.PL.Gui.Models.ViewModels.ConductorDashboardViewModel
 @{
-    ViewData["Title"] = "Panel del Conductor";
-
-    var recorridoHoy = Model.RecorridoHoy;
-    var estadoRecorrido = (recorridoHoy?.EstadoRecorrido ?? "SIN RECORRIDO").Trim().ToUpperInvariant();
-
-    var estadoClase = estadoRecorrido switch
+    ViewData["Title"] = "Dashboard del Conductor";
+    var recorrido = Model.RecorridoHoy;
+    var estado = (recorrido?.EstadoRecorrido ?? "SIN RECORRIDO").Trim().ToUpperInvariant();
+    var badgeEstado = estado switch
     {
-        "EN_CURSO" => "bg-success-subtle text-success",
-        "PROGRAMADO" => "bg-warning-subtle text-warning-emphasis",
-        "FINALIZADO" => "bg-secondary-subtle text-secondary",
-        _ => "bg-light text-dark"
+        "EN_CURSO" => "text-bg-success",
+        "PROGRAMADO" => "text-bg-warning",
+        "FINALIZADO" => "text-bg-secondary",
+        _ => "text-bg-light"
     };
 }
 
 <div class="conductor-shell">
-    <section class="conductor-hero card border-0 shadow-sm mb-4">
+    <section class="card border-0 shadow-sm mb-4 conductor-hero">
         <div class="card-body p-4 p-lg-5">
-            <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
-                <div>
-                    <span class="badge text-bg-light text-primary fw-semibold mb-2 px-3 py-2">
-                        <i class="bi bi-person-badge me-1"></i>Panel Operativo
-                    </span>
-                    <h1 class="h3 fw-bold mb-1">Hola, @Model.NombreConductor</h1>
-                    <p class="text-secondary mb-0">Gestiona tu jornada de ruta, abordajes e incidencias desde un solo lugar.</p>
-                </div>
+            <h1 class="h3 fw-bold mb-1">Hola, @Model.NombreConductor</h1>
+            <p class="text-muted mb-0">Aquí tienes el resumen de tu jornada para hoy.</p>
+        </div>
+    </section>
 
-                <div class="align-self-start align-self-lg-center">
-                    <a asp-action="Recorrido" class="btn btn-primary btn-lg px-4 conductor-btn-lg">
-                        <i class="bi bi-play-circle me-2"></i>Ir a Recorrido en curso
+    <div class="row g-3 mb-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h2 class="h5 fw-bold mb-1">Mi Recorrido de Hoy</h2>
+                    <p class="text-muted mb-0">Estado y datos de la ruta asignada.</p>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    @if (recorrido == null)
+                    {
+                        <div class="alert alert-info mb-0">No tienes recorrido programado para hoy.</div>
+                    }
+                    else
+                    {
+                        <div class="row g-3">
+                            <div class="col-md-6 col-xl-4"><span class="text-muted d-block">Código</span><strong>@recorrido.CodigoRecorrido</strong></div>
+                            <div class="col-md-6 col-xl-4"><span class="text-muted d-block">Ruta</span><strong>@(recorrido.Ruta?.Nombre ?? "-")</strong></div>
+                            <div class="col-md-6 col-xl-4"><span class="text-muted d-block">Bus</span><strong>@(recorrido.Bus?.Placa ?? "-")</strong></div>
+                            <div class="col-md-6 col-xl-4"><span class="text-muted d-block">Estado</span><span class="badge @badgeEstado">@estado.Replace("_", " ")</span></div>
+                            <div class="col-md-6 col-xl-4"><span class="text-muted d-block">Hora programada</span><strong>@(recorrido.HoraInicioProgramada?.ToString(@"hh\:mm") ?? "--:--")</strong></div>
+                            <div class="col-md-6 col-xl-4"><span class="text-muted d-block">Recorridos hoy</span><strong>@Model.RecorridosHoy</strong></div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                    <h2 class="h6 fw-bold mb-0">Alertas / Incidencias</h2>
+                    <span class="badge text-bg-danger">@Model.IncidenciasAbiertas</span>
+                </div>
+                <div class="card-body px-3 pb-3">
+                    @if (Model.AlertasRecientes.Any())
+                    {
+                        @foreach (var alerta in Model.AlertasRecientes)
+                        {
+                            <div class="border rounded-3 p-2 mb-2 bg-light-subtle">
+                                <div class="small fw-semibold">@alerta.TipoIncidencia</div>
+                                <div class="x-small text-muted">@alerta.Descripcion</div>
+                                <div class="x-small text-muted">@alerta.FechaHora.ToString("dd/MM HH:mm")</div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-muted small">Sin incidencias recientes.</div>
+                    }
+
+                    <a asp-action="Incidencias" class="btn btn-outline-secondary btn-sm w-100 mt-2">
+                        <i class="bi bi-clock-history me-1"></i>Ver historial de alertas
                     </a>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
 
-    <section class="row g-3 mb-4">
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="card border-0 shadow-sm h-100 conductor-metric-card">
+    <div class="row g-3 mb-4">
+        <div class="col-md-6 col-xl-4">
+            <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <span class="conductor-metric-title">Recorridos de hoy</span>
-                        <i class="bi bi-calendar-check fs-4 text-primary"></i>
-                    </div>
-                    <div class="display-6 fw-bold">@Model.RecorridosHoy</div>
+                    <h3 class="h6 fw-bold">Ruta Escolar 1</h3>
+                    <p class="text-muted small mb-3">Etapa de recojo</p>
+                    <a asp-action="MiRuta" class="btn btn-light border">Ver más detalles</a>
                 </div>
             </div>
         </div>
-
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="card border-0 shadow-sm h-100 conductor-metric-card">
+        <div class="col-md-6 col-xl-4">
+            <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <span class="conductor-metric-title">Incidencias abiertas</span>
-                        <i class="bi bi-exclamation-triangle fs-4 text-danger"></i>
-                    </div>
-                    <div class="display-6 fw-bold">@Model.IncidenciasAbiertas</div>
+                    <h3 class="h6 fw-bold">Ruta Escolar 2</h3>
+                    <p class="text-muted small mb-3">Etapa de retorno</p>
+                    <a asp-action="Recorrido" class="btn btn-light border">Ver más detalles</a>
                 </div>
             </div>
         </div>
-
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="card border-0 shadow-sm h-100 conductor-metric-card">
+        <div class="col-xl-4">
+            <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <span class="conductor-metric-title">Alumnos en ruta activa</span>
-                        <i class="bi bi-people fs-4 text-info"></i>
-                    </div>
+                    <h3 class="h6 fw-bold">Estudiantes en ruta</h3>
                     <div class="display-6 fw-bold">@Model.EstudiantesRutaActiva</div>
+                    <p class="text-muted small mb-0">Asignados para la operación de hoy.</p>
                 </div>
             </div>
         </div>
-
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="card border-0 shadow-sm h-100 conductor-metric-card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <span class="conductor-metric-title">Estado actual</span>
-                        <i class="bi bi-activity fs-4 text-success"></i>
-                    </div>
-                    <span class="badge @estadoClase px-3 py-2 rounded-pill">@estadoRecorrido.Replace("_", " ")</span>
-                </div>
-            </div>
-        </div>
-    </section>
+    </div>
 
     <section class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white border-0 pt-4 px-4">
-            <h2 class="h5 fw-bold mb-1"><i class="bi bi-signpost-2 me-2 text-primary"></i>Resumen de ruta del día</h2>
-            <p class="text-muted mb-0">Información clave del recorrido asignado para hoy.</p>
+            <h2 class="h5 fw-bold mb-0">Estudiantes en Ruta</h2>
         </div>
-        <div class="card-body px-4 pb-4">
-            @if (recorridoHoy == null)
+        <div class="card-body p-3">
+            @if (Model.EstudiantesEnRuta.Any())
             {
-                <div class="alert alert-info border-0 mb-0">
-                    <i class="bi bi-info-circle me-2"></i>No tienes recorrido programado para hoy.
-                </div>
+                @foreach (var item in Model.EstudiantesEnRuta)
+                {
+                    <div class="d-flex align-items-center justify-content-between border rounded-3 p-2 mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="conductor-avatar">@((item.Nombre?.Length ?? 0) > 0 ? item.Nombre[0] : 'E')</span>
+                            <div>
+                                <div class="fw-semibold small">@item.Nombre</div>
+                                <div class="x-small text-muted">@item.Parada · @item.Hora</div>
+                            </div>
+                        </div>
+                        <span class="badge @(item.Estado == "ABORDÓ" ? "text-bg-success" : item.Estado == "DESCENDIÓ" ? "text-bg-info" : "text-bg-warning")">@item.Estado</span>
+                    </div>
+                }
             }
             else
             {
-                <div class="row g-3">
-                    <div class="col-md-6 col-xl-3"><span class="text-muted d-block">Código</span><strong>@recorridoHoy.CodigoRecorrido</strong></div>
-                    <div class="col-md-6 col-xl-3"><span class="text-muted d-block">Ruta</span><strong>@(recorridoHoy.Ruta?.Nombre ?? "-" )</strong></div>
-                    <div class="col-md-6 col-xl-3"><span class="text-muted d-block">Bus</span><strong>@(recorridoHoy.Bus?.Placa ?? "-")</strong></div>
-                    <div class="col-md-6 col-xl-3"><span class="text-muted d-block">Fecha</span><strong>@recorridoHoy.Fecha.ToString("dd/MM/yyyy")</strong></div>
-                </div>
+                <div class="text-muted small">No hay estudiantes asociados para mostrar.</div>
             }
         </div>
     </section>
 
-    <section class="row g-3">
-        <div class="col-12 col-md-6 col-xl-3">
-            <a asp-action="MiBus" class="conductor-shortcut card border-0 shadow-sm h-100 text-decoration-none">
-                <div class="card-body">
-                    <i class="bi bi-bus-front fs-3 text-primary"></i>
-                    <h3 class="h6 fw-bold mt-3 mb-1">Mi Bus</h3>
-                    <p class="text-muted small mb-0">Datos de unidad y estado operativo.</p>
-                </div>
-            </a>
-        </div>
-        <div class="col-12 col-md-6 col-xl-3">
-            <a asp-action="MiRuta" class="conductor-shortcut card border-0 shadow-sm h-100 text-decoration-none">
-                <div class="card-body">
-                    <i class="bi bi-map fs-3 text-primary"></i>
-                    <h3 class="h6 fw-bold mt-3 mb-1">Detalle de etapa</h3>
-                    <p class="text-muted small mb-0">Visualiza el avance por paraderos.</p>
-                </div>
-            </a>
-        </div>
-        <div class="col-12 col-md-6 col-xl-3">
-            <a asp-action="Abordaje" class="conductor-shortcut card border-0 shadow-sm h-100 text-decoration-none">
-                <div class="card-body">
-                    <i class="bi bi-check2-square fs-3 text-primary"></i>
-                    <h3 class="h6 fw-bold mt-3 mb-1">Paradas y alumnos</h3>
-                    <p class="text-muted small mb-0">Registra subidas/bajadas por parada.</p>
-                </div>
-            </a>
-        </div>
-        <div class="col-12 col-md-6 col-xl-3">
-            <a asp-action="Incidencias" class="conductor-shortcut card border-0 shadow-sm h-100 text-decoration-none">
-                <div class="card-body">
-                    <i class="bi bi-exclamation-octagon fs-3 text-primary"></i>
-                    <h3 class="h6 fw-bold mt-3 mb-1">Incidencias</h3>
-                    <p class="text-muted small mb-0">Reporta eventos de operación.</p>
-                </div>
-            </a>
-        </div>
-    </section>
+    <div class="d-grid">
+        @if (Model.PuedeIniciarRecorrido && recorrido != null)
+        {
+            <form asp-action="IniciarRecorrido" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="idRecorrido" value="@recorrido.IdRecorrido" />
+                <button type="submit" class="btn btn-warning btn-lg fw-semibold">
+                    <i class="bi bi-play-circle me-2"></i>Iniciar Recorrido de Recojo
+                </button>
+            </form>
+        }
+        else
+        {
+            <button class="btn btn-warning btn-lg fw-semibold" disabled>
+                <i class="bi bi-play-circle me-2"></i>Iniciar Recorrido de Recojo
+            </button>
+        }
+    </div>
 </div>

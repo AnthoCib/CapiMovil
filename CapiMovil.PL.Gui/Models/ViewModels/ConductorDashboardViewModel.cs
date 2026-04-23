@@ -9,5 +9,16 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
         public int RecorridosHoy { get; set; }
         public int IncidenciasAbiertas { get; set; }
         public int EstudiantesRutaActiva { get; set; }
+        public List<IncidenciaBE> AlertasRecientes { get; set; } = new();
+        public List<ConductorDashboardEstudianteItemViewModel> EstudiantesEnRuta { get; set; } = new();
+        public bool PuedeIniciarRecorrido { get; set; }
+    }
+
+    public class ConductorDashboardEstudianteItemViewModel
+    {
+        public string Nombre { get; set; } = string.Empty;
+        public string Parada { get; set; } = "Sin parada";
+        public string Hora { get; set; } = "--:--";
+        public string Estado { get; set; } = "PENDIENTE";
     }
 }

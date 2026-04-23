@@ -69,14 +69,63 @@ namespace CapiMovil.PL.Gui.Controllers
                 .OrderByDescending(r => PrioridadEstadoRecorrido(r.EstadoRecorrido))
                 .FirstOrDefault();
 
-            int incidenciasAbiertas = _incidenciaBC.ListarPorConductor(conductor.IdConductor)
+            List<IncidenciaBE> incidenciasConductor = _incidenciaBC.ListarPorConductor(conductor.IdConductor);
+            int incidenciasAbiertas = incidenciasConductor
                 .Count(i => !string.Equals(i.EstadoIncidencia, "CERRADA", StringComparison.OrdinalIgnoreCase));
 
+            List<IncidenciaBE> alertasRecientes = incidenciasConductor
+                .OrderByDescending(i => i.FechaHora)
+                .Take(4)
+                .ToList();
+
             int estudiantesRutaActiva = 0;
+            List<ConductorDashboardEstudianteItemViewModel> estudiantesEnRuta = new();
             if (recorridoHoy != null)
             {
-                estudiantesRutaActiva = _rutaEstudianteBC.Listar()
-                    .Count(re => re.IdRuta == recorridoHoy.IdRuta && re.Estado);
+                List<RutaEstudianteBE> asignacionesRuta = _rutaEstudianteBC.Listar()
+                    .Where(re => re.IdRuta == recorridoHoy.IdRuta && re.Estado)
+                    .ToList();
+
+                estudiantesRutaActiva = asignacionesRuta.Count;
+
+                Dictionary<Guid, string> paraderosSubida = _paraderoBC.ListarPorRuta(recorridoHoy.IdRuta)
+                    .ToDictionary(p => p.IdParadero, p => p.Nombre);
+
+                Dictionary<Guid, EstudianteBE> estudiantesDict = _estudianteBC.Listar()
+                    .Where(e => asignacionesRuta.Select(a => a.IdEstudiante).Contains(e.IdEstudiante))
+                    .ToDictionary(e => e.IdEstudiante, e => e);
+
+                List<EventoAbordajeBE> eventosHoy = _eventoAbordajeBC.Listar()
+                    .Where(e => e.IdRecorrido == recorridoHoy.IdRecorrido)
+                    .OrderByDescending(e => e.FechaHora)
+                    .ToList();
+
+                foreach (RutaEstudianteBE asignacion in asignacionesRuta.Take(8))
+                {
+                    if (!estudiantesDict.TryGetValue(asignacion.IdEstudiante, out EstudianteBE? estudiante))
+                        continue;
+
+                    EventoAbordajeBE? ultimoEvento = eventosHoy.FirstOrDefault(e => e.IdEstudiante == asignacion.IdEstudiante);
+                    string estadoEstudiante = ultimoEvento?.TipoEvento switch
+                    {
+                        "SUBIDA" => "ABORDÓ",
+                        "BAJADA" => "DESCENDIÓ",
+                        _ => "PENDIENTE"
+                    };
+
+                    string hora = ultimoEvento?.FechaHora.ToString("HH:mm") ?? "--:--";
+                    string parada = (asignacion.IdParaderoSubida.HasValue && paraderosSubida.TryGetValue(asignacion.IdParaderoSubida.Value, out string? nombreParada))
+                        ? nombreParada
+                        : "Sin parada";
+
+                    estudiantesEnRuta.Add(new ConductorDashboardEstudianteItemViewModel
+                    {
+                        Nombre = estudiante.NombreCompleto,
+                        Parada = parada,
+                        Hora = hora,
+                        Estado = estadoEstudiante
+                    });
+                }
             }
 
             ConductorDashboardViewModel vm = new()
@@ -85,7 +134,10 @@ namespace CapiMovil.PL.Gui.Controllers
                 RecorridoHoy = recorridoHoy,
                 RecorridosHoy = recorridos.Count(r => r.Fecha.Date == DateTime.Today),
                 IncidenciasAbiertas = incidenciasAbiertas,
-                EstudiantesRutaActiva = estudiantesRutaActiva
+                EstudiantesRutaActiva = estudiantesRutaActiva,
+                AlertasRecientes = alertasRecientes,
+                EstudiantesEnRuta = estudiantesEnRuta,
+                PuedeIniciarRecorrido = recorridoHoy != null && string.Equals(recorridoHoy.EstadoRecorrido, "PROGRAMADO", StringComparison.OrdinalIgnoreCase)
             };
 
             return View(vm);
