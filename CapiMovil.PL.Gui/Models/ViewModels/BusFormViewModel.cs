@@ -14,6 +14,7 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
         [Display(Name = "Placa")]
         public string Placa { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "La marca es obligatoria.")]
         [Display(Name = "Marca")]
         public string? Marca { get; set; }
 
