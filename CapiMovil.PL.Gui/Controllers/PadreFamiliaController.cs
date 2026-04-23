@@ -1,5 +1,6 @@
 ﻿using CapiMovil.BL.BC;
 using CapiMovil.BL.BE;
+using CapiMovil.PL.Gui.Infrastructure;
 using CapiMovil.PL.Gui.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -42,7 +43,7 @@ namespace CapiMovil.PL.Gui.Controllers
 
         public IActionResult Index()
         {
-            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
             if (acceso != null)
                 return acceso;
 
@@ -71,7 +72,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult MisHijos()
         {
-            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
             if (acceso != null)
                 return acceso;
 
@@ -84,7 +85,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult DetalleHijo(Guid idEstudiante)
         {
-            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
             if (acceso != null)
                 return acceso;
 
@@ -130,7 +131,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Notificaciones()
         {
-            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
             if (acceso != null)
                 return acceso;
 
@@ -147,7 +148,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult DetalleNotificacion(Guid idNotificacion)
         {
-            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
             if (acceso != null)
                 return acceso;
 
@@ -169,7 +170,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult MarcarNotificacionLeida(Guid idNotificacion)
         {
-            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
             if (acceso != null)
                 return acceso;
 
@@ -192,7 +193,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Seguimiento()
         {
-            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
             if (acceso != null)
                 return acceso;
 
@@ -245,7 +246,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult MiRuta()
         {
-            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
             if (acceso != null)
                 return acceso;
 
@@ -292,7 +293,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult MiParadero()
         {
-            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
             if (acceso != null)
                 return acceso;
 
@@ -330,7 +331,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult MisEventos(Guid? idEstudiante)
         {
-            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
             if (acceso != null)
                 return acceso;
 
@@ -356,7 +357,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Incidencias()
         {
-            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
             if (acceso != null)
                 return acceso;
 
@@ -371,7 +372,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Listar()
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
             var lista = _padreFamiliaBC.Listar();
@@ -381,7 +382,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Crear()
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
             PadreFamiliaFormViewModel vm = new()
@@ -397,7 +398,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Crear(PadreFamiliaFormViewModel vm)
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
             if (vm.IdUsuario == Guid.Empty)
@@ -447,7 +448,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Editar(Guid id)
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
             var entidad = _padreFamiliaBC.ListarPorId(id);
@@ -482,7 +483,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Editar(PadreFamiliaFormViewModel vm)
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
             if (vm.IdUsuario == Guid.Empty)
@@ -535,7 +536,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Eliminar(Guid id)
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
             try
@@ -552,26 +553,6 @@ namespace CapiMovil.PL.Gui.Controllers
             }
 
             return RedirectToAction(nameof(Listar));
-        }
-
-        private IActionResult? ValidarSesionYRol(params string[] rolesPermitidos)
-        {
-            string? usuarioId = HttpContext.Session.GetString("UsuarioId");
-            string? rol = HttpContext.Session.GetString("RolNombre");
-
-            if (string.IsNullOrWhiteSpace(usuarioId))
-                return RedirectToAction("Login", "Auth");
-
-            string rolNormalizado = (rol ?? string.Empty).Trim().ToUpperInvariant();
-
-            bool permitido = rolesPermitidos
-                .Select(r => r.Trim().ToUpperInvariant())
-                .Contains(rolNormalizado);
-
-            if (!permitido)
-                return RedirectToAction("AccesoDenegado", "Auth");
-
-            return null;
         }
 
         private PadreFamiliaBE? ObtenerPadreAutenticado()

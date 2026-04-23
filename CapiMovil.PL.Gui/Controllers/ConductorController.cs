@@ -1,5 +1,6 @@
 ﻿using CapiMovil.BL.BC;
 using CapiMovil.BL.BE;
+using CapiMovil.PL.Gui.Infrastructure;
 using CapiMovil.PL.Gui.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -9,6 +10,7 @@ namespace CapiMovil.PL.Gui.Controllers
     public class ConductorController : Controller
     {
         private readonly ConductorBC _conductorBC;
+        private readonly PadreFamiliaBC _padreFamiliaBC;
         private readonly UsuarioBC _usuarioBC;
         private readonly RecorridoBC _recorridoBC;
         private readonly IncidenciaBC _incidenciaBC;
@@ -20,6 +22,7 @@ namespace CapiMovil.PL.Gui.Controllers
 
         public ConductorController(
             ConductorBC conductorBC,
+            PadreFamiliaBC padreFamiliaBC,
             UsuarioBC usuarioBC,
             RecorridoBC recorridoBC,
             IncidenciaBC incidenciaBC,
@@ -30,6 +33,7 @@ namespace CapiMovil.PL.Gui.Controllers
             ParaderoBC paraderoBC)
         {
             _conductorBC = conductorBC;
+            _padreFamiliaBC = padreFamiliaBC;
             _usuarioBC = usuarioBC;
             _recorridoBC = recorridoBC;
             _incidenciaBC = incidenciaBC;
@@ -42,7 +46,7 @@ namespace CapiMovil.PL.Gui.Controllers
 
         public IActionResult Index()
         {
-            IActionResult? acceso = ValidarSesionYRol("CONDUCTOR");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
             if (acceso != null)
                 return acceso;
 
@@ -86,15 +90,22 @@ namespace CapiMovil.PL.Gui.Controllers
 
         public IActionResult MiConductor()
         {
-            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
             if (acceso != null)
                 return acceso;
 
-            ConductorBE? conductor = _conductorBC.Listar().FirstOrDefault(c => c.Estado);
+            PadreFamiliaBE? padre = _padreFamiliaBC.ObtenerPorIdUsuario(ObtenerUsuarioIdSesion() ?? Guid.Empty);
+            if (padre == null)
+            {
+                TempData["error"] = "No existe un padre de familia vinculado al usuario autenticado.";
+                return RedirectToAction("SesionInvalida", "Auth");
+            }
+
+            ConductorBE? conductor = ObtenerConductorParaPadre(padre);
 
             if (conductor == null)
             {
-                TempData["error"] = "No hay un conductor disponible para mostrar en este momento.";
+                TempData["error"] = "No hay un conductor asignado a las rutas de sus hijos en este momento.";
                 return RedirectToAction("Index", "PadreFamilia");
             }
 
@@ -104,7 +115,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult MiBus()
         {
-            IActionResult? acceso = ValidarSesionYRol("CONDUCTOR");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
             if (acceso != null) return acceso;
 
             ConductorBE? conductor = ObtenerConductorAutenticado();
@@ -121,7 +132,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult MiRuta()
         {
-            IActionResult? acceso = ValidarSesionYRol("CONDUCTOR");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
             if (acceso != null) return acceso;
 
             ConductorBE? conductor = ObtenerConductorAutenticado();
@@ -151,7 +162,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Estudiantes()
         {
-            IActionResult? acceso = ValidarSesionYRol("CONDUCTOR");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
             if (acceso != null) return acceso;
 
             ConductorBE? conductor = ObtenerConductorAutenticado();
@@ -178,7 +189,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Recorrido()
         {
-            IActionResult? acceso = ValidarSesionYRol("CONDUCTOR");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
             if (acceso != null) return acceso;
 
             ConductorBE? conductor = ObtenerConductorAutenticado();
@@ -208,7 +219,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Abordaje()
         {
-            IActionResult? acceso = ValidarSesionYRol("CONDUCTOR");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
             if (acceso != null) return acceso;
 
             ConductorBE? conductor = ObtenerConductorAutenticado();
@@ -222,7 +233,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult RegistrarAbordaje(ConductorAbordajeViewModel vm)
         {
-            IActionResult? acceso = ValidarSesionYRol("CONDUCTOR");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
             if (acceso != null) return acceso;
 
             ConductorBE? conductor = ObtenerConductorAutenticado();
@@ -274,7 +285,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Incidencias()
         {
-            IActionResult? acceso = ValidarSesionYRol("CONDUCTOR");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
             if (acceso != null) return acceso;
 
             ConductorBE? conductor = ObtenerConductorAutenticado();
@@ -288,7 +299,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult RegistrarIncidencia(ConductorIncidenciasViewModel vm)
         {
-            IActionResult? acceso = ValidarSesionYRol("CONDUCTOR");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
             if (acceso != null) return acceso;
 
             ConductorBE? conductor = ObtenerConductorAutenticado();
@@ -340,7 +351,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Listar()
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
             var lista = _conductorBC.Listar();
@@ -350,7 +361,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Crear()
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
             ConductorFormViewModel vm = new()
@@ -366,7 +377,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Crear(ConductorFormViewModel vm)
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
             if (vm.IdUsuario == Guid.Empty)
@@ -416,7 +427,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Editar(Guid id)
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
             var entidad = _conductorBC.ListarPorId(id);
@@ -451,7 +462,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Editar(ConductorFormViewModel vm)
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
             if (vm.IdUsuario == Guid.Empty)
@@ -504,7 +515,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Eliminar(Guid id)
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
             try
@@ -525,7 +536,7 @@ namespace CapiMovil.PL.Gui.Controllers
 
         private IActionResult EjecutarCambioRecorrido(Guid idRecorrido, Func<Guid, bool> operacion, string mensajeExito)
         {
-            IActionResult? acceso = ValidarSesionYRol("CONDUCTOR");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
             if (acceso != null) return acceso;
 
             ConductorBE? conductor = ObtenerConductorAutenticado();
@@ -672,24 +683,38 @@ namespace CapiMovil.PL.Gui.Controllers
             return _conductorBC.ObtenerPorIdUsuario(idUsuario);
         }
 
-        private IActionResult? ValidarSesionYRol(params string[] rolesPermitidos)
+        private Guid? ObtenerUsuarioIdSesion()
         {
             string? usuarioId = HttpContext.Session.GetString("UsuarioId");
-            string? rol = HttpContext.Session.GetString("RolNombre");
+            return Guid.TryParse(usuarioId, out Guid idUsuario) ? idUsuario : null;
+        }
 
-            if (string.IsNullOrWhiteSpace(usuarioId))
-                return RedirectToAction("Login", "Auth");
+        private ConductorBE? ObtenerConductorParaPadre(PadreFamiliaBE padre)
+        {
+            HashSet<Guid> idsHijos = _estudianteBC.Listar()
+                .Where(e => e.IdPadre == padre.IdPadre)
+                .Select(e => e.IdEstudiante)
+                .ToHashSet();
 
-            string rolNormalizado = (rol ?? string.Empty).Trim().ToUpperInvariant();
+            if (idsHijos.Count == 0)
+                return null;
 
-            bool permitido = rolesPermitidos
-                .Select(r => r.Trim().ToUpperInvariant())
-                .Contains(rolNormalizado);
+            HashSet<Guid> idsRuta = _rutaEstudianteBC.Listar()
+                .Where(re => re.Estado && idsHijos.Contains(re.IdEstudiante))
+                .Select(re => re.IdRuta)
+                .ToHashSet();
 
-            if (!permitido)
-                return RedirectToAction("AccesoDenegado", "Auth");
+            if (idsRuta.Count == 0)
+                return null;
 
-            return null;
+            RecorridoBE? recorrido = _recorridoBC.Listar()
+                .Where(r => idsRuta.Contains(r.IdRuta))
+                .OrderByDescending(r => r.Fecha.Date == DateTime.Today)
+                .ThenByDescending(r => PrioridadEstadoRecorrido(r.EstadoRecorrido))
+                .ThenByDescending(r => r.Fecha)
+                .FirstOrDefault();
+
+            return recorrido == null ? null : _conductorBC.ListarPorId(recorrido.IdConductor);
         }
 
         private List<SelectListItem> ObtenerUsuariosDisponibles()

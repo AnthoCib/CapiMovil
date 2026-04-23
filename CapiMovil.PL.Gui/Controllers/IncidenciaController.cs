@@ -1,5 +1,6 @@
 ﻿using CapiMovil.BL.BC;
 using CapiMovil.BL.BE;
+using CapiMovil.PL.Gui.Infrastructure;
 using CapiMovil.PL.Gui.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -25,7 +26,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Listar()
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
             List<IncidenciaBE> lista = _incidenciaBC.Listar();
@@ -35,7 +36,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Crear()
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
             IncidenciaFormViewModel vm = new IncidenciaFormViewModel
@@ -53,7 +54,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Crear(IncidenciaFormViewModel vm)
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
             if (!ModelState.IsValid)
@@ -110,7 +111,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Editar(Guid id)
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
             IncidenciaBE? entidad = _incidenciaBC.ListarPorId(id);
@@ -144,7 +145,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Editar(IncidenciaFormViewModel vm)
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
             if (!ModelState.IsValid)
@@ -202,7 +203,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Detalle(Guid id)
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
             IncidenciaBE? entidad = _incidenciaBC.ListarPorId(id);
@@ -220,7 +221,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Eliminar(Guid id)
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
             try
@@ -247,7 +248,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Cerrar(Guid id, string solucion)
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
             try
@@ -274,7 +275,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult CambiarEstado(Guid id, string estadoIncidencia)
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
             try
@@ -300,7 +301,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public JsonResult ObtenerConductorPorRecorrido(Guid idRecorrido)
         {
-            IActionResult? acceso = ValidarSesionYRol("ADMINISTRADOR", "ADMIN");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return Json(new { ok = false, idConductor = "" });
 
             try
@@ -322,26 +323,6 @@ namespace CapiMovil.PL.Gui.Controllers
             {
                 return Json(new { ok = false, idConductor = "" });
             }
-        }
-
-        private IActionResult? ValidarSesionYRol(params string[] rolesPermitidos)
-        {
-            string? usuarioId = HttpContext.Session.GetString("UsuarioId");
-            string? rol = HttpContext.Session.GetString("RolNombre");
-
-            if (string.IsNullOrWhiteSpace(usuarioId))
-                return RedirectToAction("Login", "Auth");
-
-            string rolNormalizado = (rol ?? string.Empty).Trim().ToUpperInvariant();
-
-            bool permitido = rolesPermitidos
-                .Select(r => r.Trim().ToUpperInvariant())
-                .Contains(rolNormalizado);
-
-            if (!permitido)
-                return RedirectToAction("AccesoDenegado", "Auth");
-
-            return null;
         }
 
         private void CargarCombos(IncidenciaFormViewModel vm)

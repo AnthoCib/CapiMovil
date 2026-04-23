@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CapiMovil.PL.Gui.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CapiMovil.PL.Gui.Controllers
 {
@@ -6,15 +7,9 @@ namespace CapiMovil.PL.Gui.Controllers
     {
         public IActionResult Index()
         {
-            string? usuarioId = HttpContext.Session.GetString("UsuarioId");
-            string? rol = HttpContext.Session.GetString("RolNombre");
-
-            if (string.IsNullOrEmpty(usuarioId))
-                return RedirectToAction("Login", "Auth");
-
-            string rolNormalizado = (rol ?? "").Trim().ToUpperInvariant();
-            if (rolNormalizado != "ADMINISTRADOR" && rolNormalizado != "ADMIN")
-                return RedirectToAction("AccesoDenegado", "Auth");
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null)
+                return acceso;
 
             return View();
         }
