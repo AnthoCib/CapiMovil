@@ -2,6 +2,7 @@
 using CapiMovil.BL.BE;
 using CapiMovil.DL.DALC;
 using CapiMovil.PL.Gui.Models.ViewModels;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -86,7 +87,7 @@ namespace CapiMovil.PL.Gui.Controllers
                     Estado = vm.Estado
                 };
 
-                bool ok = _recorridoBC.Registrar(entidad);
+                bool ok = _recorridoBC.Registrar(entidad, ObtenerUsuarioIdSesion(), ObtenerUsernameSesion(), ObtenerIpCliente(), ObtenerUserAgent());
 
                 TempData[ok ? "ok" : "error"] = ok
                     ? $"Recorrido registrado correctamente. Código generado: {entidad.CodigoRecorrido}"
@@ -178,7 +179,7 @@ namespace CapiMovil.PL.Gui.Controllers
                     Estado = vm.Estado
                 };
 
-                bool ok = _recorridoBC.Actualizar(entidad);
+                bool ok = _recorridoBC.Actualizar(entidad, ObtenerUsuarioIdSesion(), ObtenerUsernameSesion(), ObtenerIpCliente(), ObtenerUserAgent());
 
                 TempData[ok ? "ok" : "error"] = ok
                     ? "Recorrido actualizado correctamente."
@@ -205,7 +206,7 @@ namespace CapiMovil.PL.Gui.Controllers
         {
             try
             {
-                bool ok = _recorridoBC.Eliminar(id);
+                bool ok = _recorridoBC.Eliminar(id, ObtenerUsuarioIdSesion(), ObtenerUsernameSesion(), ObtenerIpCliente(), ObtenerUserAgent());
 
                 TempData[ok ? "ok" : "error"] = ok
                     ? "Recorrido eliminado correctamente."
@@ -225,7 +226,7 @@ namespace CapiMovil.PL.Gui.Controllers
         {
             try
             {
-                bool ok = _recorridoBC.Iniciar(id);
+                bool ok = _recorridoBC.Iniciar(id, ObtenerUsuarioIdSesion(), ObtenerUsernameSesion(), ObtenerIpCliente(), ObtenerUserAgent());
                 TempData[ok ? "ok" : "error"] = ok
                     ? "Recorrido iniciado correctamente."
                     : "No se pudo iniciar el recorrido.";
@@ -244,7 +245,7 @@ namespace CapiMovil.PL.Gui.Controllers
         {
             try
             {
-                bool ok = _recorridoBC.Finalizar(id);
+                bool ok = _recorridoBC.Finalizar(id, ObtenerUsuarioIdSesion(), ObtenerUsernameSesion(), ObtenerIpCliente(), ObtenerUserAgent());
                 TempData[ok ? "ok" : "error"] = ok
                     ? "Recorrido finalizado correctamente."
                     : "No se pudo finalizar el recorrido.";
@@ -263,7 +264,7 @@ namespace CapiMovil.PL.Gui.Controllers
         {
             try
             {
-                bool ok = _recorridoBC.Cancelar(id);
+                bool ok = _recorridoBC.Cancelar(id, ObtenerUsuarioIdSesion(), ObtenerUsernameSesion(), ObtenerIpCliente(), ObtenerUserAgent());
                 TempData[ok ? "ok" : "error"] = ok
                     ? "Recorrido cancelado correctamente."
                     : "No se pudo cancelar el recorrido.";
@@ -316,5 +317,20 @@ namespace CapiMovil.PL.Gui.Controllers
                 new("CANCELADO", "CANCELADO")
             };
         }
+
+        private Guid? ObtenerUsuarioIdSesion()
+        {
+            string? usuarioIdSession = HttpContext.Session.GetString("UsuarioId");
+            return Guid.TryParse(usuarioIdSession, out Guid usuarioId) ? usuarioId : null;
+        }
+
+        private string? ObtenerUsernameSesion()
+            => HttpContext.Session.GetString("Username");
+
+        private string? ObtenerIpCliente()
+            => HttpContext.Connection.RemoteIpAddress?.ToString();
+
+        private string? ObtenerUserAgent()
+            => Request.Headers.UserAgent.ToString();
     }
 }

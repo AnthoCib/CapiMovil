@@ -285,14 +285,20 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult IniciarRecorrido(Guid idRecorrido)
         {
-            return EjecutarCambioRecorrido(idRecorrido, _recorridoBC.Iniciar, "Recorrido iniciado correctamente.");
+            return EjecutarCambioRecorrido(
+                idRecorrido,
+                id => _recorridoBC.Iniciar(id, ObtenerUsuarioIdSesion(), HttpContext.Session.GetString("Username"), ObtenerIpCliente(), ObtenerUserAgent()),
+                "Recorrido iniciado correctamente.");
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult FinalizarRecorrido(Guid idRecorrido)
         {
-            return EjecutarCambioRecorrido(idRecorrido, _recorridoBC.Finalizar, "Recorrido finalizado correctamente.");
+            return EjecutarCambioRecorrido(
+                idRecorrido,
+                id => _recorridoBC.Finalizar(id, ObtenerUsuarioIdSesion(), HttpContext.Session.GetString("Username"), ObtenerIpCliente(), ObtenerUserAgent()),
+                "Recorrido finalizado correctamente.");
         }
 
         [HttpGet]
@@ -770,6 +776,12 @@ namespace CapiMovil.PL.Gui.Controllers
             string? usuarioId = HttpContext.Session.GetString("UsuarioId");
             return Guid.TryParse(usuarioId, out Guid idUsuario) ? idUsuario : null;
         }
+
+        private string? ObtenerIpCliente()
+            => HttpContext.Connection.RemoteIpAddress?.ToString();
+
+        private string? ObtenerUserAgent()
+            => Request.Headers.UserAgent.ToString();
 
         private ConductorBE? ObtenerConductorParaPadre(PadreFamiliaBE padre)
         {

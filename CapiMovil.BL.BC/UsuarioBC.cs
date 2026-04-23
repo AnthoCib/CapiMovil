@@ -91,6 +91,14 @@ namespace CapiMovil.BL.BC
             return _usuarioDALC.CambiarPassword(idUsuario, passwordHash);
         }
 
+        public bool ActualizarFotoPerfil(Guid idUsuario, string? fotoPerfilUrl)
+        {
+            if (idUsuario == Guid.Empty)
+                throw new ArgumentException("El usuario es inválido.");
+
+            return _usuarioDALC.ActualizarFotoPerfil(idUsuario, fotoPerfilUrl);
+        }
+
 
         public UsuarioBE? Login(string usuarioOCorreo, string password)
         {

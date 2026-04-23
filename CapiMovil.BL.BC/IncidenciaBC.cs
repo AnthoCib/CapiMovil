@@ -144,6 +144,8 @@ namespace CapiMovil.BL.BC
             if (string.IsNullOrWhiteSpace(entidad.TipoIncidencia))
                 throw new ArgumentException("Debe seleccionar el tipo de incidencia.");
 
+            entidad.TipoIncidencia = entidad.TipoIncidencia.Trim().ToUpperInvariant();
+
             if (entidad.TipoIncidencia.Length > 50)
                 throw new ArgumentException("El tipo de incidencia no puede superar los 50 caracteres.");
 

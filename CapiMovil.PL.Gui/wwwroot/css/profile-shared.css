@@ -1,0 +1,43 @@
+.profile-shell {
+    max-width: 1080px;
+    margin: 0 auto;
+}
+
+.profile-card {
+    border-radius: 1rem;
+}
+
+.profile-avatar-img,
+.profile-avatar-fallback {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.profile-avatar-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #2563eb, #0ea5e9);
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: .04em;
+}
+
+.profile-field {
+    border: 1px solid #e5e7eb;
+    border-radius: .8rem;
+    padding: .8rem .9rem;
+    background-color: #fff;
+}
+
+.profile-field small {
+    display: block;
+    color: #6b7280;
+    margin-bottom: .15rem;
+}
+
+.profile-field span {
+    font-weight: 600;
+}

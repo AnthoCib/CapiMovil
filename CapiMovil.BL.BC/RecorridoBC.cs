@@ -45,6 +45,11 @@ namespace CapiMovil.BL.BC
 
         public bool Registrar(RecorridoBE entidad)
         {
+            return Registrar(entidad, null, null, null, null);
+        }
+
+        public bool Registrar(RecorridoBE entidad, Guid? usuarioId, string? nombreUsuario, string? ip, string? userAgent)
+        {
             Validar(entidad);
 
             bool ok = _recorridoDALC.Registrar(entidad);
@@ -56,13 +61,22 @@ namespace CapiMovil.BL.BC
                     entidad.IdRecorrido == Guid.Empty ? null : entidad.IdRecorrido,
                     null,
                     CrearSnapshotRecorrido(entidad),
-                    "Se registró el recorrido");
+                    "Se registró el recorrido",
+                    usuarioId,
+                    nombreUsuario,
+                    ip,
+                    userAgent);
             }
 
             return ok;
         }
 
         public bool Actualizar(RecorridoBE entidad)
+        {
+            return Actualizar(entidad, null, null, null, null);
+        }
+
+        public bool Actualizar(RecorridoBE entidad, Guid? usuarioId, string? nombreUsuario, string? ip, string? userAgent)
         {
             if (entidad.IdRecorrido == Guid.Empty)
                 throw new ArgumentException("Id de recorrido inválido.");
@@ -81,13 +95,22 @@ namespace CapiMovil.BL.BC
                     entidad.IdRecorrido,
                     CrearSnapshotRecorrido(antes),
                     CrearSnapshotRecorrido(despues),
-                    "Se actualizó el recorrido");
+                    "Se actualizó el recorrido",
+                    usuarioId,
+                    nombreUsuario,
+                    ip,
+                    userAgent);
             }
 
             return ok;
         }
 
         public bool Eliminar(Guid id)
+        {
+            return Eliminar(id, null, null, null, null);
+        }
+
+        public bool Eliminar(Guid id, Guid? usuarioId, string? nombreUsuario, string? ip, string? userAgent)
         {
             if (id == Guid.Empty)
                 throw new ArgumentException("Id de recorrido inválido.");
@@ -102,13 +125,22 @@ namespace CapiMovil.BL.BC
                     id,
                     CrearSnapshotRecorrido(antes),
                     null,
-                    "Se eliminó lógicamente el recorrido");
+                    "Se eliminó lógicamente el recorrido",
+                    usuarioId,
+                    nombreUsuario,
+                    ip,
+                    userAgent);
             }
 
             return ok;
         }
 
         public bool Iniciar(Guid id)
+        {
+            return Iniciar(id, null, null, null, null);
+        }
+
+        public bool Iniciar(Guid id, Guid? usuarioId, string? nombreUsuario, string? ip, string? userAgent)
         {
             if (id == Guid.Empty)
                 throw new ArgumentException("Id inválido.");
@@ -125,13 +157,22 @@ namespace CapiMovil.BL.BC
                     id,
                     CrearSnapshotRecorrido(antes),
                     CrearSnapshotRecorrido(despues),
-                    "Se inició el recorrido");
+                    "Se inició el recorrido",
+                    usuarioId,
+                    nombreUsuario,
+                    ip,
+                    userAgent);
             }
 
             return ok;
         }
 
         public bool Finalizar(Guid id)
+        {
+            return Finalizar(id, null, null, null, null);
+        }
+
+        public bool Finalizar(Guid id, Guid? usuarioId, string? nombreUsuario, string? ip, string? userAgent)
         {
             if (id == Guid.Empty)
                 throw new ArgumentException("Id inválido.");
@@ -148,13 +189,22 @@ namespace CapiMovil.BL.BC
                     id,
                     CrearSnapshotRecorrido(antes),
                     CrearSnapshotRecorrido(despues),
-                    "Se finalizó el recorrido");
+                    "Se finalizó el recorrido",
+                    usuarioId,
+                    nombreUsuario,
+                    ip,
+                    userAgent);
             }
 
             return ok;
         }
 
         public bool Cancelar(Guid id)
+        {
+            return Cancelar(id, null, null, null, null);
+        }
+
+        public bool Cancelar(Guid id, Guid? usuarioId, string? nombreUsuario, string? ip, string? userAgent)
         {
             if (id == Guid.Empty)
                 throw new ArgumentException("Id inválido.");
@@ -171,7 +221,11 @@ namespace CapiMovil.BL.BC
                     id,
                     CrearSnapshotRecorrido(antes),
                     CrearSnapshotRecorrido(despues),
-                    "Se canceló el recorrido");
+                    "Se canceló el recorrido",
+                    usuarioId,
+                    nombreUsuario,
+                    ip,
+                    userAgent);
             }
 
             return ok;
@@ -214,7 +268,11 @@ namespace CapiMovil.BL.BC
             Guid? idRegistro,
             object? antes,
             object? despues,
-            string observacion)
+            string observacion,
+            Guid? usuarioId,
+            string? nombreUsuario,
+            string? ip,
+            string? userAgent)
         {
             _auditoriaBC.RegistrarAutomatica(
                 tabla: "Recorrido",
@@ -222,6 +280,10 @@ namespace CapiMovil.BL.BC
                 accion: accion,
                 datosAntes: antes,
                 datosDespues: despues,
+                usuarioId: usuarioId,
+                nombreUsuario: nombreUsuario,
+                ip: ip,
+                userAgent: userAgent,
                 modulo: "Operaciones",
                 observacion: observacion
             );

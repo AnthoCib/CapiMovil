@@ -9,6 +9,7 @@
         public string Username { get; set; } = string.Empty;
         public string Correo { get; set; } = string.Empty;
         public string PasswordHash { get; set; } = string.Empty;
+        public string? FotoPerfilUrl { get; set; }
 
         public DateTime? UltimoAcceso { get; set; }
         public bool Estado { get; set; }
