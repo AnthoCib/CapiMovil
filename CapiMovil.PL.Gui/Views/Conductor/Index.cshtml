@@ -1,54 +1,63 @@
-﻿@{
+@model CapiMovil.PL.Gui.Models.ViewModels.ConductorDashboardViewModel
+@{
     ViewData["Title"] = "Panel del Conductor";
 }
 
 <div class="mb-4">
-    <h2 class="fw-bold">Bienvenido, @ViewBag.ConductorNombre</h2>
-    <p class="text-muted mb-0">Desde aquí puede acceder rápidamente a sus operaciones del día.</p>
+    <h2 class="fw-bold">Bienvenido, @Model.NombreConductor</h2>
+    <p class="text-muted mb-0">Resumen de tu operación diaria como conductor.</p>
 </div>
 
-<div class="row g-3">
+<div class="row g-3 mb-3">
     <div class="col-md-6 col-xl-3">
-        <div class="card shadow-sm border-0">
+        <div class="card shadow-sm border-0 h-100">
             <div class="card-body">
                 <h6 class="text-muted">Recorridos de hoy</h6>
-                <h3 class="fw-bold">@ViewBag.RecorridosHoy</h3>
+                <h3 class="fw-bold">@Model.RecorridosHoy</h3>
             </div>
         </div>
     </div>
     <div class="col-md-6 col-xl-3">
-        <div class="card shadow-sm border-0">
+        <div class="card shadow-sm border-0 h-100">
             <div class="card-body">
                 <h6 class="text-muted">Incidencias abiertas</h6>
-                <h3 class="fw-bold">@ViewBag.IncidenciasAbiertas</h3>
+                <h3 class="fw-bold">@Model.IncidenciasAbiertas</h3>
             </div>
         </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <h6 class="text-muted">Estudiantes en ruta activa</h6>
+                <h3 class="fw-bold">@Model.EstudiantesRutaActiva</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 mb-3">
+    <div class="card-body">
+        <h5 class="fw-bold">Recorrido de hoy</h5>
+        @if (Model.RecorridoHoy == null)
+        {
+            <p class="text-muted mb-0">No tienes recorrido programado para hoy.</p>
+        }
+        else
+        {
+            <div class="row g-2">
+                <div class="col-md-4"><strong>Código:</strong> @Model.RecorridoHoy.CodigoRecorrido</div>
+                <div class="col-md-4"><strong>Ruta:</strong> @Model.RecorridoHoy.Ruta?.Nombre</div>
+                <div class="col-md-4"><strong>Bus:</strong> @Model.RecorridoHoy.Bus?.Placa</div>
+                <div class="col-md-4"><strong>Estado:</strong> @Model.RecorridoHoy.EstadoRecorrido</div>
+                <div class="col-md-4"><strong>Fecha:</strong> @Model.RecorridoHoy.Fecha.ToString("dd/MM/yyyy")</div>
+            </div>
+        }
     </div>
 </div>
 
 <div class="row g-3 mt-1">
-    <div class="col-md-6 col-xl-3">
-        <a class="card text-decoration-none shadow-sm border-0 h-100" asp-controller="Conductor" asp-action="Recorrido">
-            <div class="card-body">
-                <h5 class="card-title">Mis recorridos</h5>
-                <p class="card-text text-muted">Consulte y gestione su operación diaria.</p>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-6 col-xl-3">
-        <a class="card text-decoration-none shadow-sm border-0 h-100" asp-controller="Conductor" asp-action="Abordaje">
-            <div class="card-body">
-                <h5 class="card-title">Registrar abordajes</h5>
-                <p class="card-text text-muted">Registre subidas y bajadas de estudiantes.</p>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-6 col-xl-3">
-        <a class="card text-decoration-none shadow-sm border-0 h-100" asp-controller="Conductor" asp-action="Incidencias">
-            <div class="card-body">
-                <h5 class="card-title">Incidencias</h5>
-                <p class="card-text text-muted">Reporte y actualice incidencias operativas.</p>
-            </div>
-        </a>
-    </div>
+    <div class="col-md-6 col-xl-3"><a class="card text-decoration-none shadow-sm border-0 h-100" asp-action="MiBus"><div class="card-body"><h5 class="card-title">Mi Bus</h5></div></a></div>
+    <div class="col-md-6 col-xl-3"><a class="card text-decoration-none shadow-sm border-0 h-100" asp-action="MiRuta"><div class="card-body"><h5 class="card-title">Mi Ruta</h5></div></a></div>
+    <div class="col-md-6 col-xl-3"><a class="card text-decoration-none shadow-sm border-0 h-100" asp-action="Abordaje"><div class="card-body"><h5 class="card-title">Abordaje</h5></div></a></div>
+    <div class="col-md-6 col-xl-3"><a class="card text-decoration-none shadow-sm border-0 h-100" asp-action="Incidencias"><div class="card-body"><h5 class="card-title">Incidencias</h5></div></a></div>
 </div>

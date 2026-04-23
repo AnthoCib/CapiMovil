@@ -25,6 +25,15 @@ namespace CapiMovil.BL.BC
             return _paraderoDALC.ListarPorId(id);
         }
 
+
+        public List<ParaderoBE> ListarPorRuta(Guid idRuta)
+        {
+            if (idRuta == Guid.Empty)
+                throw new ArgumentException("Id de ruta inválido.");
+
+            return _paraderoDALC.ListarPorRuta(idRuta);
+        }
+
         public bool Registrar(ParaderoBE entidad)
         {
             Validar(entidad);

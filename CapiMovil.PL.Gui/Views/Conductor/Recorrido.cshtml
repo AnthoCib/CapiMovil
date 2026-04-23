@@ -9,13 +9,7 @@
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-primary">
-                    <tr>
-                        <th>Código</th>
-                        <th>Fecha</th>
-                        <th>Ruta</th>
-                        <th>Bus</th>
-                        <th>Estado</th>
-                    </tr>
+                    <tr><th>Código</th><th>Fecha</th><th>Ruta</th><th>Bus</th><th>Estado</th><th>Acciones</th></tr>
                 </thead>
                 <tbody>
                     @if (Model.Any())
@@ -28,12 +22,30 @@
                                 <td>@r.Ruta?.Nombre</td>
                                 <td>@r.Bus?.Placa</td>
                                 <td>@r.EstadoRecorrido</td>
+                                <td>
+                                    @if (r.EstadoRecorrido == "PROGRAMADO")
+                                    {
+                                        <form asp-action="IniciarRecorrido" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="idRecorrido" value="@r.IdRecorrido" />
+                                            <button type="submit" class="btn btn-success btn-sm">Iniciar</button>
+                                        </form>
+                                    }
+                                    @if (r.EstadoRecorrido == "EN_CURSO")
+                                    {
+                                        <form asp-action="FinalizarRecorrido" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="idRecorrido" value="@r.IdRecorrido" />
+                                            <button type="submit" class="btn btn-primary btn-sm">Finalizar</button>
+                                        </form>
+                                    }
+                                </td>
                             </tr>
                         }
                     }
                     else
                     {
-                        <tr><td colspan="5" class="text-center text-muted">No hay recorridos para este conductor.</td></tr>
+                        <tr><td colspan="6" class="text-center text-muted">No hay recorridos para este conductor.</td></tr>
                     }
                 </tbody>
             </table>
