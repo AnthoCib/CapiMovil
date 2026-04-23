@@ -20,3 +20,30 @@
 .btn-action {
     min-width: 90px;
 }
+
+/* Mapas Leaflet */
+.capi-map {
+    width: 100%;
+    min-height: 360px;
+    border-radius: 0.75rem;
+    border: 1px solid #dee2e6;
+}
+
+.capi-map-sm {
+    min-height: 280px;
+}
+
+.capi-coords-badge {
+    font-size: 0.9rem;
+}
+
+.capi-bus-icon {
+    background: #fff;
+    border-radius: 50%;
+    border: 2px solid #0d6efd;
+    color: #0d6efd;
+    text-align: center;
+    line-height: 24px;
+    font-size: 1rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,.2);
+}

@@ -4,74 +4,98 @@
     ViewData["Title"] = "Editar Paradero";
 }
 
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card card-soft">
-            <div class="card-body">
-                <h2 class="page-title mb-4">Editar Paradero</h2>
+@section Styles {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin="" />
+}
 
+<div class="row g-4">
+    <div class="col-xl-7">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-0 pt-4 pb-0">
+                <h2 class="h4 fw-bold mb-1"><i class="bi bi-signpost-2-fill text-primary me-2"></i>Editar paradero</h2>
+                <p class="text-muted mb-0">Ajusta información y coordenadas del paradero.</p>
+            </div>
+            <div class="card-body">
                 <form asp-action="Editar" method="post">
                     @Html.AntiForgeryToken()
                     <input asp-for="IdParadero" type="hidden" />
 
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                    <div class="mb-3">
-                        <label asp-for="CodigoParadero" class="form-label"></label>
-                        <input asp-for="CodigoParadero" class="form-control" readonly />
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="IdRuta" class="form-label"></label>
-                        <select asp-for="IdRuta" asp-items="Model.Rutas" class="form-select">
-                            <option value="">Seleccione una ruta</option>
-                        </select>
-                        <span asp-validation-for="IdRuta" class="text-danger"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Nombre" class="form-label"></label>
-                        <input asp-for="Nombre" class="form-control" />
-                        <span asp-validation-for="Nombre" class="text-danger"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Direccion" class="form-label"></label>
-                        <input asp-for="Direccion" class="form-control" />
-                        <span asp-validation-for="Direccion" class="text-danger"></span>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label asp-for="Latitud" class="form-label"></label>
-                            <input asp-for="Latitud" class="form-control" />
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="CodigoParadero" class="form-label"></label>
+                            <input asp-for="CodigoParadero" class="form-control bg-light" readonly />
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label asp-for="Longitud" class="form-label"></label>
-                            <input asp-for="Longitud" class="form-control" />
+                        <div class="col-md-6">
+                            <label asp-for="IdRuta" class="form-label"></label>
+                            <select asp-for="IdRuta" asp-items="Model.Rutas" class="form-select">
+                                <option value="">Seleccione una ruta</option>
+                            </select>
+                            <span asp-validation-for="IdRuta" class="text-danger"></span>
                         </div>
-                        <div class="col-md-4 mb-3">
+
+                        <div class="col-md-6">
+                            <label asp-for="Nombre" class="form-label"></label>
+                            <input asp-for="Nombre" class="form-control" />
+                            <span asp-validation-for="Nombre" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
                             <label asp-for="OrdenParada" class="form-label"></label>
                             <input asp-for="OrdenParada" class="form-control" />
                             <span asp-validation-for="OrdenParada" class="text-danger"></span>
                         </div>
+                        <div class="col-12">
+                            <label asp-for="Direccion" class="form-label"></label>
+                            <input asp-for="Direccion" class="form-control" />
+                            <span asp-validation-for="Direccion" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="HoraEstimada" class="form-label"></label>
+                            <input asp-for="HoraEstimada" class="form-control" />
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="HoraEstimada" class="form-label"></label>
-                        <input asp-for="HoraEstimada" class="form-control" />
-                    </div>
-
-                    <div class="form-check form-switch mb-4">
+                    <div class="form-check form-switch my-4">
                         <input asp-for="Estado" class="form-check-input" />
                         <label asp-for="Estado" class="form-check-label"></label>
                     </div>
 
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">Actualizar</button>
-                        <a asp-action="Listar" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Actualizar</button>
+                        <a asp-action="Listar" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Cancelar</a>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-5">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-0 pt-4 pb-0">
+                <h3 class="h5 fw-bold mb-1"><i class="bi bi-map-fill text-success me-2"></i>Ubicación del paradero</h3>
+                <p class="text-muted mb-0">Haz clic en el mapa para mover el marcador.</p>
+            </div>
+            <div class="card-body d-flex flex-column gap-3">
+                <button type="button" id="btnGeolocalizarParadero" class="btn btn-outline-primary">
+                    <i class="bi bi-crosshair me-1"></i>Usar mi ubicación actual
+                </button>
+
+                <div id="mapParadero" class="capi-map capi-map-sm"></div>
+                <span id="infoCoordsParadero" class="badge text-bg-light border capi-coords-badge align-self-start">Latitud: -- | Longitud: --</span>
+
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label asp-for="Latitud" class="form-label"></label>
+                        <input asp-for="Latitud" class="form-control" step="any" />
+                    </div>
+                    <div class="col-6">
+                        <label asp-for="Longitud" class="form-label"></label>
+                        <input asp-for="Longitud" class="form-control" step="any" />
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -79,4 +103,19 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            CapiMovilMaps.createPointPicker({
+                mapId: 'mapParadero',
+                latInputId: 'Latitud',
+                lngInputId: 'Longitud',
+                geolocateButtonId: 'btnGeolocalizarParadero',
+                coordinatesInfoId: 'infoCoordsParadero',
+                defaultCenter: [-12.046374, -77.042793]
+            });
+        });
+    </script>
 }

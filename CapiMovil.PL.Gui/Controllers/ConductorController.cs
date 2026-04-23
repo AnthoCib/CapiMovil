@@ -19,6 +19,7 @@ namespace CapiMovil.PL.Gui.Controllers
         private readonly EstudianteBC _estudianteBC;
         private readonly EventoAbordajeBC _eventoAbordajeBC;
         private readonly ParaderoBC _paraderoBC;
+        private readonly UbicacionBusBC _ubicacionBusBC;
 
         public ConductorController(
             ConductorBC conductorBC,
@@ -30,7 +31,8 @@ namespace CapiMovil.PL.Gui.Controllers
             RutaEstudianteBC rutaEstudianteBC,
             EstudianteBC estudianteBC,
             EventoAbordajeBC eventoAbordajeBC,
-            ParaderoBC paraderoBC)
+            ParaderoBC paraderoBC,
+            UbicacionBusBC ubicacionBusBC)
         {
             _conductorBC = conductorBC;
             _padreFamiliaBC = padreFamiliaBC;
@@ -42,6 +44,7 @@ namespace CapiMovil.PL.Gui.Controllers
             _estudianteBC = estudianteBC;
             _eventoAbordajeBC = eventoAbordajeBC;
             _paraderoBC = paraderoBC;
+            _ubicacionBusBC = ubicacionBusBC;
         }
 
         public IActionResult Index()
@@ -149,11 +152,19 @@ namespace CapiMovil.PL.Gui.Controllers
                     .OrderBy(p => p.OrdenParada)
                     .ToList();
 
+            UbicacionBusBE? ultimaUbicacion = recorridoOperacion == null
+                ? null
+                : _ubicacionBusBC.Listar()
+                    .Where(u => u.IdRecorrido == recorridoOperacion.IdRecorrido && u.Estado)
+                    .OrderByDescending(u => u.FechaHora)
+                    .FirstOrDefault();
+
             ConductorMiRutaViewModel vm = new()
             {
                 RecorridoOperacion = recorridoOperacion,
                 Recorridos = recorridos,
-                Paraderos = paraderos
+                Paraderos = paraderos,
+                UltimaUbicacionBus = ultimaUbicacion
             };
 
             return View(vm);
