@@ -32,6 +32,46 @@ namespace CapiMovil.DL.DALC
             return lista;
         }
 
+        public List<IncidenciaBE> ListarPorConductor(Guid idConductor)
+        {
+            List<IncidenciaBE> lista = new List<IncidenciaBE>();
+
+            using SqlConnection cn = _bdConexion.ObtenerConexion();
+            using SqlCommand cmd = new SqlCommand("sp_Incidencia_ListarPorConductor", cn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@IdConductor", idConductor);
+
+            cn.Open();
+            using SqlDataReader dr = cmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                lista.Add(Mapear(dr));
+            }
+
+            return lista;
+        }
+
+        public List<IncidenciaBE> ListarPorPadre(Guid idPadre)
+        {
+            List<IncidenciaBE> lista = new List<IncidenciaBE>();
+
+            using SqlConnection cn = _bdConexion.ObtenerConexion();
+            using SqlCommand cmd = new SqlCommand("sp_Incidencia_ListarPorPadre", cn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@IdPadre", idPadre);
+
+            cn.Open();
+            using SqlDataReader dr = cmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                lista.Add(Mapear(dr));
+            }
+
+            return lista;
+        }
+
         public IncidenciaBE? ListarPorId(Guid idIncidencia)
         {
             using SqlConnection cn = _bdConexion.ObtenerConexion();

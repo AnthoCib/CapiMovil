@@ -6,10 +6,24 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="page-title mb-0">Lista de Conductores</h2>
-    <a asp-action="Crear" class="btn btn-primary">
-        Nuevo Conductor
-    </a>
+    <a asp-action="Crear" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Nuevo Conductor</a>
 </div>
+
+@if (TempData["ok"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        @TempData["ok"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        @TempData["error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
 
 <div class="card card-soft">
     <div class="card-body">
@@ -48,15 +62,11 @@
                                     }
                                 </td>
                                 <td class="text-center">
-                                    <a asp-action="Editar" asp-route-id="@item.IdConductor" class="btn btn-warning btn-sm btn-action">
-                                        Editar
-                                    </a>
+                                    <a asp-action="Editar" asp-route-id="@item.IdConductor" class="btn btn-warning btn-sm btn-action"><i class="bi bi-pencil-square me-1"></i>Editar</a>
 
                                     <form asp-action="Eliminar" asp-route-id="@item.IdConductor" method="post" class="d-inline form-eliminar">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-danger btn-sm btn-action">
-                                            Eliminar
-                                        </button>
+                                        <button type="submit" class="btn btn-danger btn-sm btn-action"><i class="bi bi-trash me-1"></i>Eliminar</button>
                                     </form>
                                 </td>
                             </tr>
@@ -65,9 +75,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="7" class="text-center text-muted">
-                                No hay registros.
-                            </td>
+                            <td colspan="7" class="text-center text-muted">No hay registros.</td>
                         </tr>
                     }
                 </tbody>

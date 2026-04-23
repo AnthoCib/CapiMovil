@@ -1,5 +1,24 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+@model CapiMovil.PL.Gui.Models.ViewModels.PadreDashboardViewModel
 @{
+    ViewData["Title"] = "Panel de Padre de Familia";
 }
+
+<div class="mb-4">
+    <h2 class="fw-bold">Bienvenido, @Model.NombrePadre</h2>
+    <p class="text-muted mb-0">Panel personal con información de tus hijos y del transporte.</p>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6 col-xl-3"><div class="card shadow-sm border-0"><div class="card-body"><h6 class="text-muted">Hijos asociados</h6><h3 class="fw-bold">@Model.CantidadHijos</h3></div></div></div>
+    <div class="col-md-6 col-xl-3"><div class="card shadow-sm border-0"><div class="card-body"><h6 class="text-muted">Notificaciones pendientes</h6><h3 class="fw-bold">@Model.CantidadNotificacionesPendientes</h3></div></div></div>
+    <div class="col-md-6 col-xl-3"><div class="card shadow-sm border-0"><div class="card-body"><h6 class="text-muted">Eventos (7 días)</h6><h3 class="fw-bold">@Model.CantidadEventosRecientes</h3></div></div></div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-md-6 col-xl-3"><a class="card text-decoration-none shadow-sm border-0 h-100" asp-action="MisHijos"><div class="card-body"><h5 class="card-title">Mis hijos</h5></div></a></div>
+    <div class="col-md-6 col-xl-3"><a class="card text-decoration-none shadow-sm border-0 h-100" asp-action="MiRuta"><div class="card-body"><h5 class="card-title">Mi Ruta</h5></div></a></div>
+    <div class="col-md-6 col-xl-3"><a class="card text-decoration-none shadow-sm border-0 h-100" asp-action="MiParadero"><div class="card-body"><h5 class="card-title">Mi Paradero</h5></div></a></div>
+    <div class="col-md-6 col-xl-3"><a class="card text-decoration-none shadow-sm border-0 h-100" asp-action="Notificaciones"><div class="card-body"><h5 class="card-title">Notificaciones</h5></div></a></div>
+    <div class="col-md-6 col-xl-3"><a class="card text-decoration-none shadow-sm border-0 h-100" asp-action="Seguimiento"><div class="card-body"><h5 class="card-title">Seguimiento</h5></div></a></div>
+    <div class="col-md-6 col-xl-3"><a class="card text-decoration-none shadow-sm border-0 h-100" asp-action="Incidencias"><div class="card-body"><h5 class="card-title">Incidencias</h5></div></a></div>
+</div>

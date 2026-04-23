@@ -1,4 +1,4 @@
-﻿@using System.Text.Json
+@using System.Text.Json
 @using Microsoft.AspNetCore.Http
 @inject IHttpContextAccessor HttpContextAccessor
 
@@ -7,6 +7,26 @@
     var username = httpContext?.Session.GetString("Username");
     var rol = httpContext?.Session.GetString("RolNombre");
     var rolNormalizado = (rol ?? "").Trim().ToUpperInvariant();
+    bool esAdmin = rolNormalizado == "ADMINISTRADOR" || rolNormalizado == "ADMIN";
+
+    var adminQuickLinks = esAdmin
+        ? new[]
+        {
+            new { Texto = "Dashboard", Url = Url.Action("Index", "Admin"), Keywords = "inicio panel resumen" },
+            new { Texto = "Usuarios", Url = Url.Action("Listar", "Usuario"), Keywords = "usuarios cuentas permisos" },
+            new { Texto = "Padres", Url = Url.Action("Listar", "PadreFamilia"), Keywords = "padres familia" },
+            new { Texto = "Conductores", Url = Url.Action("Listar", "Conductor"), Keywords = "choferes conductores" },
+            new { Texto = "Estudiantes", Url = Url.Action("Listar", "Estudiante"), Keywords = "alumnos estudiantes" },
+            new { Texto = "Buses", Url = Url.Action("Listar", "Bus"), Keywords = "buses unidades placa" },
+            new { Texto = "Rutas", Url = Url.Action("Listar", "Ruta"), Keywords = "rutas trayectos" },
+            new { Texto = "Paraderos", Url = Url.Action("Listar", "Paradero"), Keywords = "paraderos paradas" },
+            new { Texto = "Ruta-Estudiante", Url = Url.Action("Listar", "RutaEstudiante"), Keywords = "ruta estudiante asignaciones" },
+            new { Texto = "Recorridos", Url = Url.Action("Listar", "Recorrido"), Keywords = "recorridos operaciones" },
+            new { Texto = "Incidencias", Url = Url.Action("Listar", "Incidencia"), Keywords = "incidencias alertas" },
+            new { Texto = "Notificaciones", Url = Url.Action("Listar", "Notificacion"), Keywords = "notificaciones mensajes" },
+            new { Texto = "Auditoría", Url = Url.Action("Listar", "Auditoria"), Keywords = "auditoria historial" }
+        }
+        : Array.Empty<object>();
 }
 
 <!DOCTYPE html>
@@ -18,255 +38,191 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
- 
+
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin-dashboard.css" asp-append-version="true" />
+
+    @RenderSection("Styles", required: false)
 </head>
-<body class="d-flex flex-column min-vh-100">
+<body class="d-flex flex-column min-vh-100 @(esAdmin ? "admin-portal" : "")">
 
-    @if (!string.IsNullOrEmpty(username))
+    @if (!string.IsNullOrEmpty(username) && esAdmin)
     {
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
-            <div class="container">
-                <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">
-                    <i class="bi bi-bus-front-fill me-2"></i>CapiMovil
-                </a>
+        <div class="admin-portal-shell">
+            <aside class="admin-global-sidebar">
+                <div class="admin-side card border-0 shadow-sm h-100">
+                    <div class="card-body d-flex flex-column p-3 p-lg-4">
+                        <div class="admin-brand mb-4">
+                            <div class="admin-brand-icon"><i class="bi bi-bus-front-fill"></i></div>
+                            <div>
+                                <div class="admin-brand-title">CapiMovil</div>
+                                <small class="text-muted">Administración</small>
+                            </div>
+                        </div>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal"
-                        aria-controls="menuPrincipal" aria-expanded="false" aria-label="Mostrar navegación">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+                        <nav class="nav flex-column gap-2 admin-nav mb-4">
+                            <a asp-controller="Admin" asp-action="Index" class="nav-link"><i class="bi bi-grid-1x2-fill"></i>Dashboard</a>
+                            <a asp-controller="Usuario" asp-action="Listar" class="nav-link"><i class="bi bi-person-gear"></i>Usuarios</a>
+                            <a asp-controller="PadreFamilia" asp-action="Listar" class="nav-link"><i class="bi bi-people"></i>Padres</a>
+                            <a asp-controller="Conductor" asp-action="Listar" class="nav-link"><i class="bi bi-person-badge"></i>Conductores</a>
+                            <a asp-controller="Estudiante" asp-action="Listar" class="nav-link"><i class="bi bi-mortarboard"></i>Estudiantes</a>
+                            <a asp-controller="Bus" asp-action="Listar" class="nav-link"><i class="bi bi-bus-front"></i>Buses</a>
+                            <a asp-controller="Ruta" asp-action="Listar" class="nav-link"><i class="bi bi-signpost-2"></i>Rutas</a>
+                            <a asp-controller="Paradero" asp-action="Listar" class="nav-link"><i class="bi bi-geo-alt"></i>Paraderos</a>
+                            <a asp-controller="RutaEstudiante" asp-action="Listar" class="nav-link"><i class="bi bi-diagram-3"></i>Ruta-Estudiante</a>
+                            <a asp-controller="Recorrido" asp-action="Listar" class="nav-link"><i class="bi bi-map"></i>Recorridos</a>
+                            <a asp-controller="Incidencia" asp-action="Listar" class="nav-link"><i class="bi bi-exclamation-triangle"></i>Incidencias</a>
+                            <a asp-controller="Notificacion" asp-action="Listar" class="nav-link"><i class="bi bi-bell"></i>Notificaciones</a>
+                            <a asp-controller="Auditoria" asp-action="Listar" class="nav-link"><i class="bi bi-clipboard-data"></i>Auditoría</a>
+                        </nav>
 
-                <div class="collapse navbar-collapse" id="menuPrincipal">
-                 
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-
-                        @if (rolNormalizado == "ADMINISTRADOR")
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Admin" asp-action="Index">
-                                    <i class="bi bi-house-door me-1"></i>Inicio
-                                </a>
-                            </li>
-
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                                    <i class="bi bi-shield-lock me-1"></i>Seguridad
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" asp-controller="Rol" asp-action="Listar">Roles</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Usuario" asp-action="Listar">Usuarios</a></li>
-                                </ul>
-                            </li>
-
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                                    <i class="bi bi-people me-1"></i>Personas
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" asp-controller="PadreFamilia" asp-action="Listar">Padres de Familia</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Conductor" asp-action="Listar">Conductores</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Estudiante" asp-action="Listar">Estudiantes</a></li>
-                                </ul>
-                            </li>
-
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                                    <i class="bi bi-bus-front me-1"></i>Transporte
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" asp-controller="Bus" asp-action="Listar">Buses</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Ruta" asp-action="Listar">Rutas</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Paradero" asp-action="Listar">Paraderos</a></li>
-                                    <li><a class="dropdown-item" asp-controller="RutaEstudiante" asp-action="Listar">Ruta - Estudiante</a></li>
-                                </ul>
-                            </li>
-
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                                    <i class="bi bi-gear me-1"></i>Operaciones
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" asp-controller="Recorrido" asp-action="Listar">Recorridos</a></li>
-                                    <li><a class="dropdown-item" asp-controller="EventoAbordaje" asp-action="Listar">Eventos de Abordaje</a></li>
-                                    <li><a class="dropdown-item" asp-controller="UbicacionBus" asp-action="Listar">Ubicación de Bus</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Incidencia" asp-action="Listar">Incidencias</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Notificacion" asp-action="Listar">Notificaciones</a></li>
-                                </ul>
-                            </li>
-
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Auditoria" asp-action="Listar">
-                                    <i class="bi bi-clipboard-data me-1"></i>Auditoría
-                                </a>
-                            </li>
-                        }
-                        else if (rolNormalizado == "CONDUCTOR")
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Conductor" asp-action="Index">
-                                    <i class="bi bi-house-door me-1"></i>Inicio
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Bus" asp-action="MiBus">
-                                    <i class="bi bi-bus-front me-1"></i>Mi Bus
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Ruta" asp-action="MiRuta">
-                                    <i class="bi bi-signpost-2 me-1"></i>Mi Ruta
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Estudiante" asp-action="MisEstudiantes">
-                                    <i class="bi bi-people me-1"></i>Estudiantes
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Recorrido" asp-action="Index">
-                                    <i class="bi bi-geo-alt me-1"></i>Recorrido
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="EventoAbordaje" asp-action="Index">
-                                    <i class="bi bi-check2-square me-1"></i>Abordaje
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Incidencia" asp-action="Index">
-                                    <i class="bi bi-exclamation-triangle me-1"></i>Incidencias
-                                </a>
-                            </li>
-                        }
-                        else if (rolNormalizado == "PADRE")
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="PadreFamilia" asp-action="Index">
-                                    <i class="bi bi-house-door me-1"></i>Inicio
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Estudiante" asp-action="MisHijos">
-                                    <i class="bi bi-people me-1"></i>Mis Hijos
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Ruta" asp-action="MiRuta">
-                                    <i class="bi bi-signpost-2 me-1"></i>Ruta
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Paradero" asp-action="MiParadero">
-                                    <i class="bi bi-geo me-1"></i>Paradero
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Conductor" asp-action="MiConductor">
-                                    <i class="bi bi-person-badge me-1"></i>Conductor
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="EventoAbordaje" asp-action="MisEventos">
-                                    <i class="bi bi-clock-history me-1"></i>Abordajes
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Notificacion" asp-action="Index">
-                                    <i class="bi bi-bell me-1"></i>Notificaciones
-                                </a>
-                            </li>
-                        }
-                    </ul>
-
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" data-bs-toggle="dropdown">
-                                <i class="bi bi-person-circle"></i>
-                                <span>@username</span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                                <li>
-                                    <span class="dropdown-item-text">
-                                        <strong>Rol:</strong> @rol
-                                    </span>
-                                </li>
-                                <li><hr class="dropdown-divider" /></li>
-                                <li>
-                                    <a class="dropdown-item" asp-controller="Usuario" asp-action="MiPerfil">
-                                        <i class="bi bi-person me-2"></i>Mi perfil
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" asp-controller="Usuario" asp-action="CambiarPassword">
-                                        <i class="bi bi-key me-2"></i>Cambiar contraseña
-                                    </a>
-
-                                </li>
-                                <li><hr class="dropdown-divider" /></li>
-                                <li>
-                                    <form asp-controller="Auth" asp-action="Logout" method="post" class="m-0">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="dropdown-item">
-                                            <i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-
+                        <a asp-controller="Recorrido" asp-action="Listar" class="btn btn-admin-highlight mt-auto">
+                            <i class="bi bi-broadcast-pin me-2"></i>Seguimiento en vivo
+                        </a>
+                    </div>
                 </div>
+            </aside>
+
+            <div class="admin-global-main">
+                <header class="admin-topbar card border-0 shadow-sm mb-3">
+                    <div class="card-body p-3 p-lg-4 d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                        <div class="input-group admin-search position-relative">
+                            <span class="input-group-text bg-transparent border-0"><i class="bi bi-search"></i></span>
+                            <input id="adminGlobalSearch" type="text" class="form-control border-0" placeholder="Buscar módulo o acción..." autocomplete="off" />
+                            <div id="adminSearchResults" class="admin-search-results list-group shadow-sm d-none" role="listbox" aria-label="Resultados de búsqueda"></div>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="btn btn-light rounded-circle position-relative"><i class="bi bi-bell"></i><span class="admin-dot"></span></span>
+                            <a asp-controller="Usuario" asp-action="MiPerfil" class="btn btn-light rounded-circle"><i class="bi bi-person"></i></a>
+
+                            <div class="dropdown">
+                                <a class="btn admin-user-pill dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                                    <i class="bi bi-person-circle"></i>
+                                    <span>@username</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                    <li><span class="dropdown-item-text"><strong>Rol:</strong> @rol</span></li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li><a class="dropdown-item" asp-controller="Usuario" asp-action="CambiarPassword"><i class="bi bi-key me-2"></i>Cambiar contraseña</a></li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li>
+                                        <form asp-controller="Auth" asp-action="Logout" method="post" class="m-0">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <main class="admin-content flex-fill">
+                    @RenderBody()
+                </main>
             </div>
-        </nav>
+        </div>
+    }
+    else
+    {
+        @if (!string.IsNullOrEmpty(username))
+        {
+            <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+                <div class="container">
+                    <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">
+                        <i class="bi bi-bus-front-fill me-2"></i>CapiMovil
+                    </a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal" aria-controls="menuPrincipal" aria-expanded="false" aria-label="Mostrar navegación">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="menuPrincipal">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            @if (rolNormalizado == "CONDUCTOR")
+                            {
+                                <li class="nav-item"><a class="nav-link" asp-controller="Conductor" asp-action="Index"><i class="bi bi-house-door me-1"></i>Inicio</a></li>
+                                <li class="nav-item"><a class="nav-link" asp-controller="Conductor" asp-action="MiBus"><i class="bi bi-bus-front me-1"></i>Mi Bus</a></li>
+                                <li class="nav-item"><a class="nav-link" asp-controller="Conductor" asp-action="MiRuta"><i class="bi bi-signpost-2 me-1"></i>Mi Ruta</a></li>
+                                <li class="nav-item"><a class="nav-link" asp-controller="Conductor" asp-action="Estudiantes"><i class="bi bi-people me-1"></i>Estudiantes</a></li>
+                                <li class="nav-item"><a class="nav-link" asp-controller="Conductor" asp-action="Recorrido"><i class="bi bi-geo-alt me-1"></i>Recorrido</a></li>
+                                <li class="nav-item"><a class="nav-link" asp-controller="Conductor" asp-action="Abordaje"><i class="bi bi-check2-square me-1"></i>Abordaje</a></li>
+                                <li class="nav-item"><a class="nav-link" asp-controller="Conductor" asp-action="Incidencias"><i class="bi bi-exclamation-triangle me-1"></i>Incidencias</a></li>
+                            }
+                            else if (rolNormalizado == "PADRE" || rolNormalizado == "PADRE DE FAMILIA")
+                            {
+                                <li class="nav-item"><a class="nav-link" asp-controller="PadreFamilia" asp-action="Index"><i class="bi bi-house-door me-1"></i>Inicio</a></li>
+                                <li class="nav-item"><a class="nav-link" asp-controller="PadreFamilia" asp-action="MisHijos"><i class="bi bi-people me-1"></i>Mis Hijos</a></li>
+                                <li class="nav-item"><a class="nav-link" asp-controller="PadreFamilia" asp-action="MiRuta"><i class="bi bi-signpost-2 me-1"></i>Ruta</a></li>
+                                <li class="nav-item"><a class="nav-link" asp-controller="PadreFamilia" asp-action="MiParadero"><i class="bi bi-geo me-1"></i>Paradero</a></li>
+                                <li class="nav-item"><a class="nav-link" asp-controller="PadreFamilia" asp-action="Seguimiento"><i class="bi bi-activity me-1"></i>Seguimiento</a></li>
+                                <li class="nav-item"><a class="nav-link" asp-controller="PadreFamilia" asp-action="Incidencias"><i class="bi bi-exclamation-diamond me-1"></i>Incidencias</a></li>
+                                <li class="nav-item"><a class="nav-link" asp-controller="PadreFamilia" asp-action="MisEventos"><i class="bi bi-clock-history me-1"></i>Abordajes</a></li>
+                                <li class="nav-item"><a class="nav-link" asp-controller="PadreFamilia" asp-action="Notificaciones"><i class="bi bi-bell me-1"></i>Notificaciones</a></li>
+                            }
+                        </ul>
+
+                        <ul class="navbar-nav ms-auto">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" data-bs-toggle="dropdown"><i class="bi bi-person-circle"></i><span>@username</span></a>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                    <li><span class="dropdown-item-text"><strong>Rol:</strong> @rol</span></li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li><a class="dropdown-item" asp-controller="Usuario" asp-action="MiPerfil"><i class="bi bi-person me-2"></i>Mi perfil</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Usuario" asp-action="CambiarPassword"><i class="bi bi-key me-2"></i>Cambiar contraseña</a></li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li>
+                                        <form asp-controller="Auth" asp-action="Logout" method="post" class="m-0">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        }
+
+        <main class="container py-4 flex-fill">
+            @RenderBody()
+        </main>
     }
 
-    <main class="container py-4 flex-fill">
-        @RenderBody()
-    </main>
-
     <footer class="border-top py-3 mt-auto bg-light">
-        <div class="container text-center text-muted">
-            &copy; @DateTime.Now.Year - CapiMovil
-        </div>
+        <div class="container text-center text-muted">&copy; @DateTime.Now.Year - CapiMovil</div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/capimovil-maps.js" asp-append-version="true"></script>
+
+    @if (esAdmin)
+    {
+        <script id="admin-search-data" type="application/json">
+            @Html.Raw(JsonSerializer.Serialize(adminQuickLinks))
+        </script>
+    }
 
     @if (TempData["ok"] != null)
     {
         <script>
-            Swal.fire({
-            icon: 'success',
-            title: 'Éxito',
-            text: @Html.Raw(JsonSerializer.Serialize(TempData["ok"]?.ToString())),
-            confirmButtonText: 'Aceptar'
-            });
+            Swal.fire({ icon: 'success', title: 'Éxito', text: @Html.Raw(JsonSerializer.Serialize(TempData["ok"]?.ToString())), confirmButtonText: 'Aceptar' });
         </script>
     }
 
     @if (TempData["error"] != null)
     {
         <script>
-            Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: @Html.Raw(JsonSerializer.Serialize(TempData["error"]?.ToString())),
-            confirmButtonText: 'Aceptar'
-            });
+            Swal.fire({ icon: 'error', title: 'Error', text: @Html.Raw(JsonSerializer.Serialize(TempData["error"]?.ToString())), confirmButtonText: 'Aceptar' });
         </script>
     }
 
     @if (ViewBag.SwalError != null)
     {
         <script>
-            Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: @Html.Raw(JsonSerializer.Serialize(ViewBag.SwalError?.ToString())),
-            confirmButtonText: 'Aceptar'
-            });
+            Swal.fire({ icon: 'error', title: 'Error', text: @Html.Raw(JsonSerializer.Serialize(ViewBag.SwalError?.ToString())), confirmButtonText: 'Aceptar' });
         </script>
     }
 

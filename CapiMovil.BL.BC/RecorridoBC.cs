@@ -27,6 +27,22 @@ namespace CapiMovil.BL.BC
             return _recorridoDALC.ListarPorId(id);
         }
 
+        public List<RecorridoBE> ListarPorConductor(Guid idConductor)
+        {
+            if (idConductor == Guid.Empty)
+                throw new ArgumentException("Id de conductor inválido.");
+
+            return _recorridoDALC.ListarPorConductor(idConductor);
+        }
+
+        public RecorridoBE? ObtenerActivoPorConductor(Guid idConductor)
+        {
+            if (idConductor == Guid.Empty)
+                throw new ArgumentException("Id de conductor inválido.");
+
+            return _recorridoDALC.ObtenerActivoPorConductor(idConductor);
+        }
+
         public bool Registrar(RecorridoBE entidad)
         {
             Validar(entidad);
@@ -185,7 +201,7 @@ namespace CapiMovil.BL.BC
             }
         }
 
-        public List<DestinatarioNotificacionBE> ListarDestinatariosPorRecorrido(Guid idRecorrido)
+        public List<EstudianteBE> ListarDestinatariosPorRecorrido(Guid idRecorrido)
         {
             if (idRecorrido == Guid.Empty)
                 throw new ArgumentException("El id del recorrido es inválido.");

@@ -125,14 +125,10 @@ namespace CapiMovil.DL.DALC
             cn.Open();
             using SqlDataReader dr = cmd.ExecuteReader();
 
-            if (dr.Read())
+            if (RegistroResultadoDALC.EsRegistroExitoso(dr, out int filas, out string codigoGenerado, out string? mensaje))
             {
-                int filas = Convert.ToInt32(dr["FilasAfectadas"]);
-                if (filas > 0)
-                {
-                    entidad.CodigoRecorrido = dr["CodigoGenerado"]?.ToString() ?? string.Empty;
+                entidad.CodigoRecorrido = codigoGenerado;
                     return true;
-                }
             }
 
             return false;
@@ -247,6 +243,7 @@ namespace CapiMovil.DL.DALC
 
             return false;
         }
+
         public List<RecorridoBE> ListarActivosParaOperacion()
         {
             List<RecorridoBE> lista = new();
@@ -271,6 +268,89 @@ namespace CapiMovil.DL.DALC
 
             return lista;
         }
+
+        public List<RecorridoBE> ListarPorConductor(Guid idConductor)
+        {
+            List<RecorridoBE> lista = new();
+
+            using SqlConnection cn = _bdConexion.ObtenerConexion();
+            using SqlCommand cmd = new SqlCommand("sp_Recorrido_ListarPorConductor", cn);
+
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@IdConductor", idConductor);
+
+            cn.Open();
+            using SqlDataReader dr = cmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                lista.Add(new RecorridoBE
+                {
+                    IdRecorrido = dr.GetGuid(dr.GetOrdinal("IdRecorrido")),
+                    IdRuta = dr.GetGuid(dr.GetOrdinal("IdRuta")),
+                    IdBus = dr.GetGuid(dr.GetOrdinal("IdBus")),
+                    IdConductor = dr.GetGuid(dr.GetOrdinal("IdConductor")),
+                    CodigoRecorrido = dr["CodigoRecorrido"]?.ToString() ?? string.Empty,
+                    Fecha = Convert.ToDateTime(dr["Fecha"]),
+                    EstadoRecorrido = dr["EstadoRecorrido"]?.ToString() ?? "PROGRAMADO",
+                    Estado = Convert.ToBoolean(dr["Estado"]),
+                    Ruta = new RutaBE
+                    {
+                        IdRuta = dr.GetGuid(dr.GetOrdinal("IdRuta")),
+                        CodigoRuta = dr["CodigoRuta"]?.ToString() ?? string.Empty,
+                        Nombre = dr["NombreRuta"]?.ToString() ?? string.Empty
+                    },
+                    Bus = new BusBE
+                    {
+                        IdBus = dr.GetGuid(dr.GetOrdinal("IdBus")),
+                        CodigoBus = dr["CodigoBus"]?.ToString() ?? string.Empty,
+                        Placa = dr["Placa"]?.ToString() ?? string.Empty
+                    }
+                });
+            }
+
+            return lista;
+        }
+
+        public RecorridoBE? ObtenerActivoPorConductor(Guid idConductor)
+        {
+            using SqlConnection cn = _bdConexion.ObtenerConexion();
+            using SqlCommand cmd = new SqlCommand("sp_Recorrido_ObtenerActivoPorConductor", cn);
+
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@IdConductor", idConductor);
+
+            cn.Open();
+            using SqlDataReader dr = cmd.ExecuteReader();
+
+            if (!dr.Read())
+                return null;
+
+            return new RecorridoBE
+            {
+                IdRecorrido = dr.GetGuid(dr.GetOrdinal("IdRecorrido")),
+                IdRuta = dr.GetGuid(dr.GetOrdinal("IdRuta")),
+                IdBus = dr.GetGuid(dr.GetOrdinal("IdBus")),
+                IdConductor = dr.GetGuid(dr.GetOrdinal("IdConductor")),
+                CodigoRecorrido = dr["CodigoRecorrido"]?.ToString() ?? string.Empty,
+                Fecha = Convert.ToDateTime(dr["Fecha"]),
+                EstadoRecorrido = dr["EstadoRecorrido"]?.ToString() ?? "PROGRAMADO",
+                Estado = Convert.ToBoolean(dr["Estado"]),
+                Bus = new BusBE
+                {
+                    IdBus = dr.GetGuid(dr.GetOrdinal("IdBus")),
+                    CodigoBus = dr["CodigoBus"]?.ToString() ?? string.Empty,
+                    Placa = dr["Placa"]?.ToString() ?? string.Empty
+                },
+                Ruta = new RutaBE
+                {
+                    IdRuta = dr.GetGuid(dr.GetOrdinal("IdRuta")),
+                    CodigoRuta = dr["CodigoRuta"]?.ToString() ?? string.Empty,
+                    Nombre = dr["NombreRuta"]?.ToString() ?? string.Empty
+                }
+            };
+        }
+
         public List<EstudianteBE> ListarDestinatariosPorRecorrido(Guid idRecorrido)
         {
             List<EstudianteBE> lista = new();
@@ -290,7 +370,7 @@ namespace CapiMovil.DL.DALC
                 {
                     IdPadre = dr.GetGuid(dr.GetOrdinal("IdPadre")),
                     IdEstudiante = dr.GetGuid(dr.GetOrdinal("IdEstudiante"))
-                });.
+                });
             }
 
             return lista;

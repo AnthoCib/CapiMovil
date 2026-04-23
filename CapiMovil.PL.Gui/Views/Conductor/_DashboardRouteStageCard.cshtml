@@ -1,0 +1,14 @@
+@model (string Titulo, string Subtitulo, string Accion, string Icono)
+
+<div class="card border-0 shadow-sm h-100 conductor-soft-card">
+    <div class="card-body p-4 d-flex flex-column">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="conductor-stage-icon"><i class="bi @Model.Icono"></i></span>
+            <div>
+                <h3 class="h6 fw-bold mb-0">@Model.Titulo</h3>
+                <p class="text-muted small mb-0">@Model.Subtitulo</p>
+            </div>
+        </div>
+        <a asp-action="@Model.Accion" class="btn btn-outline-secondary btn-sm mt-auto align-self-start">Ver más detalles</a>
+    </div>
+</div>

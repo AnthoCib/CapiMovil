@@ -1,0 +1,21 @@
+@model CapiMovil.PL.Gui.Models.ViewModels.ConductorDashboardEstudianteItemViewModel
+@{
+    var inicial = string.IsNullOrWhiteSpace(Model.Nombre) ? "E" : Model.Nombre.Trim()[0].ToString().ToUpperInvariant();
+    var badgeClass = Model.Estado switch
+    {
+        "ABORDÓ" => "conductor-status-boarded",
+        "DESCENDIÓ" => "conductor-status-dropped",
+        _ => "conductor-status-pending"
+    };
+}
+
+<div class="conductor-student-item">
+    <div class="d-flex align-items-center gap-3">
+        <span class="conductor-avatar">@inicial</span>
+        <div>
+            <p class="fw-semibold mb-0">@Model.Nombre</p>
+            <p class="text-muted small mb-0"><i class="bi bi-geo-alt me-1"></i>@Model.Parada · @Model.Hora</p>
+        </div>
+    </div>
+    <span class="badge @badgeClass">@Model.Estado</span>
+</div>

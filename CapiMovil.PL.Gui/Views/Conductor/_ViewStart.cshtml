@@ -1,0 +1,7 @@
+@using Microsoft.AspNetCore.Http
+@{
+    var rol = Context.Session.GetString("RolNombre")?.Trim().ToUpperInvariant();
+    Layout = (rol == "CONDUCTOR")
+        ? "~/Views/Shared/_ConductorLayout.cshtml"
+        : "~/Views/Shared/_Layout.cshtml";
+}

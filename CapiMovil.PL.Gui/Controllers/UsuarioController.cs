@@ -4,7 +4,6 @@ using CapiMovil.PL.Gui.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Data.SqlClient;
-using System.Security.Claims;
 
 namespace CapiMovil.PL.Gui.Controllers
 {
@@ -177,6 +176,27 @@ namespace CapiMovil.PL.Gui.Controllers
             return View(vm);
         }
 
+
+        [HttpGet]
+        public IActionResult MiPerfil()
+        {
+            string? usuarioIdSession = HttpContext.Session.GetString("UsuarioId");
+
+            if (string.IsNullOrEmpty(usuarioIdSession))
+                return RedirectToAction("Login", "Auth");
+
+            Guid idUsuario = Guid.Parse(usuarioIdSession);
+            UsuarioBE? usuario = _usuarioBC.ListarPorId(idUsuario);
+
+            if (usuario == null)
+            {
+                TempData["error"] = "Usuario no encontrado.";
+                return RedirectToAction("Login", "Auth");
+            }
+
+            return View(usuario);
+        }
+
         [HttpGet]
         public IActionResult CambiarPassword()
         {
@@ -216,12 +236,12 @@ namespace CapiMovil.PL.Gui.Controllers
 
             try
             {
-                string? idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                string? usuarioIdSession = HttpContext.Session.GetString("UsuarioId");
 
-                if (string.IsNullOrEmpty(idClaim))
+                if (string.IsNullOrEmpty(usuarioIdSession))
                     return RedirectToAction("Login", "Auth");
 
-                Guid idUsuarioLogueado = Guid.Parse(idClaim);
+                Guid idUsuarioLogueado = Guid.Parse(usuarioIdSession);
 
                 bool ok = _usuarioBC.CambiarPassword(idUsuarioLogueado, vm.PasswordNueva, vm.ConfirmarPassword);
 
