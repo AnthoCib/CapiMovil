@@ -114,7 +114,6 @@ namespace CapiMovil.DL.DALC
 
             return filas > 0;
         }
-
         public bool Eliminar(Guid idRol)
         {
             using SqlConnection cn = _bdConexion.ObtenerConexion();
@@ -135,4 +134,4 @@ namespace CapiMovil.DL.DALC
             return false;
         }
     }
-}
+}o
