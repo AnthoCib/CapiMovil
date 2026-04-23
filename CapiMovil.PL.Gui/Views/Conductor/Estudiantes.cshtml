@@ -1,0 +1,42 @@
+@model List<CapiMovil.BL.BE.EstudianteBE>
+@{
+    ViewData["Title"] = "Estudiantes";
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <h2 class="fw-bold mb-3">Estudiantes de mis rutas</h2>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre completo</th>
+                        <th>DNI</th>
+                        <th>Grado</th>
+                        <th>Sección</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        foreach (var e in Model)
+                        {
+                            <tr>
+                                <td>@e.CodigoEstudiante</td>
+                                <td>@e.NombreCompleto</td>
+                                <td>@e.DNI</td>
+                                <td>@e.Grado</td>
+                                <td>@e.Seccion</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="5" class="text-center text-muted">No hay estudiantes asociados a tus rutas.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

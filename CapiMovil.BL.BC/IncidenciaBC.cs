@@ -28,6 +28,14 @@ namespace CapiMovil.BL.BC
             return _incidenciaDALC.Listar();
         }
 
+        public List<IncidenciaBE> ListarPorConductor(Guid idConductor)
+        {
+            if (idConductor == Guid.Empty)
+                throw new ArgumentException("El id de conductor es inválido.");
+
+            return _incidenciaDALC.ListarPorConductor(idConductor);
+        }
+
         public IncidenciaBE? ListarPorId(Guid idIncidencia)
         {
             if (idIncidencia == Guid.Empty)

@@ -1,0 +1,42 @@
+@model List<CapiMovil.BL.BE.IncidenciaBE>
+@{
+    ViewData["Title"] = "Incidencias";
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <h2 class="fw-bold mb-3">Mis Incidencias</h2>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Código</th>
+                        <th>Tipo</th>
+                        <th>Fecha/Hora</th>
+                        <th>Prioridad</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        foreach (var i in Model)
+                        {
+                            <tr>
+                                <td>@i.CodigoIncidencia</td>
+                                <td>@i.TipoIncidencia</td>
+                                <td>@i.FechaHora.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@i.Prioridad</td>
+                                <td>@i.EstadoIncidencia</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="5" class="text-center text-muted">No hay incidencias de tu operación.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

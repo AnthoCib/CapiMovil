@@ -40,7 +40,7 @@
                  
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
-                        @if (rolNormalizado == "ADMINISTRADOR")
+                        @if (rolNormalizado == "ADMINISTRADOR" || rolNormalizado == "ADMIN")
                         {
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Admin" asp-action="Index">
@@ -108,37 +108,37 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Bus" asp-action="MiBus">
+                                <a class="nav-link" asp-controller="Conductor" asp-action="MiBus">
                                     <i class="bi bi-bus-front me-1"></i>Mi Bus
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Ruta" asp-action="MiRuta">
+                                <a class="nav-link" asp-controller="Conductor" asp-action="MiRuta">
                                     <i class="bi bi-signpost-2 me-1"></i>Mi Ruta
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Estudiante" asp-action="MisEstudiantes">
+                                <a class="nav-link" asp-controller="Conductor" asp-action="Estudiantes">
                                     <i class="bi bi-people me-1"></i>Estudiantes
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Recorrido" asp-action="Index">
+                                <a class="nav-link" asp-controller="Conductor" asp-action="Recorrido">
                                     <i class="bi bi-geo-alt me-1"></i>Recorrido
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="EventoAbordaje" asp-action="Index">
+                                <a class="nav-link" asp-controller="Conductor" asp-action="Abordaje">
                                     <i class="bi bi-check2-square me-1"></i>Abordaje
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Incidencia" asp-action="Index">
+                                <a class="nav-link" asp-controller="Conductor" asp-action="Incidencias">
                                     <i class="bi bi-exclamation-triangle me-1"></i>Incidencias
                                 </a>
                             </li>
                         }
-                        else if (rolNormalizado == "PADRE")
+                        else if (rolNormalizado == "PADRE" || rolNormalizado == "PADRE DE FAMILIA")
                         {
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="PadreFamilia" asp-action="Index">
@@ -146,17 +146,17 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Estudiante" asp-action="MisHijos">
+                                <a class="nav-link" asp-controller="PadreFamilia" asp-action="MisHijos">
                                     <i class="bi bi-people me-1"></i>Mis Hijos
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Ruta" asp-action="MiRuta">
+                                <a class="nav-link" asp-controller="PadreFamilia" asp-action="MiRuta">
                                     <i class="bi bi-signpost-2 me-1"></i>Ruta
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Paradero" asp-action="MiParadero">
+                                <a class="nav-link" asp-controller="PadreFamilia" asp-action="MiParadero">
                                     <i class="bi bi-geo me-1"></i>Paradero
                                 </a>
                             </li>
@@ -166,12 +166,12 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="EventoAbordaje" asp-action="MisEventos">
+                                <a class="nav-link" asp-controller="PadreFamilia" asp-action="MisEventos">
                                     <i class="bi bi-clock-history me-1"></i>Abordajes
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Notificacion" asp-action="Index">
+                                <a class="nav-link" asp-controller="PadreFamilia" asp-action="Notificaciones">
                                     <i class="bi bi-bell me-1"></i>Notificaciones
                                 </a>
                             </li>

@@ -1,0 +1,42 @@
+@model List<CapiMovil.BL.BE.RecorridoBE>
+@{
+    ViewData["Title"] = "Mi Ruta";
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <h2 class="fw-bold mb-3">Mi Ruta / Recorridos Asignados</h2>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Recorrido</th>
+                        <th>Ruta</th>
+                        <th>Bus</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.CodigoRecorrido</td>
+                                <td>@item.Ruta?.CodigoRuta - @item.Ruta?.Nombre</td>
+                                <td>@item.Bus?.CodigoBus - @item.Bus?.Placa</td>
+                                <td>@item.Fecha.ToString("dd/MM/yyyy")</td>
+                                <td>@item.EstadoRecorrido</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="5" class="text-center text-muted">No tienes rutas/recorridos asignados.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

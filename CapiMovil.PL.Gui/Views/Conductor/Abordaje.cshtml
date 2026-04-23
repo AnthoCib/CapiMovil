@@ -1,0 +1,40 @@
+@model List<CapiMovil.BL.BE.EventoAbordajeBE>
+@{
+    ViewData["Title"] = "Abordaje";
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <h2 class="fw-bold mb-3">Eventos de Abordaje de mis recorridos</h2>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Código</th>
+                        <th>Tipo</th>
+                        <th>Fecha/Hora</th>
+                        <th>Observación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        foreach (var e in Model)
+                        {
+                            <tr>
+                                <td>@e.CodigoEvento</td>
+                                <td>@e.TipoEvento</td>
+                                <td>@e.FechaHora.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@e.Observacion</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="4" class="text-center text-muted">No hay eventos para tus recorridos.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

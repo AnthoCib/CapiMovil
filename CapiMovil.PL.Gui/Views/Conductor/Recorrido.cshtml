@@ -1,0 +1,42 @@
+@model List<CapiMovil.BL.BE.RecorridoBE>
+@{
+    ViewData["Title"] = "Recorrido";
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <h2 class="fw-bold mb-3">Mis Recorridos</h2>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Código</th>
+                        <th>Fecha</th>
+                        <th>Ruta</th>
+                        <th>Bus</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        foreach (var r in Model)
+                        {
+                            <tr>
+                                <td>@r.CodigoRecorrido</td>
+                                <td>@r.Fecha.ToString("dd/MM/yyyy")</td>
+                                <td>@r.Ruta?.Nombre</td>
+                                <td>@r.Bus?.Placa</td>
+                                <td>@r.EstadoRecorrido</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="5" class="text-center text-muted">No hay recorridos para este conductor.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
