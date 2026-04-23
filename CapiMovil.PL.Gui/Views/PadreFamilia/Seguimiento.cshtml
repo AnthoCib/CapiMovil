@@ -3,30 +3,42 @@
     ViewData["Title"] = "Seguimiento";
 }
 
-<div class="card shadow-sm border-0">
-    <div class="card-body">
-        <h2 class="fw-bold mb-3">Seguimiento de Transporte</h2>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-primary"><tr><th>Estudiante</th><th>Ruta</th><th>Paradero</th><th>Recorrido de hoy</th><th>Estado</th><th>Último evento</th></tr></thead>
-                <tbody>
-                    @if (Model.Any())
-                    {
-                        foreach (var item in Model)
-                        {
-                            <tr>
-                                <td>@item.CodigoEstudiante - @item.NombreEstudiante</td>
-                                <td>@item.Ruta</td>
-                                <td>@item.Paradero</td>
-                                <td>@item.RecorridoDeHoy</td>
-                                <td>@item.Estado</td>
-                                <td>@item.UltimoEvento <br /><small class="text-muted">@item.FechaUltimoEvento?.ToString("dd/MM/yyyy HH:mm")</small></td>
-                            </tr>
-                        }
-                    }
-                    else { <tr><td colspan="6" class="text-center text-muted">No hay información de seguimiento.</td></tr> }
-                </tbody>
-            </table>
-        </div>
-    </div>
+<div class="pf-page">
+    <section class="pf-card p-3">
+        @await Html.PartialAsync("_SectionHeader", ("Seguimiento de transporte", "Estado actual del recorrido de cada estudiante.", "bi-geo-alt"))
+
+        @if (Model.Any())
+        {
+            <div class="row g-3">
+                @foreach (var item in Model)
+                {
+                    var estado = item.Estado?.ToUpperInvariant() ?? "";
+                    var estadoClass = estado.Contains("CURSO") ? "pf-badge-info" : estado.Contains("PROG") ? "pf-badge-warning" : estado.Contains("FINAL") ? "pf-badge-success" : "pf-badge-muted";
+
+                    <div class="col-md-6">
+                        <article class="pf-student-card h-100">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <strong>@item.NombreEstudiante</strong>
+                                    <div class="pf-student-meta">@item.CodigoEstudiante</div>
+                                </div>
+                                <span class="pf-badge-soft @estadoClass">@item.Estado</span>
+                            </div>
+
+                            <div class="pf-data-grid">
+                                <div class="pf-data-cell"><small>Ruta</small>@(string.IsNullOrWhiteSpace(item.Ruta) ? "No disponible" : item.Ruta)</div>
+                                <div class="pf-data-cell"><small>Paradero</small>@(string.IsNullOrWhiteSpace(item.Paradero) ? "No disponible" : item.Paradero)</div>
+                                <div class="pf-data-cell"><small>Recorrido de hoy</small>@item.RecorridoDeHoy</div>
+                                <div class="pf-data-cell"><small>Último evento</small>@(string.IsNullOrWhiteSpace(item.UltimoEvento) ? "Sin eventos recientes" : item.UltimoEvento)<br/><span class="pf-student-meta">@item.FechaUltimoEvento?.ToString("dd/MM/yyyy HH:mm")</span></div>
+                            </div>
+                        </article>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            @await Html.PartialAsync("_EmptyState", ("Sin información de seguimiento", "No hay recorridos asignados hoy para mostrar seguimiento.", "bi-map"))
+        }
+    </section>
 </div>

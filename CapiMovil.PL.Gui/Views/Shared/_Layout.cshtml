@@ -8,6 +8,7 @@
     var rol = httpContext?.Session.GetString("RolNombre");
     var rolNormalizado = (rol ?? "").Trim().ToUpperInvariant();
     bool esAdmin = rolNormalizado == "ADMINISTRADOR" || rolNormalizado == "ADMIN";
+    bool esPadre = rolNormalizado == "PADRE" || rolNormalizado == "PADRE DE FAMILIA";
 
     var adminQuickLinks = esAdmin
         ? new[]
@@ -41,6 +42,11 @@
 
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin-dashboard.css" asp-append-version="true" />
+
+    @if (esPadre)
+    {
+        <link rel="stylesheet" href="~/css/padre-familia.css" asp-append-version="true" />
+    }
 
     @RenderSection("Styles", required: false)
 </head>

@@ -3,22 +3,36 @@
     ViewData["Title"] = "Panel de Padre de Familia";
 }
 
-<div class="mb-4">
-    <h2 class="fw-bold">Bienvenido, @Model.NombrePadre</h2>
-    <p class="text-muted mb-0">Panel personal con información de tus hijos y del transporte.</p>
-</div>
+<div class="pf-page">
+    <section class="pf-hero mb-3">
+        <h1 class="h4 pf-title mb-1">Hola, @Model.NombrePadre</h1>
+        <p class="pf-subtitle mb-0">Aquí tienes el resumen diario del transporte y seguimiento de tus hijos.</p>
+    </section>
 
-<div class="row g-3">
-    <div class="col-md-6 col-xl-3"><div class="card shadow-sm border-0"><div class="card-body"><h6 class="text-muted">Hijos asociados</h6><h3 class="fw-bold">@Model.CantidadHijos</h3></div></div></div>
-    <div class="col-md-6 col-xl-3"><div class="card shadow-sm border-0"><div class="card-body"><h6 class="text-muted">Notificaciones pendientes</h6><h3 class="fw-bold">@Model.CantidadNotificacionesPendientes</h3></div></div></div>
-    <div class="col-md-6 col-xl-3"><div class="card shadow-sm border-0"><div class="card-body"><h6 class="text-muted">Eventos (7 días)</h6><h3 class="fw-bold">@Model.CantidadEventosRecientes</h3></div></div></div>
-</div>
+    <div class="row g-3 mb-3">
+        <div class="col-md-4">
+            <div class="pf-kpi"><p class="pf-kpi-label mb-1">Hijos asociados</p><p class="pf-kpi-value mb-0">@Model.CantidadHijos</p></div>
+        </div>
+        <div class="col-md-4">
+            <div class="pf-kpi"><p class="pf-kpi-label mb-1">Notificaciones no leídas</p><p class="pf-kpi-value mb-0">@Model.CantidadNotificacionesPendientes</p></div>
+        </div>
+        <div class="col-md-4">
+            <div class="pf-kpi"><p class="pf-kpi-label mb-1">Eventos recientes (7 días)</p><p class="pf-kpi-value mb-0">@Model.CantidadEventosRecientes</p></div>
+        </div>
+    </div>
 
-<div class="row g-3 mt-1">
-    <div class="col-md-6 col-xl-3"><a class="card text-decoration-none shadow-sm border-0 h-100" asp-action="MisHijos"><div class="card-body"><h5 class="card-title">Mis hijos</h5></div></a></div>
-    <div class="col-md-6 col-xl-3"><a class="card text-decoration-none shadow-sm border-0 h-100" asp-action="MiRuta"><div class="card-body"><h5 class="card-title">Mi Ruta</h5></div></a></div>
-    <div class="col-md-6 col-xl-3"><a class="card text-decoration-none shadow-sm border-0 h-100" asp-action="MiParadero"><div class="card-body"><h5 class="card-title">Mi Paradero</h5></div></a></div>
-    <div class="col-md-6 col-xl-3"><a class="card text-decoration-none shadow-sm border-0 h-100" asp-action="Notificaciones"><div class="card-body"><h5 class="card-title">Notificaciones</h5></div></a></div>
-    <div class="col-md-6 col-xl-3"><a class="card text-decoration-none shadow-sm border-0 h-100" asp-action="Seguimiento"><div class="card-body"><h5 class="card-title">Seguimiento</h5></div></a></div>
-    <div class="col-md-6 col-xl-3"><a class="card text-decoration-none shadow-sm border-0 h-100" asp-action="Incidencias"><div class="card-body"><h5 class="card-title">Incidencias</h5></div></a></div>
+    <section class="pf-card p-3">
+        @await Html.PartialAsync("_SectionHeader", ("Accesos rápidos", "Consulta la información clave de forma inmediata.", "bi-lightning-charge"))
+
+        <div class="row g-2">
+            <div class="col-sm-6 col-lg-3"><a class="pf-action-link" asp-action="MisHijos"><i class="bi bi-people me-2"></i>Mis Hijos</a></div>
+            <div class="col-sm-6 col-lg-3"><a class="pf-action-link" asp-action="Notificaciones"><i class="bi bi-bell me-2"></i>Notificaciones</a></div>
+            <div class="col-sm-6 col-lg-3"><a class="pf-action-link" asp-action="Seguimiento"><i class="bi bi-geo-alt me-2"></i>Seguimiento</a></div>
+            <div class="col-sm-6 col-lg-3"><a class="pf-action-link" asp-controller="Usuario" asp-action="MiPerfil"><i class="bi bi-person-circle me-2"></i>Mi Perfil</a></div>
+            <div class="col-sm-6 col-lg-3"><a class="pf-action-link" asp-action="MiRuta"><i class="bi bi-signpost-2 me-2"></i>Mi Ruta</a></div>
+            <div class="col-sm-6 col-lg-3"><a class="pf-action-link" asp-action="MiParadero"><i class="bi bi-pin-map me-2"></i>Mi Paradero</a></div>
+            <div class="col-sm-6 col-lg-3"><a class="pf-action-link" asp-action="MisEventos"><i class="bi bi-clock-history me-2"></i>Eventos</a></div>
+            <div class="col-sm-6 col-lg-3"><a class="pf-action-link" asp-action="Incidencias"><i class="bi bi-exclamation-triangle me-2"></i>Incidencias</a></div>
+        </div>
+    </section>
 </div>

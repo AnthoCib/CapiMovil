@@ -1,0 +1,108 @@
+.pf-page {
+    background: linear-gradient(180deg, #f8f5ed 0%, #f2f6fb 100%);
+    border-radius: 1rem;
+    padding: 1rem;
+}
+
+.pf-hero,
+.pf-card {
+    border: 1px solid #ece8dd;
+    border-radius: 1rem;
+    background: #fffdf9;
+    box-shadow: 0 .4rem 1rem rgba(15, 23, 42, .05);
+}
+
+.pf-hero {
+    padding: 1.2rem;
+    background: linear-gradient(140deg, #fffdf7 0%, #eef5ff 100%);
+}
+
+.pf-title { font-weight: 700; color: #1f2937; }
+.pf-subtitle { color: #6b7280; }
+
+.pf-kpi {
+    background: #fff;
+    border: 1px solid #ece8dd;
+    border-radius: .9rem;
+    padding: .9rem;
+    height: 100%;
+}
+
+.pf-kpi-label { color: #6b7280; font-size: .85rem; }
+.pf-kpi-value { font-size: 1.7rem; font-weight: 700; color: #111827; }
+
+.pf-action-link {
+    border: 1px solid #ece8dd;
+    border-radius: .9rem;
+    padding: .9rem;
+    background: #fff;
+    display: block;
+    text-decoration: none;
+    color: #1f2937;
+    transition: all .15s ease;
+}
+
+.pf-action-link:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 .4rem 1rem rgba(0,0,0,.06);
+    color: #1f2937;
+}
+
+.pf-student-card {
+    border: 1px solid #ece8dd;
+    border-radius: .9rem;
+    padding: .9rem;
+    background: #fff;
+}
+
+.pf-student-meta { color: #6b7280; font-size: .86rem; }
+
+.pf-badge-soft {
+    border-radius: 999px;
+    padding: .35rem .6rem;
+    font-size: .74rem;
+    font-weight: 600;
+}
+
+.pf-badge-success { background: #dcfce7; color: #166534; }
+.pf-badge-info { background: #dbeafe; color: #1d4ed8; }
+.pf-badge-warning { background: #fef3c7; color: #92400e; }
+.pf-badge-danger { background: #fee2e2; color: #b91c1c; }
+.pf-badge-muted { background: #eceff3; color: #4b5563; }
+
+.pf-empty {
+    border: 1px dashed #d9d9d9;
+    border-radius: .9rem;
+    padding: 1.2rem;
+    background: #fff;
+    text-align: center;
+    color: #6b7280;
+}
+
+.pf-empty i { font-size: 1.5rem; margin-bottom: .4rem; display: inline-block; color: #94a3b8; }
+
+.pf-list-item {
+    border: 1px solid #ece8dd;
+    border-radius: .9rem;
+    padding: .85rem;
+    background: #fff;
+}
+
+.pf-data-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+    gap: .7rem;
+}
+
+.pf-data-cell {
+    background: #fff;
+    border: 1px solid #ece8dd;
+    border-radius: .75rem;
+    padding: .7rem;
+}
+
+.pf-data-cell small { color: #6b7280; display:block; margin-bottom:.15rem; }
+
+@media (max-width: 767.98px) {
+    .pf-page { padding: .35rem; }
+}

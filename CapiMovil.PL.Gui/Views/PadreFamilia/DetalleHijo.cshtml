@@ -3,50 +3,53 @@
     ViewData["Title"] = "Detalle de Hijo";
 }
 
+<div class="pf-page">
 @if (Model.Estudiante == null)
 {
-    <div class="alert alert-warning">No se encontró información del estudiante.</div>
+    @await Html.PartialAsync("_EmptyState", ("Estudiante no encontrado", "No se encontró información del estudiante seleccionado.", "bi-search"))
 }
 else
 {
-    <div class="card shadow-sm border-0 mb-3">
-        <div class="card-body">
-            <h2 class="fw-bold mb-3">@Model.Estudiante.CodigoEstudiante - @Model.Estudiante.NombreCompleto</h2>
-            <div class="row g-2">
-                <div class="col-md-4"><strong>Grado:</strong> @Model.Estudiante.Grado</div>
-                <div class="col-md-4"><strong>Sección:</strong> @Model.Estudiante.Seccion</div>
-                <div class="col-md-4"><strong>DNI:</strong> @Model.Estudiante.DNI</div>
-            </div>
+    <section class="pf-card p-3 mb-3">
+        @await Html.PartialAsync("_SectionHeader", ("Ficha del estudiante", "Información general y datos de identificación.", "bi-person-vcard"))
+        <div class="pf-data-grid">
+            <div class="pf-data-cell"><small>Código</small>@Model.Estudiante.CodigoEstudiante</div>
+            <div class="pf-data-cell"><small>Nombre</small>@Model.Estudiante.NombreCompleto</div>
+            <div class="pf-data-cell"><small>DNI</small>@Model.Estudiante.DNI</div>
+            <div class="pf-data-cell"><small>Grado / Sección</small>@Model.Estudiante.Grado - @Model.Estudiante.Seccion</div>
         </div>
-    </div>
+    </section>
 
-    <div class="card shadow-sm border-0 mb-3">
-        <div class="card-body">
-            <h5 class="fw-bold">Ruta y Paraderos</h5>
-            <p><strong>Ruta:</strong> @Model.RutaAsignada?.Ruta?.CodigoRuta - @Model.RutaAsignada?.Ruta?.Nombre</p>
-            <p><strong>Paradero subida:</strong> @Model.ParaderoSubida?.Nombre (@Model.ParaderoSubida?.Direccion)</p>
-            <p><strong>Paradero bajada:</strong> @Model.ParaderoBajada?.Nombre (@Model.ParaderoBajada?.Direccion)</p>
+    <section class="pf-card p-3 mb-3">
+        @await Html.PartialAsync("_SectionHeader", ("Ruta y paraderos", "Detalle de subida y bajada asignada.", "bi-signpost-2"))
+        <div class="pf-data-grid">
+            <div class="pf-data-cell"><small>Ruta</small>@(Model.RutaAsignada?.Ruta?.CodigoRuta ?? "No disponible") - @(Model.RutaAsignada?.Ruta?.Nombre ?? "Sin ruta asignada")</div>
+            <div class="pf-data-cell"><small>Paradero de subida</small>@(Model.ParaderoSubida?.Nombre ?? "No disponible")<br/><span class="pf-student-meta">@Model.ParaderoSubida?.Direccion</span></div>
+            <div class="pf-data-cell"><small>Paradero de bajada</small>@(Model.ParaderoBajada?.Nombre ?? "No disponible")<br/><span class="pf-student-meta">@Model.ParaderoBajada?.Direccion</span></div>
         </div>
-    </div>
+    </section>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body">
-            <h5 class="fw-bold">Eventos recientes</h5>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-primary"><tr><th>Tipo</th><th>Fecha/Hora</th><th>Observación</th></tr></thead>
-                    <tbody>
-                        @if (Model.EventosRecientes.Any())
-                        {
-                            foreach (var e in Model.EventosRecientes)
-                            {
-                                <tr><td>@e.TipoEvento</td><td>@e.FechaHora.ToString("dd/MM/yyyy HH:mm")</td><td>@e.Observacion</td></tr>
-                            }
-                        }
-                        else { <tr><td colspan="3" class="text-center text-muted">Sin eventos.</td></tr> }
-                    </tbody>
-                </table>
+    <section class="pf-card p-3">
+        @await Html.PartialAsync("_SectionHeader", ("Últimos eventos", "Registro reciente de subida y bajada del estudiante.", "bi-clock-history"))
+        @if (Model.EventosRecientes.Any())
+        {
+            <div class="d-flex flex-column gap-2">
+                @foreach (var e in Model.EventosRecientes)
+                {
+                    <article class="pf-list-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong>@e.TipoEvento</strong>
+                            <span class="pf-badge-soft pf-badge-info">@e.FechaHora.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                        <p class="mb-0 pf-student-meta">@(string.IsNullOrWhiteSpace(e.Observacion) ? "Sin observación." : e.Observacion)</p>
+                    </article>
+                }
             </div>
-        </div>
-    </div>
+        }
+        else
+        {
+            @await Html.PartialAsync("_EmptyState", ("Sin eventos recientes", "No hay eventos de abordaje registrados para este estudiante.", "bi-clock"))
+        }
+    </section>
 }
+</div>

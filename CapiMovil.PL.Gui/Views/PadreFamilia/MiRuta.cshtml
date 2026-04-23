@@ -3,35 +3,34 @@
     ViewData["Title"] = "Mi Ruta";
 }
 
-<div class="card shadow-sm border-0">
-    <div class="card-body">
-        <h2 class="fw-bold mb-3">Rutas y transporte de mis hijos</h2>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-primary">
-                    <tr><th>Estudiante</th><th>Ruta</th><th>Recorrido</th><th>Bus</th><th>Conductor</th><th>Estado</th></tr>
-                </thead>
-                <tbody>
-                    @if (Model.Any())
-                    {
-                        foreach (var item in Model)
-                        {
-                            <tr>
-                                <td>@item.CodigoEstudiante - @item.NombreEstudiante</td>
-                                <td>@item.CodigoRuta - @item.NombreRuta</td>
-                                <td>@item.CodigoRecorrido<br/><small class="text-muted">@item.FechaRecorrido?.ToString("dd/MM/yyyy")</small></td>
-                                <td>@item.PlacaBus</td>
-                                <td>@item.NombreConductor</td>
-                                <td>@item.EstadoRecorrido</td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr><td colspan="6" class="text-center text-muted">No hay rutas asociadas a tus hijos.</td></tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
+<div class="pf-page">
+    <section class="pf-card p-3">
+        @await Html.PartialAsync("_SectionHeader", ("Rutas y transporte", "Detalle de ruta, recorrido y unidad asignada por estudiante.", "bi-signpost-2"))
+
+        @if (Model.Any())
+        {
+            <div class="row g-3">
+                @foreach (var item in Model)
+                {
+                    <div class="col-md-6">
+                        <article class="pf-student-card h-100">
+                            <strong>@item.NombreEstudiante</strong>
+                            <div class="pf-student-meta mb-2">@item.CodigoEstudiante</div>
+                            <div class="pf-data-grid">
+                                <div class="pf-data-cell"><small>Ruta</small>@item.CodigoRuta - @item.NombreRuta</div>
+                                <div class="pf-data-cell"><small>Recorrido</small>@(item.CodigoRecorrido ?? "Sin recorrido asignado hoy")</div>
+                                <div class="pf-data-cell"><small>Bus</small>@(item.PlacaBus ?? "No disponible")</div>
+                                <div class="pf-data-cell"><small>Conductor</small>@(item.NombreConductor ?? "No disponible")</div>
+                                <div class="pf-data-cell"><small>Estado</small>@(item.EstadoRecorrido ?? "No disponible")</div>
+                            </div>
+                        </article>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            @await Html.PartialAsync("_EmptyState", ("Sin rutas asociadas", "No hay rutas activas asociadas a tus hijos.", "bi-map"))
+        }
+    </section>
 </div>
