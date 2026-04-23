@@ -36,6 +36,15 @@ namespace CapiMovil.BL.BC
             return _incidenciaDALC.ListarPorConductor(idConductor);
         }
 
+
+        public List<IncidenciaBE> ListarPorPadre(Guid idPadre)
+        {
+            if (idPadre == Guid.Empty)
+                throw new ArgumentException("El id de padre es inválido.");
+
+            return _incidenciaDALC.ListarPorPadre(idPadre);
+        }
+
         public IncidenciaBE? ListarPorId(Guid idIncidencia)
         {
             if (idIncidencia == Guid.Empty)

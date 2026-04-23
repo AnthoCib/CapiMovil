@@ -9,13 +9,7 @@
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-primary">
-                    <tr>
-                        <th>Código</th>
-                        <th>Nombre completo</th>
-                        <th>Grado</th>
-                        <th>Sección</th>
-                        <th>Estado</th>
-                    </tr>
+                    <tr><th>Código</th><th>Nombre completo</th><th>Grado</th><th>Sección</th><th>Estado</th><th></th></tr>
                 </thead>
                 <tbody>
                     @if (Model.Any())
@@ -28,12 +22,13 @@
                                 <td>@item.Grado</td>
                                 <td>@item.Seccion</td>
                                 <td>@(item.Estado ? "Activo" : "Inactivo")</td>
+                                <td><a asp-action="DetalleHijo" asp-route-idEstudiante="@item.IdEstudiante" class="btn btn-sm btn-outline-primary">Detalle</a></td>
                             </tr>
                         }
                     }
                     else
                     {
-                        <tr><td colspan="5" class="text-center text-muted">No hay estudiantes asociados.</td></tr>
+                        <tr><td colspan="6" class="text-center text-muted">No hay estudiantes asociados.</td></tr>
                     }
                 </tbody>
             </table>

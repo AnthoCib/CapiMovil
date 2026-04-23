@@ -9,7 +9,7 @@
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-primary">
-                    <tr><th>Título</th><th>Tipo</th><th>Canal</th><th>Fecha</th><th>Estado</th></tr>
+                    <tr><th>Título</th><th>Tipo</th><th>Canal</th><th>Fecha</th><th>Estado</th><th></th></tr>
                 </thead>
                 <tbody>
                     @if (Model.Any())
@@ -35,12 +35,13 @@
                                         </form>
                                     }
                                 </td>
+                                <td><a asp-action="DetalleNotificacion" asp-route-idNotificacion="@item.IdNotificacion" class="btn btn-sm btn-outline-secondary">Ver</a></td>
                             </tr>
                         }
                     }
                     else
                     {
-                        <tr><td colspan="5" class="text-center text-muted">No hay notificaciones disponibles.</td></tr>
+                        <tr><td colspan="6" class="text-center text-muted">No hay notificaciones disponibles.</td></tr>
                     }
                 </tbody>
             </table>

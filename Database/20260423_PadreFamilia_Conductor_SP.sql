@@ -623,3 +623,50 @@ BEGIN
       AND p.FechaEliminacion IS NULL;
 END
 GO
+GO
+CREATE OR ALTER PROCEDURE dbo.sp_Incidencia_ListarPorPadre
+    @IdPadre UNIQUEIDENTIFIER
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    ;WITH RutasPadre AS
+    (
+        SELECT DISTINCT re.IdRuta
+        FROM dbo.Estudiante e
+        INNER JOIN dbo.RutaEstudiante re ON re.IdEstudiante = e.IdEstudiante
+        WHERE e.IdPadre = @IdPadre
+          AND e.Estado = 1
+          AND e.FechaEliminacion IS NULL
+          AND re.Estado = 1
+          AND re.FechaEliminacion IS NULL
+    )
+    SELECT
+        i.IdIncidencia,
+        i.IdRecorrido,
+        i.IdConductor,
+        i.ReportadoPor,
+        i.CodigoIncidencia,
+        i.TipoIncidencia,
+        i.Descripcion,
+        i.FechaHora,
+        i.EstadoIncidencia,
+        i.Prioridad,
+        i.FechaCierre,
+        i.Solucion,
+        i.Estado,
+        i.FechaCreacion,
+        i.FechaActualizacion,
+        i.FechaEliminacion,
+        r.CodigoRecorrido,
+        (c.Nombres + ' ' + c.ApellidoPaterno + ' ' + c.ApellidoMaterno) AS NombreConductor,
+        u.Username AS UsernameReportadoPor
+    FROM dbo.Incidencia i
+    INNER JOIN dbo.Recorrido r ON r.IdRecorrido = i.IdRecorrido
+    INNER JOIN RutasPadre rp ON rp.IdRuta = r.IdRuta
+    INNER JOIN dbo.Conductor c ON c.IdConductor = i.IdConductor
+    LEFT JOIN dbo.Usuario u ON u.IdUsuario = i.ReportadoPor
+    WHERE i.FechaEliminacion IS NULL
+    ORDER BY i.FechaHora DESC;
+END
+GO

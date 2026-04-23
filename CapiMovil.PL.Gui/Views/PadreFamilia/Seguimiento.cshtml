@@ -1,0 +1,32 @@
+@model List<CapiMovil.PL.Gui.Models.ViewModels.PadreSeguimientoItemViewModel>
+@{
+    ViewData["Title"] = "Seguimiento";
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <h2 class="fw-bold mb-3">Seguimiento de Transporte</h2>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-primary"><tr><th>Estudiante</th><th>Ruta</th><th>Paradero</th><th>Recorrido de hoy</th><th>Estado</th><th>Último evento</th></tr></thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.CodigoEstudiante - @item.NombreEstudiante</td>
+                                <td>@item.Ruta</td>
+                                <td>@item.Paradero</td>
+                                <td>@item.RecorridoHoy</td>
+                                <td>@item.EstadoRecorrido</td>
+                                <td>@item.UltimoEvento <br /><small class="text-muted">@item.FechaUltimoEvento?.ToString("dd/MM/yyyy HH:mm")</small></td>
+                            </tr>
+                        }
+                    }
+                    else { <tr><td colspan="6" class="text-center text-muted">No hay información de seguimiento.</td></tr> }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -16,6 +16,7 @@ namespace CapiMovil.PL.Gui.Controllers
         private readonly RutaEstudianteBC _rutaEstudianteBC;
         private readonly RecorridoBC _recorridoBC;
         private readonly ParaderoBC _paraderoBC;
+        private readonly IncidenciaBC _incidenciaBC;
 
         public PadreFamiliaController(
             PadreFamiliaBC padreFamiliaBC,
@@ -25,7 +26,8 @@ namespace CapiMovil.PL.Gui.Controllers
             EventoAbordajeBC eventoAbordajeBC,
             RutaEstudianteBC rutaEstudianteBC,
             RecorridoBC recorridoBC,
-            ParaderoBC paraderoBC)
+            ParaderoBC paraderoBC,
+            IncidenciaBC incidenciaBC)
         {
             _padreFamiliaBC = padreFamiliaBC;
             _usuarioBC = usuarioBC;
@@ -35,6 +37,7 @@ namespace CapiMovil.PL.Gui.Controllers
             _rutaEstudianteBC = rutaEstudianteBC;
             _recorridoBC = recorridoBC;
             _paraderoBC = paraderoBC;
+            _incidenciaBC = incidenciaBC;
         }
 
         public IActionResult Index()
@@ -79,6 +82,52 @@ namespace CapiMovil.PL.Gui.Controllers
         }
 
         [HttpGet]
+        public IActionResult DetalleHijo(Guid idEstudiante)
+        {
+            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            if (padre == null)
+                return RedirectToAction(nameof(MisHijos));
+
+            EstudianteBE? estudiante = _estudianteBC.Listar()
+                .FirstOrDefault(e => e.IdEstudiante == idEstudiante && e.IdPadre == padre.IdPadre);
+
+            if (estudiante == null)
+            {
+                TempData["error"] = "No tiene acceso al estudiante solicitado.";
+                return RedirectToAction(nameof(MisHijos));
+            }
+
+            RutaEstudianteBE? ruta = _rutaEstudianteBC.Listar()
+                .Where(re => re.IdEstudiante == estudiante.IdEstudiante && re.Estado)
+                .OrderByDescending(re => re.FechaInicioVigencia)
+                .FirstOrDefault();
+
+            ParaderoBE? subida = ruta?.IdParaderoSubida.HasValue == true ? _paraderoBC.ListarPorId(ruta.IdParaderoSubida.Value) : null;
+            ParaderoBE? bajada = ruta?.IdParaderoBajada.HasValue == true ? _paraderoBC.ListarPorId(ruta.IdParaderoBajada.Value) : null;
+
+            List<EventoAbordajeBE> eventos = _eventoAbordajeBC.Listar()
+                .Where(e => e.IdEstudiante == estudiante.IdEstudiante)
+                .OrderByDescending(e => e.FechaHora)
+                .Take(20)
+                .ToList();
+
+            PadreHijoDetalleViewModel vm = new()
+            {
+                Estudiante = estudiante,
+                RutaAsignada = ruta,
+                ParaderoSubida = subida,
+                ParaderoBajada = bajada,
+                EventosRecientes = eventos
+            };
+
+            return View(vm);
+        }
+
+        [HttpGet]
         public IActionResult Notificaciones()
         {
             IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
@@ -93,6 +142,27 @@ namespace CapiMovil.PL.Gui.Controllers
                     .ToList();
 
             return View(notificaciones);
+        }
+
+        [HttpGet]
+        public IActionResult DetalleNotificacion(Guid idNotificacion)
+        {
+            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            if (padre == null)
+                return RedirectToAction(nameof(Notificaciones));
+
+            NotificacionBE? notificacion = _notificacionBC.ListarPorId(idNotificacion);
+            if (notificacion == null || notificacion.IdPadre != padre.IdPadre)
+            {
+                TempData["error"] = "No tiene acceso a la notificación solicitada.";
+                return RedirectToAction(nameof(Notificaciones));
+            }
+
+            return View(notificacion);
         }
 
         [HttpPost]
@@ -117,6 +187,59 @@ namespace CapiMovil.PL.Gui.Controllers
             bool ok = _notificacionBC.MarcarLeida(idNotificacion);
             TempData[ok ? "ok" : "error"] = ok ? "Notificación marcada como leída." : "No se pudo actualizar la notificación.";
             return RedirectToAction(nameof(Notificaciones));
+        }
+
+        [HttpGet]
+        public IActionResult Seguimiento()
+        {
+            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            if (padre == null)
+                return View(new List<PadreSeguimientoItemViewModel>());
+
+            List<EstudianteBE> hijos = ObtenerHijos(padre.IdPadre);
+            HashSet<Guid> idsHijos = hijos.Select(h => h.IdEstudiante).ToHashSet();
+            Dictionary<Guid, EstudianteBE> hijosDict = hijos.ToDictionary(h => h.IdEstudiante, h => h);
+
+            List<RutaEstudianteBE> rutas = _rutaEstudianteBC.Listar()
+                .Where(r => r.Estado && idsHijos.Contains(r.IdEstudiante))
+                .ToList();
+
+            List<EventoAbordajeBE> eventos = _eventoAbordajeBC.Listar();
+            List<RecorridoBE> recorridos = _recorridoBC.Listar();
+
+            List<PadreSeguimientoItemViewModel> vm = rutas.Select(r =>
+            {
+                EstudianteBE estudiante = hijosDict[r.IdEstudiante];
+                ParaderoBE? paradaSubida = r.IdParaderoSubida.HasValue ? _paraderoBC.ListarPorId(r.IdParaderoSubida.Value) : null;
+
+                RecorridoBE? recorridoHoy = recorridos
+                    .Where(x => x.IdRuta == r.IdRuta && x.Fecha.Date == DateTime.Today)
+                    .OrderByDescending(x => x.Fecha)
+                    .FirstOrDefault();
+
+                EventoAbordajeBE? ultimoEvento = eventos
+                    .Where(e => e.IdEstudiante == r.IdEstudiante)
+                    .OrderByDescending(e => e.FechaHora)
+                    .FirstOrDefault();
+
+                return new PadreSeguimientoItemViewModel
+                {
+                    CodigoEstudiante = estudiante.CodigoEstudiante,
+                    NombreEstudiante = estudiante.NombreCompleto,
+                    Ruta = $"{r.Ruta?.CodigoRuta} - {r.Ruta?.Nombre}",
+                    Paradero = paradaSubida?.Nombre,
+                    RecorridoHoy = recorridoHoy?.CodigoRecorrido,
+                    EstadoRecorrido = recorridoHoy?.EstadoRecorrido,
+                    UltimoEvento = ultimoEvento?.TipoEvento,
+                    FechaUltimoEvento = ultimoEvento?.FechaHora
+                };
+            }).ToList();
+
+            return View(vm);
         }
 
         [HttpGet]
@@ -205,7 +328,7 @@ namespace CapiMovil.PL.Gui.Controllers
         }
 
         [HttpGet]
-        public IActionResult MisEventos()
+        public IActionResult MisEventos(Guid? idEstudiante)
         {
             IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
             if (acceso != null)
@@ -224,7 +347,25 @@ namespace CapiMovil.PL.Gui.Controllers
                 .OrderByDescending(e => e.FechaHora)
                 .ToList();
 
+            if (idEstudiante.HasValue)
+                eventos = eventos.Where(e => e.IdEstudiante == idEstudiante.Value).ToList();
+
             return View(eventos);
+        }
+
+        [HttpGet]
+        public IActionResult Incidencias()
+        {
+            IActionResult? acceso = ValidarSesionYRol("PADRE", "PADRE DE FAMILIA");
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            if (padre == null)
+                return View(new List<IncidenciaBE>());
+
+            List<IncidenciaBE> incidencias = _incidenciaBC.ListarPorPadre(padre.IdPadre);
+            return View(incidencias);
         }
 
         [HttpGet]
