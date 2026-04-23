@@ -152,6 +152,21 @@ namespace CapiMovil.PL.Gui.Controllers
                     .OrderBy(p => p.OrdenParada)
                     .ToList();
 
+            List<EstudianteBE> estudiantesRuta = new();
+            if (recorridoOperacion != null)
+            {
+                HashSet<Guid> idsEstudiantes = _rutaEstudianteBC.Listar()
+                    .Where(re => re.IdRuta == recorridoOperacion.IdRuta && re.Estado)
+                    .Select(re => re.IdEstudiante)
+                    .ToHashSet();
+
+                estudiantesRuta = _estudianteBC.Listar()
+                    .Where(e => idsEstudiantes.Contains(e.IdEstudiante))
+                    .OrderBy(e => e.ApellidoPaterno)
+                    .ThenBy(e => e.Nombres)
+                    .ToList();
+            }
+
             UbicacionBusBE? ultimaUbicacion = recorridoOperacion == null
                 ? null
                 : _ubicacionBusBC.Listar()
@@ -164,6 +179,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 RecorridoOperacion = recorridoOperacion,
                 Recorridos = recorridos,
                 Paraderos = paraderos,
+                EstudiantesRuta = estudiantesRuta,
                 UltimaUbicacionBus = ultimaUbicacion
             };
 

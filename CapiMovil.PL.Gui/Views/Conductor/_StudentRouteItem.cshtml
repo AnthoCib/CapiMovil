@@ -1,0 +1,14 @@
+@model CapiMovil.BL.BE.EstudianteBE
+
+<div class="conductor-student-item">
+    <div class="conductor-avatar">
+        @((Model.Nombres?.Length ?? 0) > 0 ? Model.Nombres.Substring(0, 1).ToUpper() : "E")
+    </div>
+    <div class="flex-grow-1">
+        <div class="fw-semibold small">@Model.NombreCompleto</div>
+        <div class="text-muted x-small">@Model.Direccion</div>
+    </div>
+    <a asp-controller="Estudiante" asp-action="Editar" asp-route-id="@Model.IdEstudiante" class="btn btn-sm btn-light">
+        <i class="bi bi-eye"></i>
+    </a>
+</div>

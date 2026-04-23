@@ -7,6 +7,7 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
         public RecorridoBE? RecorridoOperacion { get; set; }
         public List<RecorridoBE> Recorridos { get; set; } = new();
         public List<ParaderoBE> Paraderos { get; set; } = new();
+        public List<EstudianteBE> EstudiantesRuta { get; set; } = new();
         public UbicacionBusBE? UltimaUbicacionBus { get; set; }
 
         public bool TieneParaderosConCoordenadas =>
