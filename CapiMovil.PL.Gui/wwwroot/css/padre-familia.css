@@ -1,3 +1,66 @@
+.pf-layout-body {
+    background: #f7f3eb;
+    margin: 0;
+}
+
+.pf-layout-shell {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 1rem;
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+.pf-layout-sidebar {
+    position: sticky;
+    top: 1rem;
+    align-self: start;
+}
+
+.pf-brand-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: .7rem;
+    background: #f4bf42;
+    color: #2f2500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pf-layout-nav .nav-link {
+    border-radius: .75rem;
+    color: #263238;
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    padding: .55rem .7rem;
+}
+
+.pf-layout-nav .nav-link:hover,
+.pf-layout-nav .nav-link.active {
+    background: #f1eee6;
+}
+
+.pf-layout-main { min-width: 0; }
+
+.pf-layout-search {
+    max-width: 360px;
+    background: #f9f8f3;
+    border: 1px solid #ece9de;
+    border-radius: .8rem;
+}
+
+.pf-user-pill {
+    padding: .4rem .75rem;
+    border-radius: 999px;
+    background: #f8f8f3;
+    display: inline-flex;
+    gap: .4rem;
+    align-items: center;
+    font-size: .9rem;
+}
+
 .pf-page {
     background: linear-gradient(180deg, #f8f5ed 0%, #f2f6fb 100%);
     border-radius: 1rem;
@@ -103,6 +166,12 @@
 
 .pf-data-cell small { color: #6b7280; display:block; margin-bottom:.15rem; }
 
+@media (max-width: 1199.98px) {
+    .pf-layout-shell { grid-template-columns: 1fr; }
+    .pf-layout-sidebar { position: static; }
+}
+
 @media (max-width: 767.98px) {
     .pf-page { padding: .35rem; }
+    .pf-user-pill span { display: none; }
 }
