@@ -1,63 +1,150 @@
 @model CapiMovil.PL.Gui.Models.ViewModels.ConductorDashboardViewModel
 @{
     ViewData["Title"] = "Panel del Conductor";
+
+    var recorridoHoy = Model.RecorridoHoy;
+    var estadoRecorrido = (recorridoHoy?.EstadoRecorrido ?? "SIN RECORRIDO").Trim().ToUpperInvariant();
+
+    var estadoClase = estadoRecorrido switch
+    {
+        "EN_CURSO" => "bg-success-subtle text-success",
+        "PROGRAMADO" => "bg-warning-subtle text-warning-emphasis",
+        "FINALIZADO" => "bg-secondary-subtle text-secondary",
+        _ => "bg-light text-dark"
+    };
 }
 
-<div class="mb-4">
-    <h2 class="fw-bold">Bienvenido, @Model.NombreConductor</h2>
-    <p class="text-muted mb-0">Resumen de tu operación diaria como conductor.</p>
-</div>
+<div class="conductor-shell">
+    <section class="conductor-hero card border-0 shadow-sm mb-4">
+        <div class="card-body p-4 p-lg-5">
+            <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+                <div>
+                    <span class="badge text-bg-light text-primary fw-semibold mb-2 px-3 py-2">
+                        <i class="bi bi-person-badge me-1"></i>Panel Operativo
+                    </span>
+                    <h1 class="h3 fw-bold mb-1">Hola, @Model.NombreConductor</h1>
+                    <p class="text-secondary mb-0">Gestiona tu jornada de ruta, abordajes e incidencias desde un solo lugar.</p>
+                </div>
 
-<div class="row g-3 mb-3">
-    <div class="col-md-6 col-xl-3">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-body">
-                <h6 class="text-muted">Recorridos de hoy</h6>
-                <h3 class="fw-bold">@Model.RecorridosHoy</h3>
+                <div class="align-self-start align-self-lg-center">
+                    <a asp-action="Recorrido" class="btn btn-primary btn-lg px-4 conductor-btn-lg">
+                        <i class="bi bi-play-circle me-2"></i>Ir a Recorrido en curso
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-6 col-xl-3">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-body">
-                <h6 class="text-muted">Incidencias abiertas</h6>
-                <h3 class="fw-bold">@Model.IncidenciasAbiertas</h3>
+    </section>
+
+    <section class="row g-3 mb-4">
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100 conductor-metric-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="conductor-metric-title">Recorridos de hoy</span>
+                        <i class="bi bi-calendar-check fs-4 text-primary"></i>
+                    </div>
+                    <div class="display-6 fw-bold">@Model.RecorridosHoy</div>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-6 col-xl-3">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-body">
-                <h6 class="text-muted">Estudiantes en ruta activa</h6>
-                <h3 class="fw-bold">@Model.EstudiantesRutaActiva</h3>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100 conductor-metric-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="conductor-metric-title">Incidencias abiertas</span>
+                        <i class="bi bi-exclamation-triangle fs-4 text-danger"></i>
+                    </div>
+                    <div class="display-6 fw-bold">@Model.IncidenciasAbiertas</div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
 
-<div class="card shadow-sm border-0 mb-3">
-    <div class="card-body">
-        <h5 class="fw-bold">Recorrido de hoy</h5>
-        @if (Model.RecorridoHoy == null)
-        {
-            <p class="text-muted mb-0">No tienes recorrido programado para hoy.</p>
-        }
-        else
-        {
-            <div class="row g-2">
-                <div class="col-md-4"><strong>Código:</strong> @Model.RecorridoHoy.CodigoRecorrido</div>
-                <div class="col-md-4"><strong>Ruta:</strong> @Model.RecorridoHoy.Ruta?.Nombre</div>
-                <div class="col-md-4"><strong>Bus:</strong> @Model.RecorridoHoy.Bus?.Placa</div>
-                <div class="col-md-4"><strong>Estado:</strong> @Model.RecorridoHoy.EstadoRecorrido</div>
-                <div class="col-md-4"><strong>Fecha:</strong> @Model.RecorridoHoy.Fecha.ToString("dd/MM/yyyy")</div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100 conductor-metric-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="conductor-metric-title">Alumnos en ruta activa</span>
+                        <i class="bi bi-people fs-4 text-info"></i>
+                    </div>
+                    <div class="display-6 fw-bold">@Model.EstudiantesRutaActiva</div>
+                </div>
             </div>
-        }
-    </div>
-</div>
+        </div>
 
-<div class="row g-3 mt-1">
-    <div class="col-md-6 col-xl-3"><a class="card text-decoration-none shadow-sm border-0 h-100" asp-action="MiBus"><div class="card-body"><h5 class="card-title">Mi Bus</h5></div></a></div>
-    <div class="col-md-6 col-xl-3"><a class="card text-decoration-none shadow-sm border-0 h-100" asp-action="MiRuta"><div class="card-body"><h5 class="card-title">Mi Ruta</h5></div></a></div>
-    <div class="col-md-6 col-xl-3"><a class="card text-decoration-none shadow-sm border-0 h-100" asp-action="Abordaje"><div class="card-body"><h5 class="card-title">Abordaje</h5></div></a></div>
-    <div class="col-md-6 col-xl-3"><a class="card text-decoration-none shadow-sm border-0 h-100" asp-action="Incidencias"><div class="card-body"><h5 class="card-title">Incidencias</h5></div></a></div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100 conductor-metric-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="conductor-metric-title">Estado actual</span>
+                        <i class="bi bi-activity fs-4 text-success"></i>
+                    </div>
+                    <span class="badge @estadoClase px-3 py-2 rounded-pill">@estadoRecorrido.Replace("_", " ")</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+            <h2 class="h5 fw-bold mb-1"><i class="bi bi-signpost-2 me-2 text-primary"></i>Resumen de ruta del día</h2>
+            <p class="text-muted mb-0">Información clave del recorrido asignado para hoy.</p>
+        </div>
+        <div class="card-body px-4 pb-4">
+            @if (recorridoHoy == null)
+            {
+                <div class="alert alert-info border-0 mb-0">
+                    <i class="bi bi-info-circle me-2"></i>No tienes recorrido programado para hoy.
+                </div>
+            }
+            else
+            {
+                <div class="row g-3">
+                    <div class="col-md-6 col-xl-3"><span class="text-muted d-block">Código</span><strong>@recorridoHoy.CodigoRecorrido</strong></div>
+                    <div class="col-md-6 col-xl-3"><span class="text-muted d-block">Ruta</span><strong>@(recorridoHoy.Ruta?.Nombre ?? "-" )</strong></div>
+                    <div class="col-md-6 col-xl-3"><span class="text-muted d-block">Bus</span><strong>@(recorridoHoy.Bus?.Placa ?? "-")</strong></div>
+                    <div class="col-md-6 col-xl-3"><span class="text-muted d-block">Fecha</span><strong>@recorridoHoy.Fecha.ToString("dd/MM/yyyy")</strong></div>
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="row g-3">
+        <div class="col-12 col-md-6 col-xl-3">
+            <a asp-action="MiBus" class="conductor-shortcut card border-0 shadow-sm h-100 text-decoration-none">
+                <div class="card-body">
+                    <i class="bi bi-bus-front fs-3 text-primary"></i>
+                    <h3 class="h6 fw-bold mt-3 mb-1">Mi Bus</h3>
+                    <p class="text-muted small mb-0">Datos de unidad y estado operativo.</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <a asp-action="MiRuta" class="conductor-shortcut card border-0 shadow-sm h-100 text-decoration-none">
+                <div class="card-body">
+                    <i class="bi bi-map fs-3 text-primary"></i>
+                    <h3 class="h6 fw-bold mt-3 mb-1">Detalle de etapa</h3>
+                    <p class="text-muted small mb-0">Visualiza el avance por paraderos.</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <a asp-action="Abordaje" class="conductor-shortcut card border-0 shadow-sm h-100 text-decoration-none">
+                <div class="card-body">
+                    <i class="bi bi-check2-square fs-3 text-primary"></i>
+                    <h3 class="h6 fw-bold mt-3 mb-1">Paradas y alumnos</h3>
+                    <p class="text-muted small mb-0">Registra subidas/bajadas por parada.</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <a asp-action="Incidencias" class="conductor-shortcut card border-0 shadow-sm h-100 text-decoration-none">
+                <div class="card-body">
+                    <i class="bi bi-exclamation-octagon fs-3 text-primary"></i>
+                    <h3 class="h6 fw-bold mt-3 mb-1">Incidencias</h3>
+                    <p class="text-muted small mb-0">Reporta eventos de operación.</p>
+                </div>
+            </a>
+        </div>
+    </section>
 </div>

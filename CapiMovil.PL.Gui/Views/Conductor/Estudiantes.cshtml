@@ -1,42 +1,66 @@
 @model List<CapiMovil.BL.BE.EstudianteBE>
 @{
-    ViewData["Title"] = "Estudiantes";
+    ViewData["Title"] = "Alumnos de la ruta";
 }
 
-<div class="card shadow-sm border-0">
-    <div class="card-body">
-        <h2 class="fw-bold mb-3">Estudiantes de mis rutas</h2>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-primary">
-                    <tr>
-                        <th>Código</th>
-                        <th>Nombre completo</th>
-                        <th>DNI</th>
-                        <th>Grado</th>
-                        <th>Sección</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model.Any())
-                    {
-                        foreach (var e in Model)
-                        {
-                            <tr>
-                                <td>@e.CodigoEstudiante</td>
-                                <td>@e.NombreCompleto</td>
-                                <td>@e.DNI</td>
-                                <td>@e.Grado</td>
-                                <td>@e.Seccion</td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr><td colspan="5" class="text-center text-muted">No hay estudiantes asociados a tus rutas.</td></tr>
-                    }
-                </tbody>
-            </table>
+<div class="conductor-shell">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1"><i class="bi bi-people me-2 text-primary"></i>Detalle de alumnos por parada</h1>
+            <p class="text-muted mb-0">Vista operativa para revisar rápidamente los estudiantes de tus rutas.</p>
         </div>
+        <a asp-action="Abordaje" class="btn btn-primary btn-lg conductor-btn-lg">
+            <i class="bi bi-check2-square me-2"></i>Ir a detalle de parada
+        </a>
     </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info border-0 shadow-sm">
+            <i class="bi bi-info-circle me-2"></i>No hay estudiantes asociados a tus rutas.
+        </div>
+    }
+    else
+    {
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-md-6 col-xl-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <span class="text-muted d-block">Total estudiantes</span>
+                        <div class="display-6 fw-bold">@Model.Count</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Código</th>
+                                <th>Alumno</th>
+                                <th>DNI</th>
+                                <th>Grado</th>
+                                <th class="pe-4">Sección</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var e in Model)
+                            {
+                                <tr>
+                                    <td class="ps-4"><span class="badge text-bg-light text-primary">@e.CodigoEstudiante</span></td>
+                                    <td class="fw-semibold">@e.NombreCompleto</td>
+                                    <td>@e.DNI</td>
+                                    <td><span class="badge text-bg-info">@e.Grado</span></td>
+                                    <td class="pe-4"><span class="badge text-bg-secondary">@e.Seccion</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
 </div>
