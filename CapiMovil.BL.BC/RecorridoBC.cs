@@ -201,7 +201,7 @@ namespace CapiMovil.BL.BC
             }
         }
 
-        public List<DestinatarioNotificacionBE> ListarDestinatariosPorRecorrido(Guid idRecorrido)
+        public List<EstudianteBE> ListarDestinatariosPorRecorrido(Guid idRecorrido)
         {
             if (idRecorrido == Guid.Empty)
                 throw new ArgumentException("El id del recorrido es inválido.");
