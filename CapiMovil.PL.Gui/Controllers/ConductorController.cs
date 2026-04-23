@@ -10,11 +10,19 @@ namespace CapiMovil.PL.Gui.Controllers
     {
         private readonly ConductorBC _conductorBC;
         private readonly UsuarioBC _usuarioBC;
+        private readonly RecorridoBC _recorridoBC;
+        private readonly IncidenciaBC _incidenciaBC;
 
-        public ConductorController(ConductorBC conductorBC, UsuarioBC usuarioBC)
+        public ConductorController(
+            ConductorBC conductorBC,
+            UsuarioBC usuarioBC,
+            RecorridoBC recorridoBC,
+            IncidenciaBC incidenciaBC)
         {
             _conductorBC = conductorBC;
             _usuarioBC = usuarioBC;
+            _recorridoBC = recorridoBC;
+            _incidenciaBC = incidenciaBC;
         }
 
         public IActionResult Index()
@@ -28,8 +36,44 @@ namespace CapiMovil.PL.Gui.Controllers
             if ((rol ?? "").Trim().ToUpperInvariant() != "CONDUCTOR")
                 return RedirectToAction("AccesoDenegado", "Auth");
 
+            if (!Guid.TryParse(usuarioId, out Guid idUsuario))
+                return RedirectToAction("Login", "Auth");
+
+            ConductorBE? conductor = _conductorBC.Listar().FirstOrDefault(c => c.IdUsuario == idUsuario);
+
+            ViewBag.ConductorNombre = "Conductor";
+            ViewBag.RecorridosHoy = 0;
+            ViewBag.IncidenciasAbiertas = 0;
+
+            if (conductor != null)
+            {
+                ViewBag.ConductorNombre = conductor.NombreCompleto;
+                ViewBag.RecorridosHoy = _recorridoBC.Listar()
+                    .Count(r => r.IdConductor == conductor.IdConductor && r.Fecha.Date == DateTime.Today);
+                ViewBag.IncidenciasAbiertas = _incidenciaBC.Listar()
+                    .Count(i => i.IdConductor == conductor.IdConductor && i.EstadoIncidencia != "RESUELTA");
+            }
+
             return View();
         }
+
+        public IActionResult MiConductor()
+        {
+            string? usuarioId = HttpContext.Session.GetString("UsuarioId");
+            if (!Guid.TryParse(usuarioId, out Guid idUsuario))
+                return RedirectToAction("Login", "Auth");
+
+            ConductorBE? conductor = _conductorBC.Listar().FirstOrDefault(c => c.IdUsuario == idUsuario);
+
+            if (conductor == null)
+            {
+                TempData["error"] = "No se encontró información del conductor asociado al usuario autenticado.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View("Index");
+        }
+
         [HttpGet]
         public IActionResult Listar()
         {
@@ -40,7 +84,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Crear()
         {
-            ConductorFormViewModel vm = new ConductorFormViewModel
+            ConductorFormViewModel vm = new()
             {
                 Estado = true,
                 Usuarios = ObtenerUsuariosDisponibles()
@@ -53,20 +97,20 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Crear(ConductorFormViewModel vm)
         {
+            if (vm.IdUsuario == Guid.Empty)
+                ModelState.AddModelError(nameof(vm.IdUsuario), "Debe seleccionar un usuario.");
+
             if (!ModelState.IsValid)
             {
-                vm.Usuarios = ObtenerUsuarios();
+                vm.Usuarios = ObtenerUsuariosDisponibles();
                 return View(vm);
             }
 
-            if (vm.IdUsuario == Guid.Empty)
-                ModelState.AddModelError(nameof(vm.IdUsuario), "Debe seleccionar un usuario.");
             try
             {
-                ConductorBE entidad = new ConductorBE
+                ConductorBE entidad = new()
                 {
                     IdUsuario = vm.IdUsuario,
-                    CodigoConductor = vm.CodigoConductor,
                     Nombres = vm.Nombres,
                     ApellidoPaterno = vm.ApellidoPaterno,
                     ApellidoMaterno = vm.ApellidoMaterno,
@@ -89,10 +133,11 @@ namespace CapiMovil.PL.Gui.Controllers
             }
             catch (Exception ex)
             {
-                TempData["error"] = ex.Message;
+                ModelState.AddModelError(string.Empty, ex.Message);
+                ViewBag.SwalError = ex.Message;
             }
 
-            vm.Usuarios = ObtenerUsuarios();
+            vm.Usuarios = ObtenerUsuariosDisponibles();
             return View(vm);
         }
 
@@ -107,7 +152,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 return RedirectToAction(nameof(Listar));
             }
 
-            ConductorFormViewModel vm = new ConductorFormViewModel
+            ConductorFormViewModel vm = new()
             {
                 IdConductor = entidad.IdConductor,
                 IdUsuario = entidad.IdUsuario,
@@ -121,7 +166,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 Telefono = entidad.Telefono,
                 Direccion = entidad.Direccion,
                 Estado = entidad.Estado,
-                Usuarios = ObtenerUsuarios()
+                Usuarios = ObtenerUsuariosParaEdicion(entidad.IdUsuario)
             };
 
             return View(vm);
@@ -131,15 +176,18 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Editar(ConductorFormViewModel vm)
         {
+            if (vm.IdUsuario == Guid.Empty)
+                ModelState.AddModelError(nameof(vm.IdUsuario), "Debe seleccionar un usuario.");
+
             if (!ModelState.IsValid)
             {
-                vm.Usuarios = ObtenerUsuarios();
+                vm.Usuarios = ObtenerUsuariosParaEdicion(vm.IdUsuario);
                 return View(vm);
             }
 
             try
             {
-                ConductorBE entidad = new ConductorBE
+                ConductorBE entidad = new()
                 {
                     IdConductor = vm.IdConductor,
                     IdUsuario = vm.IdUsuario,
@@ -166,10 +214,11 @@ namespace CapiMovil.PL.Gui.Controllers
             }
             catch (Exception ex)
             {
-                TempData["error"] = ex.Message;
+                ModelState.AddModelError(string.Empty, ex.Message);
+                ViewBag.SwalError = ex.Message;
             }
 
-            vm.Usuarios = ObtenerUsuarios();
+            vm.Usuarios = ObtenerUsuariosParaEdicion(vm.IdUsuario);
             return View(vm);
         }
 
@@ -193,11 +242,9 @@ namespace CapiMovil.PL.Gui.Controllers
             return RedirectToAction(nameof(Listar));
         }
 
-        private List<SelectListItem> ObtenerUsuarios()
+        private List<SelectListItem> ObtenerUsuariosDisponibles()
         {
-            var usuarios = _usuarioBC.Listar();
-
-            return usuarios
+            return _conductorBC.ListarUsuariosDisponibles()
                 .Select(u => new SelectListItem
                 {
                     Value = u.IdUsuario.ToString(),
@@ -206,15 +253,20 @@ namespace CapiMovil.PL.Gui.Controllers
                 .ToList();
         }
 
-        // Este método obtiene solo los usuarios que no están asignados a ningún conductor,
-        // para evitar conflictos al editar o crear un conductor nuevo.
-        private List<SelectListItem> ObtenerUsuariosDisponibles()
+        private List<SelectListItem> ObtenerUsuariosParaEdicion(Guid idUsuarioActual)
         {
-            return _conductorBC.ListarUsuariosDisponibles()
+            var disponibles = _conductorBC.ListarUsuariosDisponibles();
+            var usuarioActual = _usuarioBC.ListarPorId(idUsuarioActual);
+
+            if (usuarioActual != null && disponibles.All(x => x.IdUsuario != idUsuarioActual))
+                disponibles.Insert(0, usuarioActual);
+
+            return disponibles
                 .Select(u => new SelectListItem
                 {
                     Value = u.IdUsuario.ToString(),
-                    Text = $"{u.Username} - {u.Correo}"
+                    Text = $"{u.Username} - {u.Correo}",
+                    Selected = u.IdUsuario == idUsuarioActual
                 })
                 .ToList();
         }
