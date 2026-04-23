@@ -68,6 +68,12 @@ namespace CapiMovil.BL.BC
             if (string.IsNullOrWhiteSpace(entidad.Direccion))
                 throw new ArgumentException("La dirección es obligatoria.");
 
+            if (entidad.Latitud.HasValue && (entidad.Latitud < -90m || entidad.Latitud > 90m))
+                throw new ArgumentException("La latitud del paradero debe estar entre -90 y 90.");
+
+            if (entidad.Longitud.HasValue && (entidad.Longitud < -180m || entidad.Longitud > 180m))
+                throw new ArgumentException("La longitud del paradero debe estar entre -180 y 180.");
+
             if (entidad.OrdenParada <= 0)
                 throw new ArgumentException("El orden de parada debe ser mayor a 0.");
         }

@@ -190,6 +190,15 @@ namespace CapiMovil.DL.DALC
                     IdRuta = dr.GetGuid(dr.GetOrdinal("IdRuta")),
                     CodigoParadero = dr["CodigoParadero"]?.ToString() ?? string.Empty,
                     Nombre = dr["Nombre"]?.ToString() ?? string.Empty,
+                    Direccion = ExisteColumna(dr, "Direccion") && dr["Direccion"] != DBNull.Value
+                        ? dr["Direccion"]?.ToString() ?? string.Empty
+                        : string.Empty,
+                    Latitud = ExisteColumna(dr, "Latitud") && dr["Latitud"] != DBNull.Value
+                        ? Convert.ToDecimal(dr["Latitud"])
+                        : null,
+                    Longitud = ExisteColumna(dr, "Longitud") && dr["Longitud"] != DBNull.Value
+                        ? Convert.ToDecimal(dr["Longitud"])
+                        : null,
                     OrdenParada = Convert.ToInt32(dr["OrdenParada"])
                 });
             }
@@ -219,6 +228,17 @@ namespace CapiMovil.DL.DALC
             }
 
             return lista;
+        }
+
+        private static bool ExisteColumna(SqlDataReader dr, string nombreColumna)
+        {
+            for (int i = 0; i < dr.FieldCount; i++)
+            {
+                if (dr.GetName(i).Equals(nombreColumna, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            return false;
         }
     }
 }

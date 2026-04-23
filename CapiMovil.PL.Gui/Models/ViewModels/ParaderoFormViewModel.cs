@@ -23,9 +23,11 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
         public string Direccion { get; set; } = string.Empty;
 
         [Display(Name = "Latitud")]
+        [Range(-90d, 90d, ErrorMessage = "La latitud debe estar entre -90 y 90.")]
         public decimal? Latitud { get; set; }
 
         [Display(Name = "Longitud")]
+        [Range(-180d, 180d, ErrorMessage = "La longitud debe estar entre -180 y 180.")]
         public decimal? Longitud { get; set; }
 
         [Required(ErrorMessage = "El orden de parada es obligatorio.")]
