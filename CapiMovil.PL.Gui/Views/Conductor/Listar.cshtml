@@ -6,9 +6,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="page-title mb-0">Lista de Conductores</h2>
-    <a asp-action="Crear" class="btn btn-primary">
-        Nuevo Conductor
-    </a>
+    <a asp-action="Crear" class="btn btn-primary">Nuevo Conductor</a>
 </div>
 
 <div class="card card-soft">
@@ -48,15 +46,11 @@
                                     }
                                 </td>
                                 <td class="text-center">
-                                    <a asp-action="Editar" asp-route-id="@item.IdConductor" class="btn btn-warning btn-sm btn-action">
-                                        Editar
-                                    </a>
+                                    <a asp-action="Editar" asp-route-id="@item.IdConductor" class="btn btn-warning btn-sm btn-action">Editar</a>
 
                                     <form asp-action="Eliminar" asp-route-id="@item.IdConductor" method="post" class="d-inline form-eliminar">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-danger btn-sm btn-action">
-                                            Eliminar
-                                        </button>
+                                        <button type="submit" class="btn btn-danger btn-sm btn-action">Eliminar</button>
                                     </form>
                                 </td>
                             </tr>
@@ -65,9 +59,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="7" class="text-center text-muted">
-                                No hay registros.
-                            </td>
+                            <td colspan="7" class="text-center text-muted">No hay registros.</td>
                         </tr>
                     }
                 </tbody>
