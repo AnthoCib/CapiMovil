@@ -8,7 +8,7 @@
 }
 
 <section class="profile-shell">
-    <div class="card border-0 shadow-sm profile-card">
+    <div class="card border-0 shadow-sm profile-card app-surface">
         <div class="card-body p-4">
             <div class="d-flex align-items-center gap-3 mb-4">
                 @if (!string.IsNullOrWhiteSpace(Model.FotoPerfilUrl))
@@ -20,8 +20,8 @@
                     <div class="profile-avatar-fallback">@Model.InicialesAvatar</div>
                 }
                 <div>
-                    <h2 class="h5 fw-bold mb-1">Editar perfil</h2>
-                    <p class="text-muted mb-0">@Model.Rol</p>
+                    <h2 class="h5 fw-bold mb-1 app-section-title">Editar perfil</h2>
+                    <p class="app-section-subtitle mb-0">@Model.Rol</p>
                 </div>
             </div>
 

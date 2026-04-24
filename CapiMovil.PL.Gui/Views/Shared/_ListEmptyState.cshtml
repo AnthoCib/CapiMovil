@@ -1,9 +1,9 @@
 @model (string titulo, string mensaje, string icono)
 
-<div class="list-empty-state text-center">
-    <div class="list-empty-icon mb-2">
+<div class="app-empty-state">
+    <div class="app-empty-state-icon">
         <i class="bi @(string.IsNullOrWhiteSpace(Model.icono) ? "bi-inbox" : Model.icono)"></i>
     </div>
-    <h6 class="mb-1">@Model.titulo</h6>
-    <p class="text-muted mb-0">@Model.mensaje</p>
+    <h6 class="mb-1 app-section-title">@Model.titulo</h6>
+    <p class="mb-0">@Model.mensaje</p>
 </div>

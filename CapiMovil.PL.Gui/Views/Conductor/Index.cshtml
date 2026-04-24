@@ -14,8 +14,8 @@
 
 <div class="conductor-dashboard">
     <section class="conductor-welcome-card mb-4">
-        <h1 class="h3 fw-bold mb-1">Hola, @Model.NombreConductor</h1>
-        <p class="text-muted mb-0">Aquí tienes el resumen de tu jornada para hoy.</p>
+        <h1 class="h3 fw-bold mb-1 app-section-title">Hola, @Model.NombreConductor</h1>
+        <p class="app-section-subtitle mb-0">Aquí tienes el resumen de tu jornada para hoy.</p>
     </section>
 
     <div class="row g-4 mb-4 align-items-stretch">
@@ -32,7 +32,7 @@
 
                     @if (recorrido == null)
                     {
-                        <div class="alert alert-info mb-0">No tienes recorrido programado para hoy.</div>
+                        <div class="alert alert-info mb-0 rounded-4 border-0">No tienes recorrido programado para hoy.</div>
                     }
                     else
                     {
