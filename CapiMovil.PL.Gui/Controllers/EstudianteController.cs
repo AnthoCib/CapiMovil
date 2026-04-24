@@ -9,13 +9,17 @@ namespace CapiMovil.PL.Gui.Controllers
 {
     public class EstudianteController : Controller
     {
+        private static readonly string[] ExtensionesPermitidas = [".jpg", ".jpeg", ".png", ".webp"];
+
         private readonly EstudianteBC _estudianteBC;
         private readonly PadreFamiliaBC _padreFamiliaBC;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public EstudianteController(EstudianteBC estudianteBC, PadreFamiliaBC padreFamiliaBC)
+        public EstudianteController(EstudianteBC estudianteBC, PadreFamiliaBC padreFamiliaBC, IWebHostEnvironment webHostEnvironment)
         {
             _estudianteBC = estudianteBC;
             _padreFamiliaBC = padreFamiliaBC;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         [HttpGet]
@@ -51,15 +55,16 @@ namespace CapiMovil.PL.Gui.Controllers
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
+            if (!ValidarFoto(vm.FotoArchivo, out string? errorFoto))
+                ModelState.AddModelError(nameof(vm.FotoArchivo), errorFoto!);
+
             if (!ModelState.IsValid)
-            {
-                vm.Padres = ObtenerPadres();
-                vm.Generos = ObtenerGeneros();
-                return View(vm);
-            }
+                return RetornarVistaCrear(vm);
 
             try
             {
+                string? rutaFoto = GuardarFoto(vm.FotoArchivo);
+
                 EstudianteBE entidad = new EstudianteBE
                 {
                     IdPadre = vm.IdPadre,
@@ -74,7 +79,7 @@ namespace CapiMovil.PL.Gui.Controllers
                     Direccion = vm.Direccion,
                     LatitudCasa = vm.LatitudCasa,
                     LongitudCasa = vm.LongitudCasa,
-                    FotoUrl = vm.FotoUrl,
+                    FotoUrl = rutaFoto,
                     Observaciones = vm.Observaciones,
                     Estado = vm.Estado
                 };
@@ -97,9 +102,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 ViewBag.SwalError = ex.Message;
             }
 
-            vm.Padres = ObtenerPadres();
-            vm.Generos = ObtenerGeneros();
-            return View(vm);
+            return RetornarVistaCrear(vm);
         }
 
         [HttpGet]
@@ -149,19 +152,23 @@ namespace CapiMovil.PL.Gui.Controllers
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
+            if (!ValidarFoto(vm.FotoArchivo, out string? errorFoto))
+                ModelState.AddModelError(nameof(vm.FotoArchivo), errorFoto!);
+
             if (!ModelState.IsValid)
-            {
-                vm.Padres = ObtenerPadres();
-                vm.Generos = ObtenerGeneros();
-                return View(vm);
-            }
+                return RetornarVistaEditar(vm);
 
             try
             {
+                string? rutaFoto = vm.FotoUrl;
+                if (vm.FotoArchivo != null)
+                    rutaFoto = GuardarFoto(vm.FotoArchivo);
+
                 EstudianteBE entidad = new EstudianteBE
                 {
                     IdEstudiante = vm.IdEstudiante,
                     IdPadre = vm.IdPadre,
+                    CodigoEstudiante = vm.CodigoEstudiante,
                     Nombres = vm.Nombres,
                     ApellidoPaterno = vm.ApellidoPaterno,
                     ApellidoMaterno = vm.ApellidoMaterno,
@@ -173,7 +180,7 @@ namespace CapiMovil.PL.Gui.Controllers
                     Direccion = vm.Direccion,
                     LatitudCasa = vm.LatitudCasa,
                     LongitudCasa = vm.LongitudCasa,
-                    FotoUrl = vm.FotoUrl,
+                    FotoUrl = rutaFoto,
                     Observaciones = vm.Observaciones,
                     Estado = vm.Estado
                 };
@@ -192,9 +199,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 TempData["error"] = ex.Message;
             }
 
-            vm.Padres = ObtenerPadres();
-            vm.Generos = ObtenerGeneros();
-            return View(vm);
+            return RetornarVistaEditar(vm);
         }
 
         [HttpPost]
@@ -220,6 +225,63 @@ namespace CapiMovil.PL.Gui.Controllers
             return RedirectToAction(nameof(Listar));
         }
 
+        private IActionResult RetornarVistaCrear(EstudianteFormViewModel vm)
+        {
+            vm.Padres = ObtenerPadres();
+            vm.Generos = ObtenerGeneros();
+            return View("Crear", vm);
+        }
+
+        private IActionResult RetornarVistaEditar(EstudianteFormViewModel vm)
+        {
+            vm.Padres = ObtenerPadres();
+            vm.Generos = ObtenerGeneros();
+            return View("Editar", vm);
+        }
+
+        private static bool ValidarFoto(IFormFile? fotoArchivo, out string? error)
+        {
+            error = null;
+
+            if (fotoArchivo == null || fotoArchivo.Length == 0)
+                return true;
+
+            string extension = Path.GetExtension(fotoArchivo.FileName).ToLowerInvariant();
+            if (!ExtensionesPermitidas.Contains(extension))
+            {
+                error = "Formato inválido. Use JPG, PNG o WEBP.";
+                return false;
+            }
+
+            if (fotoArchivo.Length > 2 * 1024 * 1024)
+            {
+                error = "La imagen no debe superar 2MB.";
+                return false;
+            }
+
+            return true;
+        }
+
+        private string? GuardarFoto(IFormFile? fotoArchivo)
+        {
+            if (fotoArchivo == null || fotoArchivo.Length == 0)
+                return null;
+
+            string extension = Path.GetExtension(fotoArchivo.FileName).ToLowerInvariant();
+            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "estudiantes");
+            Directory.CreateDirectory(uploadsFolder);
+
+            string nombreArchivo = $"{Guid.NewGuid():N}_{DateTime.UtcNow:yyyyMMddHHmmss}{extension}";
+            string rutaFisica = Path.Combine(uploadsFolder, nombreArchivo);
+
+            using (FileStream stream = new FileStream(rutaFisica, FileMode.Create))
+            {
+                fotoArchivo.CopyTo(stream);
+            }
+
+            return $"/uploads/estudiantes/{nombreArchivo}";
+        }
+
         private List<SelectListItem> ObtenerPadres()
         {
             List<PadreFamiliaBE> padres = _padreFamiliaBC.ListarParaCombo();
@@ -235,7 +297,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 .ToList();
         }
 
-        private List<SelectListItem> ObtenerGeneros()
+        private static List<SelectListItem> ObtenerGeneros()
         {
             return new List<SelectListItem>
             {

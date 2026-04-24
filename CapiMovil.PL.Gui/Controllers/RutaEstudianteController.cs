@@ -41,7 +41,6 @@ namespace CapiMovil.PL.Gui.Controllers
                 Estudiantes = ObtenerEstudiantes(),
                 ParaderosSubida = new List<SelectListItem>(),
                 ParaderosBajada = new List<SelectListItem>(),
-                EstadosAsignacion = ObtenerEstadosAsignacion(),
                 FechaInicioVigencia = DateTime.Today,
                 Estado = true,
                 EstadoAsignacion = "ACTIVO"
@@ -66,7 +65,6 @@ namespace CapiMovil.PL.Gui.Controllers
                 vm.Estudiantes = ObtenerEstudiantes();
                 vm.ParaderosSubida = vm.IdRuta != Guid.Empty ? ObtenerParaderos(vm.IdRuta) : new();
                 vm.ParaderosBajada = vm.IdRuta != Guid.Empty ? ObtenerParaderos(vm.IdRuta) : new();
-                vm.EstadosAsignacion = ObtenerEstadosAsignacion();
                 return View(vm);
             }
 
@@ -80,7 +78,7 @@ namespace CapiMovil.PL.Gui.Controllers
                     IdParaderoBajada = vm.IdParaderoBajada,
                     FechaInicioVigencia = vm.FechaInicioVigencia,
                     FechaFinVigencia = vm.FechaFinVigencia,
-                    EstadoAsignacion = vm.EstadoAsignacion,
+                    EstadoAsignacion = vm.Estado ? "ACTIVO" : "INACTIVO",
                     Observaciones = vm.Observaciones,
                     Estado = vm.Estado
                 };
@@ -103,7 +101,6 @@ namespace CapiMovil.PL.Gui.Controllers
             vm.Estudiantes = ObtenerEstudiantes();
             vm.ParaderosSubida = vm.IdRuta != Guid.Empty ? ObtenerParaderos(vm.IdRuta) : new();
             vm.ParaderosBajada = vm.IdRuta != Guid.Empty ? ObtenerParaderos(vm.IdRuta) : new();
-            vm.EstadosAsignacion = ObtenerEstadosAsignacion();
             return View(vm);
         }
 
@@ -135,7 +132,6 @@ namespace CapiMovil.PL.Gui.Controllers
                 Estudiantes = ObtenerEstudiantes(),
                 ParaderosSubida = ObtenerParaderos(entidad.IdRuta),
                 ParaderosBajada = ObtenerParaderos(entidad.IdRuta),
-                EstadosAsignacion = ObtenerEstadosAsignacion()
             };
 
             return View(vm);
@@ -157,7 +153,6 @@ namespace CapiMovil.PL.Gui.Controllers
                 vm.Estudiantes = ObtenerEstudiantes();
                 vm.ParaderosSubida = vm.IdRuta != Guid.Empty ? ObtenerParaderos(vm.IdRuta) : new();
                 vm.ParaderosBajada = vm.IdRuta != Guid.Empty ? ObtenerParaderos(vm.IdRuta) : new();
-                vm.EstadosAsignacion = ObtenerEstadosAsignacion();
                 return View(vm);
             }
 
@@ -172,7 +167,7 @@ namespace CapiMovil.PL.Gui.Controllers
                     IdParaderoBajada = vm.IdParaderoBajada,
                     FechaInicioVigencia = vm.FechaInicioVigencia,
                     FechaFinVigencia = vm.FechaFinVigencia,
-                    EstadoAsignacion = vm.EstadoAsignacion,
+                    EstadoAsignacion = vm.Estado ? "ACTIVO" : "INACTIVO",
                     Observaciones = vm.Observaciones,
                     Estado = vm.Estado
                 };
@@ -195,7 +190,6 @@ namespace CapiMovil.PL.Gui.Controllers
             vm.Estudiantes = ObtenerEstudiantes();
             vm.ParaderosSubida = vm.IdRuta != Guid.Empty ? ObtenerParaderos(vm.IdRuta) : new();
             vm.ParaderosBajada = vm.IdRuta != Guid.Empty ? ObtenerParaderos(vm.IdRuta) : new();
-            vm.EstadosAsignacion = ObtenerEstadosAsignacion();
             return View(vm);
         }
 
@@ -249,13 +243,5 @@ namespace CapiMovil.PL.Gui.Controllers
                 }).ToList();
         }
 
-        private List<SelectListItem> ObtenerEstadosAsignacion()
-        {
-            return new List<SelectListItem>
-            {
-                new("ACTIVO", "ACTIVO"),
-                new("INACTIVO", "INACTIVO")
-            };
-        }
     }
 }

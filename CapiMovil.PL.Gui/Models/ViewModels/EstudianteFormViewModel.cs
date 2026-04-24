@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
 namespace CapiMovil.PL.Gui.Models.ViewModels
@@ -11,7 +12,6 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
         [Display(Name = "Padre de familia")]
         public Guid IdPadre { get; set; }
 
-        
         [Display(Name = "Código")]
         public string CodigoEstudiante { get; set; } = string.Empty;
 
@@ -55,7 +55,9 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
         [Range(-180d, 180d, ErrorMessage = "La longitud debe estar entre -180 y 180.")]
         public decimal? LongitudCasa { get; set; }
 
-        [Display(Name = "Foto URL")]
+        [Display(Name = "Foto")]
+        public IFormFile? FotoArchivo { get; set; }
+
         public string? FotoUrl { get; set; }
 
         [Display(Name = "Observaciones")]

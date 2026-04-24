@@ -13,6 +13,24 @@
         return Number.isFinite(value) ? value.toFixed(6) : '--';
     }
 
+    function resolveAddress(lat, lng) {
+        const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&zoom=18&addressdetails=1`;
+
+        return fetch(url, {
+            headers: {
+                'Accept': 'application/json'
+            }
+        }).then(function (response) {
+            if (!response.ok) {
+                throw new Error('No se pudo resolver dirección.');
+            }
+            return response.json();
+        }).then(function (data) {
+            const displayName = data && data.display_name ? String(data.display_name).trim() : '';
+            return displayName;
+        });
+    }
+
     function createPointPicker(options) {
         const mapElement = document.getElementById(options.mapId);
         const latInput = document.getElementById(options.latInputId);
@@ -24,6 +42,14 @@
 
         const infoElement = options.coordinatesInfoId
             ? document.getElementById(options.coordinatesInfoId)
+            : null;
+
+        const addressInput = options.addressInputId
+            ? document.getElementById(options.addressInputId)
+            : null;
+
+        const addressInfoElement = options.addressInfoId
+            ? document.getElementById(options.addressInfoId)
             : null;
 
         const defaultCenter = options.defaultCenter || [-12.046374, -77.042793];
@@ -45,13 +71,53 @@
         }).addTo(map);
 
         let marker = null;
+        let requestCounter = 0;
 
         function updateInfo(lat, lng) {
             if (!infoElement) return;
             infoElement.textContent = `Latitud: ${formatCoord(lat)} | Longitud: ${formatCoord(lng)}`;
         }
 
-        function setLocation(lat, lng, shouldCenter) {
+        function updateAddressInfo(message, type) {
+            if (!addressInfoElement) return;
+            addressInfoElement.textContent = message;
+            addressInfoElement.classList.remove('text-muted', 'text-danger', 'text-success');
+            addressInfoElement.classList.add(type || 'text-muted');
+        }
+
+        function applyFallbackAddress(lat, lng) {
+            if (!addressInput) return;
+            const fallback = `Referencia aproximada: ${formatCoord(lat)}, ${formatCoord(lng)}`;
+            addressInput.value = fallback;
+            updateAddressInfo('No se pudo resolver dirección exacta. Se guardó referencia por coordenadas.', 'text-danger');
+        }
+
+        function resolveAndSetAddress(lat, lng) {
+            if (!addressInput) return;
+
+            requestCounter += 1;
+            const currentRequest = requestCounter;
+            updateAddressInfo('Resolviendo dirección desde el mapa...', 'text-muted');
+
+            resolveAddress(lat, lng)
+                .then(function (address) {
+                    if (currentRequest !== requestCounter) return;
+
+                    if (address) {
+                        addressInput.value = address;
+                        updateAddressInfo('Dirección autocompletada desde coordenadas.', 'text-success');
+                        return;
+                    }
+
+                    applyFallbackAddress(lat, lng);
+                })
+                .catch(function () {
+                    if (currentRequest !== requestCounter) return;
+                    applyFallbackAddress(lat, lng);
+                });
+        }
+
+        function setLocation(lat, lng, shouldCenter, resolveDireccion) {
             latInput.value = Number(lat).toFixed(6);
             lngInput.value = Number(lng).toFixed(6);
 
@@ -59,7 +125,7 @@
                 marker = L.marker([lat, lng], { draggable: true }).addTo(map);
                 marker.on('dragend', function (e) {
                     const pos = e.target.getLatLng();
-                    setLocation(pos.lat, pos.lng, false);
+                    setLocation(pos.lat, pos.lng, false, true);
                 });
             } else {
                 marker.setLatLng([lat, lng]);
@@ -70,16 +136,37 @@
             }
 
             updateInfo(lat, lng);
+
+            if (resolveDireccion) {
+                resolveAndSetAddress(lat, lng);
+            }
         }
 
         if (hasInitial) {
-            setLocation(currentLat, currentLng, false);
+            setLocation(currentLat, currentLng, false, false);
+            if (addressInput && !String(addressInput.value || '').trim()) {
+                resolveAndSetAddress(currentLat, currentLng);
+            }
         } else {
             updateInfo(NaN, NaN);
         }
 
         map.on('click', function (e) {
-            setLocation(e.latlng.lat, e.latlng.lng, true);
+            setLocation(e.latlng.lat, e.latlng.lng, true, true);
+        });
+
+        latInput.addEventListener('change', function () {
+            const lat = toNumber(latInput.value);
+            const lng = toNumber(lngInput.value);
+            if (lat === null || lng === null) return;
+            setLocation(lat, lng, false, true);
+        });
+
+        lngInput.addEventListener('change', function () {
+            const lat = toNumber(latInput.value);
+            const lng = toNumber(lngInput.value);
+            if (lat === null || lng === null) return;
+            setLocation(lat, lng, false, true);
         });
 
         if (options.geolocateButtonId) {
@@ -93,7 +180,7 @@
 
                     navigator.geolocation.getCurrentPosition(
                         function (position) {
-                            setLocation(position.coords.latitude, position.coords.longitude, true);
+                            setLocation(position.coords.latitude, position.coords.longitude, true, true);
                         },
                         function (error) {
                             alert(`No se pudo obtener tu ubicación actual (${error.message}).`);
@@ -113,6 +200,34 @@
         }, 150);
 
         return { map: map };
+    }
+
+    function bindImagePreview(fileInputId, imagePreviewId) {
+        const fileInput = document.getElementById(fileInputId);
+        const imagePreview = document.getElementById(imagePreviewId);
+
+        if (!fileInput || !imagePreview) {
+            return;
+        }
+
+        fileInput.addEventListener('change', function () {
+            const file = fileInput.files && fileInput.files.length > 0
+                ? fileInput.files[0]
+                : null;
+
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                imagePreview.src = event.target && event.target.result
+                    ? event.target.result
+                    : imagePreview.src;
+            };
+
+            reader.readAsDataURL(file);
+        });
     }
 
     function createRouteViewer(options) {
@@ -190,6 +305,7 @@
 
     window.CapiMovilMaps = {
         createPointPicker: createPointPicker,
-        createRouteViewer: createRouteViewer
+        createRouteViewer: createRouteViewer,
+        bindImagePreview: bindImagePreview
     };
 })(window);

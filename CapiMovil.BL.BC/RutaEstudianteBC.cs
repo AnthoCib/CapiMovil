@@ -62,9 +62,14 @@ namespace CapiMovil.BL.BC
                 throw new ArgumentException("La fecha fin no puede ser menor que la fecha inicio.");
             }
 
-            string estadoAsignacion = (entidad.EstadoAsignacion ?? "").Trim().ToUpperInvariant();
+            string estadoAsignacion = (entidad.EstadoAsignacion ?? string.Empty).Trim().ToUpperInvariant();
+            if (string.IsNullOrWhiteSpace(estadoAsignacion))
+                estadoAsignacion = entidad.Estado ? "ACTIVO" : "INACTIVO";
+
             if (estadoAsignacion != "ACTIVO" && estadoAsignacion != "INACTIVO")
                 throw new ArgumentException("El estado de asignación no es válido.");
+
+            entidad.EstadoAsignacion = estadoAsignacion;
         }
     }
 }
