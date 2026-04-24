@@ -1,0 +1,12 @@
+@using Microsoft.AspNetCore.Http
+@{
+    var rol = Context.Session.GetString("RolNombre")?.Trim().ToUpperInvariant();
+
+    Layout = rol switch
+    {
+        "CONDUCTOR" => "~/Views/Shared/_ConductorLayout.cshtml",
+        "PADRE" => "~/Views/Shared/_PadreLayout.cshtml",
+        "PADRE DE FAMILIA" => "~/Views/Shared/_PadreLayout.cshtml",
+        _ => "~/Views/Shared/_Layout.cshtml"
+    };
+}
