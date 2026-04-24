@@ -131,3 +131,140 @@
     object-fit: cover;
     background: #f8f9fa;
 }
+
+/* ===== FASE 4 - LISTADOS MODERNOS ===== */
+.list-shell {
+    background: linear-gradient(180deg, #faf7f2 0%, #f6f8fb 100%);
+    border-radius: 1rem;
+    padding: 1.1rem;
+}
+
+.list-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: .75rem;
+}
+
+.list-title {
+    font-weight: 700;
+    color: #2c3543;
+}
+
+.list-subtitle {
+    color: #6c757d;
+}
+
+.list-btn-primary {
+    border-radius: .75rem;
+    box-shadow: 0 6px 18px rgba(13, 110, 253, .15);
+}
+
+.list-kpi-card {
+    background: #fff;
+    border: 1px solid #ece9df;
+    border-radius: .9rem;
+    padding: .9rem;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, .06);
+    height: 100%;
+}
+
+.list-kpi-card small {
+    display: block;
+    color: #6c757d;
+    margin-bottom: .2rem;
+}
+
+.list-kpi-card strong {
+    font-size: 1.4rem;
+}
+
+.list-entity-card {
+    background: #fff;
+    border: 1px solid #ece9df;
+    border-radius: .95rem;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
+    padding: 1rem;
+}
+
+.list-code {
+    display: inline-block;
+    font-weight: 700;
+    color: #0d6efd;
+    background: #edf3ff;
+    border-radius: 999px;
+    padding: .2rem .6rem;
+    font-size: .8rem;
+}
+
+.list-description {
+    color: #3f4b5b;
+    margin-bottom: .8rem;
+}
+
+.list-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .6rem;
+}
+
+.list-meta-grid small {
+    display: block;
+    color: #6c757d;
+}
+
+.list-meta-grid strong {
+    display: block;
+    font-size: .92rem;
+    color: #253247;
+}
+
+.list-table-card {
+    background: #fff;
+    border: 1px solid #ece9df;
+    border-radius: .95rem;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
+    overflow: hidden;
+}
+
+.table.list-table thead th {
+    background: #f4f6fb;
+    color: #445066;
+    font-size: .8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    border-bottom: 1px solid #e5e9f2;
+}
+
+.table.list-table tbody td {
+    padding-top: .9rem;
+    padding-bottom: .9rem;
+    border-color: #eef1f6;
+}
+
+.list-empty-state {
+    background: #fff;
+    border: 1px dashed #d8dfeb;
+    border-radius: .95rem;
+    padding: 2.2rem 1rem;
+}
+
+.list-empty-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #eef3ff;
+    color: #0d6efd;
+    font-size: 1.4rem;
+}
+
+@media (max-width: 768px) {
+    .list-meta-grid {
+        grid-template-columns: 1fr;
+    }
+}

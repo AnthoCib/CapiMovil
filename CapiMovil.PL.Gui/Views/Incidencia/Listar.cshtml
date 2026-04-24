@@ -10,18 +10,15 @@
     int criticas = Model?.Count(x => x.Prioridad == "CRITICA") ?? 0;
 }
 
-<div class="container-fluid py-3">
-
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+<div class="list-shell">
+    <div class="list-toolbar mb-4">
         <div>
-            <h2 class="fw-bold mb-1">Gestión de Incidencias</h2>
-            <p class="text-muted mb-0">Consulta, registra y administra las incidencias operativas.</p>
+            <h2 class="list-title mb-1">Gestión de Incidencias</h2>
+            <p class="list-subtitle mb-0">Panel operativo con lectura rápida de tipo, estado, prioridad y acciones.</p>
         </div>
-        <div>
-            <a asp-action="Crear" class="btn btn-primary shadow-sm">
-                <i class="bi bi-plus-circle me-1"></i> Nueva Incidencia
-            </a>
-        </div>
+        <a asp-action="Crear" class="btn btn-primary list-btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Nueva incidencia
+        </a>
     </div>
 
     @if (TempData["ok"] != null)
@@ -41,203 +38,109 @@
     }
 
     <div class="row g-3 mb-4">
-        <div class="col-md-6 col-xl-2">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Total</div>
-                    <div class="fs-3 fw-bold">@total</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-xl-2">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Pendientes</div>
-                    <div class="fs-3 fw-bold text-warning">@pendientes</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-xl-2">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Atendidas</div>
-                    <div class="fs-3 fw-bold text-primary">@atendidas</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-xl-2">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Cerradas</div>
-                    <div class="fs-3 fw-bold text-success">@cerradas</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-xl-2">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Críticas</div>
-                    <div class="fs-3 fw-bold text-danger">@criticas</div>
-                </div>
-            </div>
-        </div>
+        <div class="col-6 col-md-4 col-xl-2"><div class="list-kpi-card"><small>Total</small><strong>@total</strong></div></div>
+        <div class="col-6 col-md-4 col-xl-2"><div class="list-kpi-card"><small>Pendientes</small><strong class="text-warning">@pendientes</strong></div></div>
+        <div class="col-6 col-md-4 col-xl-2"><div class="list-kpi-card"><small>Atendidas</small><strong class="text-primary">@atendidas</strong></div></div>
+        <div class="col-6 col-md-4 col-xl-2"><div class="list-kpi-card"><small>Cerradas</small><strong class="text-success">@cerradas</strong></div></div>
+        <div class="col-6 col-md-4 col-xl-2"><div class="list-kpi-card"><small>Críticas</small><strong class="text-danger">@criticas</strong></div></div>
     </div>
 
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 py-3">
-            <h5 class="mb-0 fw-semibold">Listado General</h5>
-        </div>
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-3">
+            @foreach (var item in Model.OrderByDescending(x => x.FechaHora))
+            {
+                string estado = (item.EstadoIncidencia ?? string.Empty).Trim().ToUpperInvariant();
+                string prioridad = (item.Prioridad ?? string.Empty).Trim().ToUpperInvariant();
 
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Código</th>
-                            <th>Recorrido</th>
-                            <th>Conductor</th>
-                            <th>Tipo</th>
-                            <th>Descripción</th>
-                            <th>Fecha</th>
-                            <th>Estado</th>
-                            <th>Prioridad</th>
-                            <th class="text-center" style="width: 260px;">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model != null && Model.Any())
-                        {
-                            foreach (var item in Model)
+                string estadoClass = estado switch
+                {
+                    "PENDIENTE" => "text-bg-warning",
+                    "ATENDIDA" => "text-bg-primary",
+                    "CERRADA" => "text-bg-success",
+                    _ => "text-bg-secondary"
+                };
+
+                string prioridadClass = prioridad switch
+                {
+                    "CRITICA" => "text-bg-danger",
+                    "ALTA" => "text-bg-warning",
+                    "MEDIA" => "text-bg-info",
+                    _ => "text-bg-secondary"
+                };
+
+                <div class="col-12 col-lg-6">
+                    <article class="list-entity-card h-100">
+                        <header class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                            <div>
+                                <div class="list-code">@item.CodigoIncidencia</div>
+                                <h3 class="h6 mb-0">@item.TipoIncidencia</h3>
+                            </div>
+                            <div class="d-flex gap-1 flex-wrap justify-content-end">
+                                <span class="badge @estadoClass">@estado</span>
+                                <span class="badge @prioridadClass">@(prioridad == "CRITICA" ? "CRÍTICA" : prioridad)</span>
+                            </div>
+                        </header>
+
+                        <p class="list-description">@item.Descripcion</p>
+
+                        <div class="list-meta-grid mb-3">
+                            <div><small>Fecha y hora</small><strong>@item.FechaHora.ToString("dd/MM/yyyy HH:mm")</strong></div>
+                            <div><small>Conductor</small><strong>@(string.IsNullOrWhiteSpace(item.NombreConductor) ? "Sin asignar" : item.NombreConductor)</strong></div>
+                            <div><small>Recorrido</small><strong>@(string.IsNullOrWhiteSpace(item.CodigoRecorrido) ? "No aplica" : item.CodigoRecorrido)</strong></div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <a asp-action="Detalle" asp-route-id="@item.IdIncidencia" class="btn btn-outline-primary btn-sm"><i class="bi bi-eye me-1"></i>Detalle</a>
+
+                            @if (estado != "CERRADA")
                             {
-                                <tr>
-                                    <td>
-                                        <span class="fw-semibold">@item.CodigoIncidencia</span>
-                                    </td>
-                                    <td>@item.CodigoRecorrido</td>
-                                    <td>@item.NombreConductor</td>
-                                    <td>
-                                        <span class="badge rounded-pill bg-dark-subtle text-dark">
-                                            @item.TipoIncidencia
-                                        </span>
-                                    </td>
-                                    <td style="max-width: 260px;">
-                                        <span class="text-truncate d-inline-block" style="max-width: 240px;" title="@item.Descripcion">
-                                            @item.Descripcion
-                                        </span>
-                                    </td>
-                                    <td>@item.FechaHora.ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td>
-                                        @if (item.EstadoIncidencia == "PENDIENTE")
-                                        {
-                                            <span class="badge rounded-pill bg-warning text-dark px-3 py-2">PENDIENTE</span>
-                                        }
-                                        else if (item.EstadoIncidencia == "ATENDIDA")
-                                        {
-                                            <span class="badge rounded-pill bg-primary px-3 py-2">ATENDIDA</span>
-                                        }
-                                        else if (item.EstadoIncidencia == "CERRADA")
-                                        {
-                                            <span class="badge rounded-pill bg-success px-3 py-2">CERRADA</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge rounded-pill bg-secondary px-3 py-2">@item.EstadoIncidencia</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        @if (item.Prioridad == "CRITICA")
-                                        {
-                                            <span class="badge rounded-pill bg-danger px-3 py-2">CRÍTICA</span>
-                                        }
-                                        else if (item.Prioridad == "ALTA")
-                                        {
-                                            <span class="badge rounded-pill bg-warning text-dark px-3 py-2">ALTA</span>
-                                        }
-                                        else if (item.Prioridad == "MEDIA")
-                                        {
-                                            <span class="badge rounded-pill bg-info text-dark px-3 py-2">MEDIA</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge rounded-pill bg-secondary px-3 py-2">BAJA</span>
-                                        }
-                                    </td>
-                                    <td class="text-center">
-                                        <div class="d-flex flex-wrap gap-1 justify-content-center">
-                                            <a asp-action="Detalle" asp-route-id="@item.IdIncidencia" class="btn btn-outline-info btn-sm">
-                                                Ver
-                                            </a>
-
-                                            @if (item.EstadoIncidencia != "CERRADA")
-                                            {
-                                                <button type="button"
-                                                        class="btn btn-outline-success btn-sm"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#modalCerrar_@item.IdIncidencia">
-                                                    Cerrar
-                                                </button>
-                                            }
-
-                                            <form asp-action="Eliminar" method="post" class="d-inline form-eliminar">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@item.IdIncidencia" />
-                                                <button type="submit"
-                                                        class="btn btn-outline-danger btn-sm">
-                                                    <i class="bi bi-trash"></i> Eliminar
-                                                </button>
-                                            </form>
-                                         
-                                        </div>
-                                    </td>
-                                </tr>
-
-                                @if (item.EstadoIncidencia != "CERRADA")
-                                {
-                                    <div class="modal fade" id="modalCerrar_@item.IdIncidencia" tabindex="-1" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered">
-                                            <div class="modal-content border-0 shadow">
-                                                <form asp-action="Cerrar" method="post">
-                                                    @Html.AntiForgeryToken()
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">Cerrar Incidencia</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <input type="hidden" name="id" value="@item.IdIncidencia" />
-                                                        <div class="mb-3">
-                                                            <label class="form-label fw-semibold">Solución</label>
-                                                            <textarea name="solucion" class="form-control" rows="4" required></textarea>
-                                                        </div>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancelar</button>
-                                                        <button type="submit" class="btn btn-success">Cerrar incidencia</button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
+                                <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalCerrar_@item.IdIncidencia">
+                                    <i class="bi bi-check2-circle me-1"></i>Cerrar
+                                </button>
                             }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="9" class="text-center py-4">
-                                    <div class="text-muted">
-                                        <i class="bi bi-inbox fs-3 d-block mb-2"></i>
-                                        No hay incidencias registradas.
+
+                            <form asp-action="Eliminar" method="post" class="d-inline form-eliminar">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@item.IdIncidencia" />
+                                <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Eliminar</button>
+                            </form>
+                        </div>
+                    </article>
+                </div>
+
+                @if (estado != "CERRADA")
+                {
+                    <div class="modal fade" id="modalCerrar_@item.IdIncidencia" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow">
+                                <form asp-action="Cerrar" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Cerrar Incidencia</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+                                    <div class="modal-body">
+                                        <input type="hidden" name="id" value="@item.IdIncidencia" />
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">Solución</label>
+                                            <textarea name="solucion" class="form-control" rows="4" required></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancelar</button>
+                                        <button type="submit" class="btn btn-success">Cerrar incidencia</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
         </div>
-    </div>
+    }
+    else
+    {
+        @await Html.PartialAsync("_ListEmptyState", ("Sin incidencias", "Aún no se registraron incidencias operativas.", "bi-exclamation-circle"))
+    }
 </div>

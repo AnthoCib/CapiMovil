@@ -4,69 +4,59 @@
     ViewData["Title"] = "Lista de Rutas";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="page-title mb-0">Lista de Rutas</h2>
-    <a asp-action="Crear" class="btn btn-primary">Nueva Ruta</a>
-</div>
+<div class="list-shell">
+    <div class="list-toolbar mb-4">
+        <div>
+            <h2 class="list-title mb-1">Lista de Rutas</h2>
+            <p class="list-subtitle mb-0">Configuración de rutas y horarios operativos.</p>
+        </div>
+        <a asp-action="Crear" class="btn btn-primary list-btn-primary"><i class="bi bi-plus-circle me-1"></i>Nueva ruta</a>
+    </div>
 
-<div class="card card-soft">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table align-middle">
-                <thead>
-                    <tr>
-                        <th>Código</th>
-                        <th>Nombre</th>
-                        <th>Turno</th>
-                        <th>Horario</th>
-                        <th>Estado Ruta</th>
-                        <th>Estado</th>
-                        <th style="width:160px;">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.Any())
-                    {
-                        foreach (var item in Model)
+    <div class="list-table-card">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table list-table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Turno</th>
+                            <th>Horario</th>
+                            <th>Estado ruta</th>
+                            <th>Estado</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
                         {
                             <tr>
-                                <td>@item.CodigoRuta</td>
+                                <td><span class="list-code">@item.CodigoRuta</span></td>
                                 <td>@item.Nombre</td>
                                 <td>@item.Turno</td>
                                 <td>@item.HoraInicio.ToString(@"hh\:mm") - @item.HoraFin.ToString(@"hh\:mm")</td>
-                                <td><span class="badge bg-info">@item.EstadoRuta</span></td>
-                                <td>
-                                    @if (item.Estado)
-                                    {
-                                        <span class="badge bg-success">Activo</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary">Inactivo</span>
-                                    }
-                                </td>
-                                <td>
-                                    <a asp-action="Editar" asp-route-id="@item.IdRuta" class="btn btn-warning btn-sm"><i class="bi bi-pencil-square me-1"></i>Editar</a>
-
-                                    <form asp-action="Eliminar" asp-route-id="@item.IdRuta" method="post" class="d-inline">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-danger btn-sm"
-                                                onclick="return confirm('¿Desea eliminar esta ruta?');">
-                                            Eliminar
-                                        </button>
-                                    </form>
+                                <td><span class="badge text-bg-info">@item.EstadoRuta</span></td>
+                                <td><span class="badge @(item.Estado ? "text-bg-success" : "text-bg-secondary")">@(item.Estado ? "Activo" : "Inactivo")</span></td>
+                                <td class="text-end">
+                                    <div class="d-inline-flex gap-1">
+                                        <a asp-action="Editar" asp-route-id="@item.IdRuta" class="btn btn-outline-warning btn-sm"><i class="bi bi-pencil-square"></i></a>
+                                        <form asp-action="Eliminar" asp-route-id="@item.IdRuta" method="post" class="d-inline form-eliminar" onsubmit="return confirm('¿Desea eliminar esta ruta?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="7" class="text-center text-muted">No hay rutas registradas.</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            @await Html.PartialAsync("_ListEmptyState", ("Sin rutas", "No hay rutas registradas.", "bi-signpost"))
+        }
     </div>
 </div>
