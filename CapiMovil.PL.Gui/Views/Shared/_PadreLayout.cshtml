@@ -169,6 +169,16 @@
 
             toggle.addEventListener('click', () => shell.classList.toggle('sidebar-open'));
             backdrop.addEventListener('click', () => shell.classList.remove('sidebar-open'));
+
+            shell.querySelectorAll('.pf-layout-nav .nav-link').forEach(link => {
+                link.addEventListener('click', () => shell.classList.remove('sidebar-open'));
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 1200) {
+                    shell.classList.remove('sidebar-open');
+                }
+            });
         })();
     </script>
 </body>

@@ -1,7 +1,4 @@
 @using Microsoft.AspNetCore.Http
 @{
-    var rol = Context.Session.GetString("RolNombre")?.Trim().ToUpperInvariant();
-    Layout = (rol == "PADRE" || rol == "PADRE DE FAMILIA")
-        ? "~/Views/Shared/_PadreLayout.cshtml"
-        : "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_PadreLayout.cshtml";
 }

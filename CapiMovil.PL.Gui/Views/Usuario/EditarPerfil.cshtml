@@ -41,21 +41,24 @@
                     <input asp-for="Correo" class="form-control" />
                     <span asp-validation-for="Correo" class="text-danger"></span>
                 </div>
-                <div class="col-md-4">
-                    <label asp-for="Nombres" class="form-label"></label>
-                    <input asp-for="Nombres" class="form-control" />
-                    <span asp-validation-for="Nombres" class="text-danger"></span>
-                </div>
-                <div class="col-md-4">
-                    <label asp-for="ApellidoPaterno" class="form-label"></label>
-                    <input asp-for="ApellidoPaterno" class="form-control" />
-                    <span asp-validation-for="ApellidoPaterno" class="text-danger"></span>
-                </div>
-                <div class="col-md-4">
-                    <label asp-for="ApellidoMaterno" class="form-label"></label>
-                    <input asp-for="ApellidoMaterno" class="form-control" />
-                    <span asp-validation-for="ApellidoMaterno" class="text-danger"></span>
-                </div>
+                @if (Model.EsConductor || Model.EsPadre)
+                {
+                    <div class="col-md-4">
+                        <label asp-for="Nombres" class="form-label"></label>
+                        <input asp-for="Nombres" class="form-control" />
+                        <span asp-validation-for="Nombres" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="ApellidoPaterno" class="form-label"></label>
+                        <input asp-for="ApellidoPaterno" class="form-control" />
+                        <span asp-validation-for="ApellidoPaterno" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="ApellidoMaterno" class="form-label"></label>
+                        <input asp-for="ApellidoMaterno" class="form-control" />
+                        <span asp-validation-for="ApellidoMaterno" class="text-danger"></span>
+                    </div>
+                }
                 <div class="col-md-6">
                     <label asp-for="Telefono" class="form-label"></label>
                     <input asp-for="Telefono" class="form-control" />
