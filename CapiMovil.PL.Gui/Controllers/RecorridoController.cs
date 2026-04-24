@@ -14,17 +14,20 @@ namespace CapiMovil.PL.Gui.Controllers
         private readonly RutaDALC _rutaDALC;
         private readonly BusDALC _busDALC;
         private readonly ConductorDALC _conductorDALC;
+        private readonly UsuarioBC _usuarioBC;
 
         public RecorridoController(
             RecorridoBC recorridoBC,
             RutaDALC rutaDALC,
             BusDALC busDALC,
-            ConductorDALC conductorDALC)
+            ConductorDALC conductorDALC,
+            UsuarioBC usuarioBC)
         {
             _recorridoBC = recorridoBC;
             _rutaDALC = rutaDALC;
             _busDALC = busDALC;
             _conductorDALC = conductorDALC;
+            _usuarioBC = usuarioBC;
         }
 
         public IActionResult Listar()
@@ -325,7 +328,17 @@ namespace CapiMovil.PL.Gui.Controllers
         }
 
         private string? ObtenerUsernameSesion()
-            => HttpContext.Session.GetString("Username");
+        {
+            string? username = HttpContext.Session.GetString("Username");
+            if (!string.IsNullOrWhiteSpace(username))
+                return username;
+
+            Guid? idUsuario = ObtenerUsuarioIdSesion();
+            if (idUsuario.HasValue)
+                return _usuarioBC.ListarPorId(idUsuario.Value)?.Username;
+
+            return null;
+        }
 
         private string? ObtenerIpCliente()
             => HttpContext.Connection.RemoteIpAddress?.ToString();

@@ -287,7 +287,7 @@ namespace CapiMovil.PL.Gui.Controllers
         {
             return EjecutarCambioRecorrido(
                 idRecorrido,
-                id => _recorridoBC.Iniciar(id, ObtenerUsuarioIdSesion(), HttpContext.Session.GetString("Username"), ObtenerIpCliente(), ObtenerUserAgent()),
+                id => _recorridoBC.Iniciar(id, ObtenerUsuarioIdSesion(), ObtenerUsernameSesion(), ObtenerIpCliente(), ObtenerUserAgent()),
                 "Recorrido iniciado correctamente.");
         }
 
@@ -297,7 +297,7 @@ namespace CapiMovil.PL.Gui.Controllers
         {
             return EjecutarCambioRecorrido(
                 idRecorrido,
-                id => _recorridoBC.Finalizar(id, ObtenerUsuarioIdSesion(), HttpContext.Session.GetString("Username"), ObtenerIpCliente(), ObtenerUserAgent()),
+                id => _recorridoBC.Finalizar(id, ObtenerUsuarioIdSesion(), ObtenerUsernameSesion(), ObtenerIpCliente(), ObtenerUserAgent()),
                 "Recorrido finalizado correctamente.");
         }
 
@@ -782,6 +782,19 @@ namespace CapiMovil.PL.Gui.Controllers
 
         private string? ObtenerUserAgent()
             => Request.Headers.UserAgent.ToString();
+
+        private string? ObtenerUsernameSesion()
+        {
+            string? username = HttpContext.Session.GetString("Username");
+            if (!string.IsNullOrWhiteSpace(username))
+                return username;
+
+            Guid? idUsuario = ObtenerUsuarioIdSesion();
+            if (idUsuario.HasValue)
+                return _usuarioBC.ListarPorId(idUsuario.Value)?.Username;
+
+            return null;
+        }
 
         private ConductorBE? ObtenerConductorParaPadre(PadreFamiliaBE padre)
         {

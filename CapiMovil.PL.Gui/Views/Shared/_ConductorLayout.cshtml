@@ -4,6 +4,7 @@
 
 @{
     var username = HttpContextAccessor.HttpContext?.Session.GetString("Username") ?? "Conductor";
+    var fotoPerfilUrl = HttpContextAccessor.HttpContext?.Session.GetString("FotoPerfilUrl");
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
 
@@ -72,7 +73,17 @@
                         <button type="button" class="btn btn-light rounded-circle" aria-label="Notificaciones">
                             <i class="bi bi-bell"></i>
                         </button>
-                        <div class="conductor-user-pill"><i class="bi bi-person-circle"></i><span>@username</span></div>
+                        <div class="conductor-user-pill">
+                            @if (!string.IsNullOrWhiteSpace(fotoPerfilUrl))
+                            {
+                                <img src="@fotoPerfilUrl" alt="Perfil" class="rounded-circle" style="width:24px;height:24px;object-fit:cover;" />
+                            }
+                            else
+                            {
+                                <i class="bi bi-person-circle"></i>
+                            }
+                            <span>@username</span>
+                        </div>
                         <form asp-controller="Auth" asp-action="Logout" method="post" class="m-0">
                             @Html.AntiForgeryToken()
                             <button class="btn btn-light" type="submit" aria-label="Cerrar sesión"><i class="bi bi-box-arrow-right"></i></button>

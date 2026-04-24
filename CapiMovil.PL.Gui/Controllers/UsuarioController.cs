@@ -330,6 +330,8 @@ namespace CapiMovil.PL.Gui.Controllers
             string rutaRelativa = $"/uploads/perfiles/{nombreArchivo}";
             bool ok = _usuarioBC.ActualizarFotoPerfil(idUsuario, rutaRelativa);
             TempData[ok ? "ok" : "error"] = ok ? "Foto de perfil actualizada." : "No se pudo actualizar la foto.";
+            if (ok)
+                HttpContext.Session.SetString("FotoPerfilUrl", rutaRelativa);
 
             return RedirectToAction(nameof(MiPerfil));
         }

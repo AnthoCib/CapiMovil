@@ -20,6 +20,62 @@ BEGIN
 END
 GO
 
+/* =============================================
+   SECCIÓN E: CONSULTA DE AUDITORÍA (USUARIO)
+   ============================================= */
+CREATE OR ALTER PROCEDURE dbo.sp_Auditoria_Listar
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        a.IdAuditoria,
+        a.CodigoAuditoria,
+        a.Tabla,
+        a.IdRegistro,
+        a.Accion,
+        a.DatosAntes,
+        a.DatosDespues,
+        a.UsuarioId,
+        COALESCE(NULLIF(a.NombreUsuario, ''), u.Username, 'SISTEMA') AS NombreUsuario,
+        a.Ip,
+        a.UserAgent,
+        a.Modulo,
+        a.Observacion,
+        a.Fecha
+    FROM dbo.Auditoria a
+    LEFT JOIN dbo.Usuario u ON u.IdUsuario = a.UsuarioId
+    ORDER BY a.Fecha DESC;
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_Auditoria_ObtenerPorId
+    @IdAuditoria UNIQUEIDENTIFIER
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        a.IdAuditoria,
+        a.CodigoAuditoria,
+        a.Tabla,
+        a.IdRegistro,
+        a.Accion,
+        a.DatosAntes,
+        a.DatosDespues,
+        a.UsuarioId,
+        COALESCE(NULLIF(a.NombreUsuario, ''), u.Username, 'SISTEMA') AS NombreUsuario,
+        a.Ip,
+        a.UserAgent,
+        a.Modulo,
+        a.Observacion,
+        a.Fecha
+    FROM dbo.Auditoria a
+    LEFT JOIN dbo.Usuario u ON u.IdUsuario = a.UsuarioId
+    WHERE a.IdAuditoria = @IdAuditoria;
+END
+GO
+
 CREATE OR ALTER PROCEDURE dbo.sp_Usuario_ActualizarFotoPerfil
     @IdUsuario UNIQUEIDENTIFIER,
     @FotoPerfilUrl VARCHAR(260) = NULL
@@ -266,5 +322,61 @@ BEGIN
             CAST(NULL AS VARCHAR(20)) AS CodigoGenerado,
             ERROR_MESSAGE() AS Mensaje;
     END CATCH
+END
+GO
+
+/* =============================================
+   SECCIÓN E: CONSULTA DE AUDITORÍA (USUARIO)
+   ============================================= */
+CREATE OR ALTER PROCEDURE dbo.sp_Auditoria_Listar
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        a.IdAuditoria,
+        a.CodigoAuditoria,
+        a.Tabla,
+        a.IdRegistro,
+        a.Accion,
+        a.DatosAntes,
+        a.DatosDespues,
+        a.UsuarioId,
+        COALESCE(NULLIF(a.NombreUsuario, ''), u.Username, 'SISTEMA') AS NombreUsuario,
+        a.Ip,
+        a.UserAgent,
+        a.Modulo,
+        a.Observacion,
+        a.Fecha
+    FROM dbo.Auditoria a
+    LEFT JOIN dbo.Usuario u ON u.IdUsuario = a.UsuarioId
+    ORDER BY a.Fecha DESC;
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_Auditoria_ObtenerPorId
+    @IdAuditoria UNIQUEIDENTIFIER
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        a.IdAuditoria,
+        a.CodigoAuditoria,
+        a.Tabla,
+        a.IdRegistro,
+        a.Accion,
+        a.DatosAntes,
+        a.DatosDespues,
+        a.UsuarioId,
+        COALESCE(NULLIF(a.NombreUsuario, ''), u.Username, 'SISTEMA') AS NombreUsuario,
+        a.Ip,
+        a.UserAgent,
+        a.Modulo,
+        a.Observacion,
+        a.Fecha
+    FROM dbo.Auditoria a
+    LEFT JOIN dbo.Usuario u ON u.IdUsuario = a.UsuarioId
+    WHERE a.IdAuditoria = @IdAuditoria;
 END
 GO

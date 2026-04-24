@@ -103,7 +103,7 @@
                                         <span class="badge bg-dark">@item.Accion</span>
                                     }
                                 </td>
-                                <td>@item.NombreUsuario</td>
+                                <td>@(string.IsNullOrWhiteSpace(item.NombreUsuario) ? "SISTEMA" : item.NombreUsuario)</td>
                                 <td>@item.Modulo</td>
                                 <td>@item.Observacion</td>
                                 <td>@item.Fecha.ToString("dd/MM/yyyy HH:mm")</td>

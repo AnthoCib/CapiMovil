@@ -69,6 +69,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 HttpContext.Session.SetString("CodigoUsuario", usuario.CodigoUsuario ?? "");
                 HttpContext.Session.SetString("RolId", usuario.Rol?.IdRol.ToString() ?? "");
                 HttpContext.Session.SetString("RolNombre", rolNombre);
+                HttpContext.Session.SetString("FotoPerfilUrl", usuario.FotoPerfilUrl ?? "");
 
                 TempData["ok"] = $"Bienvenido, {usuario.Username}. Rol: {rolNombre}";
 

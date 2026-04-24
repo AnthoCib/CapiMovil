@@ -41,3 +41,11 @@
 .profile-field span {
     font-weight: 600;
 }
+
+.profile-preview {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e5e7eb;
+}

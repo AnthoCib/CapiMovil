@@ -4,6 +4,7 @@
 
 @{
     var username = HttpContextAccessor.HttpContext?.Session.GetString("Username") ?? "Padre";
+    var fotoPerfilUrl = HttpContextAccessor.HttpContext?.Session.GetString("FotoPerfilUrl");
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
 
@@ -71,7 +72,17 @@
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <span class="btn btn-light rounded-circle"><i class="bi bi-bell"></i></span>
-                        <div class="pf-user-pill"><i class="bi bi-person-heart"></i><span>@username</span></div>
+                        <div class="pf-user-pill">
+                            @if (!string.IsNullOrWhiteSpace(fotoPerfilUrl))
+                            {
+                                <img src="@fotoPerfilUrl" alt="Perfil" class="rounded-circle" style="width:24px;height:24px;object-fit:cover;" />
+                            }
+                            else
+                            {
+                                <i class="bi bi-person-heart"></i>
+                            }
+                            <span>@username</span>
+                        </div>
                         <form asp-controller="Auth" asp-action="Logout" method="post" class="m-0">
                             @Html.AntiForgeryToken()
                             <button class="btn btn-light" type="submit"><i class="bi bi-box-arrow-right"></i></button>

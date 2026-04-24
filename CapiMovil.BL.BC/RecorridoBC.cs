@@ -274,6 +274,10 @@ namespace CapiMovil.BL.BC
             string? ip,
             string? userAgent)
         {
+            string? nombreUsuarioAuditoria = string.IsNullOrWhiteSpace(nombreUsuario)
+                ? (usuarioId.HasValue ? usuarioId.Value.ToString() : "SISTEMA")
+                : nombreUsuario;
+
             _auditoriaBC.RegistrarAutomatica(
                 tabla: "Recorrido",
                 idRegistro: idRegistro,
@@ -281,7 +285,7 @@ namespace CapiMovil.BL.BC
                 datosAntes: antes,
                 datosDespues: despues,
                 usuarioId: usuarioId,
-                nombreUsuario: nombreUsuario,
+                nombreUsuario: nombreUsuarioAuditoria,
                 ip: ip,
                 userAgent: userAgent,
                 modulo: "Operaciones",
