@@ -83,6 +83,68 @@ namespace CapiMovil.PL.Gui.Controllers
         }
 
         [HttpGet]
+        public IActionResult RegistrarHijo()
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
+            if (acceso != null)
+                return acceso;
+
+            return View(new PadreRegistrarEstudianteViewModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult RegistrarHijo(PadreRegistrarEstudianteViewModel vm)
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            if (padre == null)
+            {
+                TempData["error"] = "No se encontró el padre autenticado para registrar el estudiante.";
+                return RedirectToAction(nameof(MisHijos));
+            }
+
+            if (!ModelState.IsValid)
+                return View(vm);
+
+            try
+            {
+                EstudianteBE entidad = new()
+                {
+                    IdPadre = padre.IdPadre,
+                    Nombres = vm.Nombres,
+                    ApellidoPaterno = vm.ApellidoPaterno,
+                    ApellidoMaterno = vm.ApellidoMaterno,
+                    DNI = vm.DNI,
+                    FechaNacimiento = vm.FechaNacimiento,
+                    Genero = vm.Genero,
+                    Grado = vm.Grado,
+                    Seccion = vm.Seccion,
+                    Direccion = vm.Direccion,
+                    Observaciones = vm.Observaciones,
+                    Estado = true
+                };
+
+                bool ok = _estudianteBC.Registrar(entidad);
+                TempData[ok ? "ok" : "error"] = ok
+                    ? $"Hijo registrado correctamente. Código: {entidad.CodigoEstudiante}"
+                    : "No se pudo registrar al estudiante. Verifique los datos e intente nuevamente.";
+
+                if (ok)
+                    return RedirectToAction(nameof(MisHijos));
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+            }
+
+            return View(vm);
+        }
+
+        [HttpGet]
         public IActionResult DetalleHijo(Guid idEstudiante)
         {
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);

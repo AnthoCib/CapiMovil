@@ -5,7 +5,10 @@
 
 <div class="pf-page">
     <section class="pf-card p-3">
-        @await Html.PartialAsync("_SectionHeader", ("Mis Hijos", "Consulta el perfil académico y el seguimiento de cada estudiante.", "bi-people"))
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+            @await Html.PartialAsync("_SectionHeader", ("Mis Hijos", "Consulta el perfil académico y el seguimiento de cada estudiante.", "bi-people"))
+            <a asp-action="RegistrarHijo" class="btn btn-primary btn-sm"><i class="bi bi-person-plus me-1"></i>Registrar hijo</a>
+        </div>
 
         @if (Model.Any())
         {

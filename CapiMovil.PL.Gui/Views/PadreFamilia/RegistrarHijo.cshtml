@@ -1,0 +1,75 @@
+@model CapiMovil.PL.Gui.Models.ViewModels.PadreRegistrarEstudianteViewModel
+@{
+    ViewData["Title"] = "Registrar Hijo";
+}
+
+<div class="pf-page">
+    <section class="pf-card p-3">
+        @await Html.PartialAsync("_SectionHeader", ("Registrar Hijo", "Completa los datos del estudiante asociado a tu cuenta.", "bi-person-plus"))
+
+        <form asp-action="RegistrarHijo" method="post" class="row g-3">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="col-md-4">
+                <label asp-for="Nombres" class="form-label"></label>
+                <input asp-for="Nombres" class="form-control" />
+                <span asp-validation-for="Nombres" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="ApellidoPaterno" class="form-label"></label>
+                <input asp-for="ApellidoPaterno" class="form-control" />
+                <span asp-validation-for="ApellidoPaterno" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="ApellidoMaterno" class="form-label"></label>
+                <input asp-for="ApellidoMaterno" class="form-control" />
+                <span asp-validation-for="ApellidoMaterno" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-3">
+                <label asp-for="DNI" class="form-label"></label>
+                <input asp-for="DNI" class="form-control" maxlength="8" />
+                <span asp-validation-for="DNI" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="FechaNacimiento" class="form-label"></label>
+                <input asp-for="FechaNacimiento" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label asp-for="Genero" class="form-label"></label>
+                <select asp-for="Genero" class="form-select">
+                    <option value="">Seleccione</option>
+                    <option value="M">Masculino</option>
+                    <option value="F">Femenino</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="Grado" class="form-label"></label>
+                <input asp-for="Grado" class="form-control" />
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="Seccion" class="form-label"></label>
+                <input asp-for="Seccion" class="form-control" />
+            </div>
+            <div class="col-md-8">
+                <label asp-for="Direccion" class="form-label"></label>
+                <input asp-for="Direccion" class="form-control" />
+            </div>
+            <div class="col-12">
+                <label asp-for="Observaciones" class="form-label"></label>
+                <textarea asp-for="Observaciones" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-save me-2"></i>Registrar hijo</button>
+                <a asp-action="MisHijos" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

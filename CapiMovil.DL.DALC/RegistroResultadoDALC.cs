@@ -14,8 +14,26 @@ namespace CapiMovil.DL.DALC
                 return false;
 
             filasAfectadas = ObtenerEntero(dr, "FilasAfectadas", "Filas", "Resultado", "RowsAffected");
-            codigoGenerado = ObtenerTexto(dr, "CodigoGenerado", "Codigo", "CodigoRecorrido", "CodigoIncidencia", "CodigoAuditoria");
+            codigoGenerado = ObtenerTexto(
+                dr,
+                "CodigoGenerado",
+                "Codigo",
+                "CodigoUsuario",
+                "CodigoPadre",
+                "CodigoConductor",
+                "CodigoEstudiante",
+                "CodigoBus",
+                "CodigoRuta",
+                "CodigoParadero",
+                "CodigoRutaEstudiante",
+                "CodigoRecorrido",
+                "CodigoIncidencia",
+                "CodigoAuditoria");
             mensaje = ObtenerTexto(dr, "Mensaje", "Error", "Detalle");
+            bool? exito = ObtenerBooleano(dr, "Exito", "Ok", "Success");
+
+            if (exito.HasValue)
+                return exito.Value;
 
             if (filasAfectadas > 0)
                 return true;
@@ -45,6 +63,27 @@ namespace CapiMovil.DL.DALC
             }
 
             return string.Empty;
+        }
+
+        private static bool? ObtenerBooleano(SqlDataReader dr, params string[] nombresColumna)
+        {
+            foreach (string nombre in nombresColumna)
+            {
+                if (!ExisteColumna(dr, nombre) || dr[nombre] == DBNull.Value)
+                    continue;
+
+                if (dr[nombre] is bool b)
+                    return b;
+
+                string valor = dr[nombre]?.ToString()?.Trim() ?? string.Empty;
+                if (bool.TryParse(valor, out bool parseBool))
+                    return parseBool;
+
+                if (int.TryParse(valor, out int parseInt))
+                    return parseInt > 0;
+            }
+
+            return null;
         }
 
         private static bool ExisteColumna(SqlDataReader dr, string nombreColumna)

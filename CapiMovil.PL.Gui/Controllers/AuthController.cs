@@ -62,6 +62,8 @@ namespace CapiMovil.PL.Gui.Controllers
                 }
 
                 string rolNombre = AutenticacionSesion.NormalizarRol(usuario.Rol?.Nombre);
+                UsuarioBE? usuarioCompleto = _usuarioBC.ListarPorId(usuario.IdUsuario);
+                string fotoPerfilUrl = usuarioCompleto?.FotoPerfilUrl ?? usuario.FotoPerfilUrl ?? string.Empty;
 
                 HttpContext.Session.SetString("UsuarioId", usuario.IdUsuario.ToString());
                 HttpContext.Session.SetString("Username", usuario.Username ?? "");
@@ -69,7 +71,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 HttpContext.Session.SetString("CodigoUsuario", usuario.CodigoUsuario ?? "");
                 HttpContext.Session.SetString("RolId", usuario.Rol?.IdRol.ToString() ?? "");
                 HttpContext.Session.SetString("RolNombre", rolNombre);
-                HttpContext.Session.SetString("FotoPerfilUrl", usuario.FotoPerfilUrl ?? "");
+                HttpContext.Session.SetString("FotoPerfilUrl", fotoPerfilUrl);
 
                 TempData["ok"] = $"Bienvenido, {usuario.Username}. Rol: {rolNombre}";
 

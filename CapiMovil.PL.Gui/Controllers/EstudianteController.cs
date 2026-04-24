@@ -1,5 +1,6 @@
 ﻿using CapiMovil.BL.BC;
 using CapiMovil.BL.BE;
+using CapiMovil.PL.Gui.Infrastructure;
 using CapiMovil.PL.Gui.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -20,6 +21,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Listar()
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             var lista = _estudianteBC.Listar();
             return View(lista);
         }
@@ -27,6 +31,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Crear()
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             EstudianteFormViewModel vm = new EstudianteFormViewModel
             {
                 Estado = true,
@@ -41,6 +48,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Crear(EstudianteFormViewModel vm)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             if (!ModelState.IsValid)
             {
                 vm.Padres = ObtenerPadres();
@@ -95,6 +105,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Editar(Guid id)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             var entidad = _estudianteBC.ListarPorId(id);
 
             if (entidad == null)
@@ -133,6 +146,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Editar(EstudianteFormViewModel vm)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             if (!ModelState.IsValid)
             {
                 vm.Padres = ObtenerPadres();
@@ -185,6 +201,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Eliminar(Guid id)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             try
             {
                 bool ok = _estudianteBC.Eliminar(id);
