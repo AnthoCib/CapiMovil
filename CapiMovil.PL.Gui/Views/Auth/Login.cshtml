@@ -48,10 +48,10 @@
                                 <h2 class="auth-form-title">Bienvenido de nuevo</h2>
                                 <p class="auth-form-subtitle">Inicia sesión para administrar el servicio escolar con total confianza.</p>
 
-                                <form asp-action="Login" method="post" novalidate>
+                                <form asp-action="Login" method="post" novalidate data-disable-on-submit>
                                     @Html.AntiForgeryToken()
 
-                                    <div asp-validation-summary="ModelOnly" class="alert alert-danger auth-validation-summary"></div>
+                                    <div asp-validation-summary="ModelOnly" class="alert alert-danger auth-validation-summary ux-validation-summary"></div>
 
                                     <div class="mb-3">
                                         <label asp-for="UsuarioOCorreo" class="form-label fw-semibold"></label>
@@ -76,7 +76,7 @@
                                     </div>
 
                                     <div class="d-grid mb-3">
-                                        <button type="submit" class="btn auth-login-btn btn-lg">
+                                        <button type="submit" class="btn auth-login-btn btn-lg" data-loading-text="Ingresando...">
                                             <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar sesión
                                         </button>
                                     </div>

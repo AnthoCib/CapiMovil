@@ -248,3 +248,18 @@ body {
     .pf-page,
     .admin-dashboard-shell { padding: .7rem; }
 }
+
+
+.ux-validation-summary {
+    border-radius: .85rem;
+    border: 1px solid #f1c3c3;
+    background: #fff5f5;
+    color: #8a1c1c;
+    margin-bottom: 1rem;
+}
+
+.field-validation-error,
+.text-danger.validation-message {
+    font-size: .83rem;
+    font-weight: 600;
+}

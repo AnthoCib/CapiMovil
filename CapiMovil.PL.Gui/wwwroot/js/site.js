@@ -1,26 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const formulariosEliminar = document.querySelectorAll(".form-eliminar");
-
-    formulariosEliminar.forEach(form => {
-        form.addEventListener("submit", function (e) {
-            e.preventDefault();
-
-            Swal.fire({
-                title: "¿Estás seguro?",
-                text: "Esta acción no se puede deshacer.",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Sí, eliminar",
-                cancelButtonText: "Cancelar",
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-        });
-    });
-
     [
         { inputId: "adminGlobalSearch", resultsId: "adminSearchResults", dataNodeId: "admin-search-data", itemClassName: "admin-search-item" },
         { inputId: "conductorGlobalSearch", resultsId: "conductorSearchResults", dataNodeId: "conductor-search-data", itemClassName: "conductor-search-item" },
@@ -34,6 +12,8 @@ document.addEventListener("DOMContentLoaded", function () {
     ].forEach(inicializarPanelNotificaciones);
 
     inicializarSidebarsDesdeData();
+    inicializarConfirmacionesGlobales();
+    inicializarFeedbackEnvioFormularios();
 });
 
 function inicializarBuscadorGlobal(config) {
@@ -77,10 +57,7 @@ function inicializarBuscadorGlobal(config) {
                 url: item.url || item.Url || "",
                 keywords: (item.keywords || item.Keywords || "").toLowerCase()
             }))
-            .filter(item => {
-                const target = `${item.texto} ${item.keywords}`.toLowerCase();
-                return target.includes(term);
-            })
+            .filter(item => (`${item.texto} ${item.keywords}`.toLowerCase()).includes(term))
             .slice(0, 8);
 
         if (filtrados.length === 0) {
@@ -105,18 +82,14 @@ function inicializarBuscadorGlobal(config) {
         rows.forEach(row => {
             row.addEventListener("click", () => {
                 const url = row.getAttribute("data-url");
-                if (url) {
-                    window.location.href = url;
-                }
+                if (url) window.location.href = url;
             });
         });
 
         input.dataset.filtered = JSON.stringify(filtrados);
     };
 
-    input.addEventListener("input", (e) => {
-        renderResults(e.target.value);
-    });
+    input.addEventListener("input", (e) => renderResults(e.target.value));
 
     input.addEventListener("keydown", (e) => {
         const items = results.querySelectorAll(`.${config.itemClassName}`);
@@ -125,15 +98,11 @@ function inicializarBuscadorGlobal(config) {
         if (e.key === "Enter") {
             e.preventDefault();
             const target = activeIndex >= 0 ? list[activeIndex] : list[0];
-            if (target?.url) {
-                window.location.href = target.url;
-            }
+            if (target?.url) window.location.href = target.url;
             return;
         }
 
-        if (results.classList.contains("d-none") || items.length === 0) {
-            return;
-        }
+        if (results.classList.contains("d-none") || items.length === 0) return;
 
         if (e.key === "ArrowDown") {
             e.preventDefault();
@@ -146,21 +115,15 @@ function inicializarBuscadorGlobal(config) {
             return;
         }
 
-        items.forEach((item, i) => {
-            item.classList.toggle("active", i === activeIndex);
-        });
+        items.forEach((item, i) => item.classList.toggle("active", i === activeIndex));
     });
 
     input.addEventListener("focus", () => {
-        if (input.value.trim()) {
-            renderResults(input.value);
-        }
+        if (input.value.trim()) renderResults(input.value);
     });
 
     document.addEventListener("click", (e) => {
-        if (!results.contains(e.target) && e.target !== input) {
-            hideResults();
-        }
+        if (!results.contains(e.target) && e.target !== input) hideResults();
     });
 }
 
@@ -170,16 +133,10 @@ function inicializarPanelNotificaciones(config) {
     const list = document.getElementById(config.listId);
     const dataNode = document.getElementById(config.dataNodeId);
 
-    if (!toggle || !panel || !list || !dataNode) {
-        return;
-    }
+    if (!toggle || !panel || !list || !dataNode) return;
 
     let notifications = [];
-    try {
-        notifications = JSON.parse(dataNode.textContent || "[]");
-    } catch {
-        notifications = [];
-    }
+    try { notifications = JSON.parse(dataNode.textContent || "[]"); } catch { notifications = []; }
 
     if (!Array.isArray(notifications) || notifications.length === 0) {
         list.innerHTML = `
@@ -198,8 +155,7 @@ function inicializarPanelNotificaciones(config) {
                             <div class="fw-semibold small">${texto}</div>
                             <small class="text-muted">${tiempo}</small>
                         </a>`;
-            })
-            .join("");
+            }).join("");
     }
 
     const hidePanel = () => {
@@ -215,6 +171,55 @@ function inicializarPanelNotificaciones(config) {
 
     panel.addEventListener("click", e => e.stopPropagation());
     document.addEventListener("click", hidePanel);
+}
+
+function inicializarConfirmacionesGlobales() {
+    document.querySelectorAll("form[data-confirm]").forEach(form => {
+        form.addEventListener("submit", function (e) {
+            if (form.dataset.confirmed === "1") {
+                form.dataset.confirmed = "0";
+                return;
+            }
+
+            e.preventDefault();
+
+            Swal.fire({
+                title: form.dataset.confirmTitle || "¿Confirmar acción?",
+                text: form.dataset.confirmText || "Esta acción requiere confirmación.",
+                icon: form.dataset.confirmIcon || "question",
+                showCancelButton: true,
+                confirmButtonText: form.dataset.confirmConfirmText || "Confirmar",
+                cancelButtonText: form.dataset.confirmCancelText || "Cancelar",
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.dataset.confirmed = "1";
+                    if (typeof form.requestSubmit === "function") {
+                        form.requestSubmit();
+                    } else {
+                        form.submit();
+                    }
+                }
+            });
+        });
+    });
+}
+
+function inicializarFeedbackEnvioFormularios() {
+    document.querySelectorAll("form[data-disable-on-submit]").forEach(form => {
+        form.addEventListener("submit", function () {
+            const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+            submitButtons.forEach(btn => {
+                if (btn.disabled) return;
+                if (btn.dataset.loadingText) {
+                    btn.dataset.originalHtml = btn.innerHTML;
+                    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>${btn.dataset.loadingText}`;
+                }
+                btn.disabled = true;
+                btn.classList.add("disabled");
+            });
+        });
+    });
 }
 
 function inicializarSidebarShellById(shellId) {
@@ -236,16 +241,12 @@ function inicializarSidebarShellById(shellId) {
     });
 
     window.addEventListener("resize", () => {
-        if (window.innerWidth >= desktopBreakpoint) {
-            shell.classList.remove("sidebar-open");
-        }
+        if (window.innerWidth >= desktopBreakpoint) shell.classList.remove("sidebar-open");
     });
 }
 
 function inicializarSidebarsDesdeData() {
-    document.querySelectorAll("[data-sidebar-shell][id]").forEach(shell => {
-        inicializarSidebarShellById(shell.id);
-    });
+    document.querySelectorAll("[data-sidebar-shell][id]").forEach(shell => inicializarSidebarShellById(shell.id));
 }
 
 window.CapiMovilUI = {

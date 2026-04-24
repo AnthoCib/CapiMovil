@@ -113,10 +113,10 @@
                 <div class="card-body p-3 d-grid gap-2">
                     @if (Model.RecorridoOperacion != null && estado == "PROGRAMADO")
                     {
-                        <form asp-action="IniciarRecorrido" method="post">
+                        <form asp-action="IniciarRecorrido" method="post" data-disable-on-submit data-confirm data-confirm-title="¿Iniciar ruta ahora?" data-confirm-text="La operación cambiará a EN CURSO." data-confirm-icon="question" data-confirm-confirm-text="Sí, iniciar" data-confirm-cancel-text="Cancelar">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="idRecorrido" value="@Model.RecorridoOperacion.IdRecorrido" />
-                            <button class="btn btn-success btn-lg w-100"><i class="bi bi-play-fill me-2"></i>Iniciar Ruta</button>
+                            <button class="btn btn-success btn-lg w-100" data-loading-text="Iniciando ruta..."><i class="bi bi-play-fill me-2"></i>Iniciar Ruta</button>
                         </form>
                     }
                     else
@@ -126,10 +126,10 @@
 
                     @if (Model.RecorridoOperacion != null && estado == "EN_CURSO")
                     {
-                        <form asp-action="FinalizarRecorrido" method="post">
+                        <form asp-action="FinalizarRecorrido" method="post" data-disable-on-submit data-confirm data-confirm-title="¿Finalizar ruta?" data-confirm-text="Esta acción marcará el recorrido como finalizado." data-confirm-icon="warning" data-confirm-confirm-text="Sí, finalizar" data-confirm-cancel-text="Cancelar">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="idRecorrido" value="@Model.RecorridoOperacion.IdRecorrido" />
-                            <button class="btn btn-danger btn-lg w-100"><i class="bi bi-stop-fill me-2"></i>Finalizar Ruta</button>
+                            <button class="btn btn-danger btn-lg w-100" data-loading-text="Finalizando ruta..."><i class="bi bi-stop-fill me-2"></i>Finalizar Ruta</button>
                         </form>
                     }
                     else

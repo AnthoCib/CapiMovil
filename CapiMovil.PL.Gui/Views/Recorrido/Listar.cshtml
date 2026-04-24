@@ -65,31 +65,31 @@
                             {
                                 <a asp-action="Editar" asp-route-id="@item.IdRecorrido" class="btn btn-outline-warning btn-sm"><i class="bi bi-pencil-square me-1"></i>Editar</a>
 
-                                <form asp-action="Iniciar" asp-route-id="@item.IdRecorrido" method="post" class="d-inline form-iniciar">
+                                <form asp-action="Iniciar" asp-route-id="@item.IdRecorrido" method="post" class="d-inline" data-disable-on-submit data-confirm data-confirm-title="¿Iniciar recorrido?" data-confirm-text="El recorrido pasará a estado EN CURSO." data-confirm-icon="question" data-confirm-confirm-text="Sí, iniciar" data-confirm-cancel-text="Cancelar">
                                     @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-outline-success btn-sm"><i class="bi bi-play-fill me-1"></i>Iniciar</button>
+                                    <button type="submit" class="btn btn-outline-success btn-sm" data-loading-text="Iniciando..."><i class="bi bi-play-fill me-1"></i>Iniciar</button>
                                 </form>
 
-                                <form asp-action="Cancelar" asp-route-id="@item.IdRecorrido" method="post" class="d-inline form-cancelar">
+                                <form asp-action="Cancelar" asp-route-id="@item.IdRecorrido" method="post" class="d-inline" data-disable-on-submit data-confirm data-confirm-title="¿Cancelar recorrido?" data-confirm-text="El recorrido cambiará a estado CANCELADO." data-confirm-icon="warning" data-confirm-confirm-text="Sí, cancelar" data-confirm-cancel-text="Volver">
                                     @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x-circle me-1"></i>Cancelar</button>
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm" data-loading-text="Cancelando..."><i class="bi bi-x-circle me-1"></i>Cancelar</button>
                                 </form>
 
-                                <form asp-action="Eliminar" asp-route-id="@item.IdRecorrido" method="post" class="d-inline form-eliminar">
+                                <form asp-action="Eliminar" asp-route-id="@item.IdRecorrido" method="post" class="d-inline" data-disable-on-submit data-confirm data-confirm-title="¿Eliminar recorrido?" data-confirm-text="Se realizará una eliminación lógica. Podrás auditar esta acción." data-confirm-icon="warning" data-confirm-confirm-text="Sí, eliminar" data-confirm-cancel-text="Cancelar">
                                     @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Eliminar</button>
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" data-loading-text="Eliminando..."><i class="bi bi-trash me-1"></i>Eliminar</button>
                                 </form>
                             }
                             else if (estado == "EN_CURSO")
                             {
-                                <form asp-action="Finalizar" asp-route-id="@item.IdRecorrido" method="post" class="d-inline form-finalizar">
+                                <form asp-action="Finalizar" asp-route-id="@item.IdRecorrido" method="post" class="d-inline" data-disable-on-submit data-confirm data-confirm-title="¿Finalizar recorrido?" data-confirm-text="El recorrido pasará a estado FINALIZADO." data-confirm-icon="warning" data-confirm-confirm-text="Sí, finalizar" data-confirm-cancel-text="Cancelar">
                                     @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-outline-primary btn-sm"><i class="bi bi-check2-circle me-1"></i>Finalizar</button>
+                                    <button type="submit" class="btn btn-outline-primary btn-sm" data-loading-text="Finalizando..."><i class="bi bi-check2-circle me-1"></i>Finalizar</button>
                                 </form>
 
-                                <form asp-action="Cancelar" asp-route-id="@item.IdRecorrido" method="post" class="d-inline form-cancelar">
+                                <form asp-action="Cancelar" asp-route-id="@item.IdRecorrido" method="post" class="d-inline" data-disable-on-submit data-confirm data-confirm-title="¿Cancelar recorrido?" data-confirm-text="El recorrido cambiará a estado CANCELADO." data-confirm-icon="warning" data-confirm-confirm-text="Sí, cancelar" data-confirm-cancel-text="Volver">
                                     @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-stop-circle me-1"></i>Cancelar</button>
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" data-loading-text="Cancelando..."><i class="bi bi-stop-circle me-1"></i>Cancelar</button>
                                 </form>
                             }
                             else
@@ -104,95 +104,6 @@
     }
     else
     {
-        @await Html.PartialAsync("_ListEmptyState", ("Sin recorridos", "No hay recorridos registrados.", "bi-signpost-split"))
+        @await Html.PartialAsync("_ListEmptyState", ("Sin recorridos programados", "Aún no existen recorridos para mostrar. Crea uno nuevo para iniciar la operación.", "bi-signpost-split"))
     }
 </div>
-
-@section Scripts {
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-
-            function confirmarFormulario(selector, titulo, texto, icono, confirmButtonText) {
-                const forms = document.querySelectorAll(selector);
-
-                forms.forEach(form => {
-                    form.addEventListener("submit", function (e) {
-                        e.preventDefault();
-
-                        Swal.fire({
-                            title: titulo,
-                            text: texto,
-                            icon: icono,
-                            showCancelButton: true,
-                            confirmButtonText: confirmButtonText,
-                            cancelButtonText: "Cancelar",
-                            reverseButtons: true
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                form.submit();
-                            }
-                        });
-                    });
-                });
-            }
-
-            confirmarFormulario(
-                ".form-iniciar",
-                "¿Iniciar recorrido?",
-                "El recorrido pasará a estado EN_CURSO.",
-                "question",
-                "Sí, iniciar"
-            );
-
-            confirmarFormulario(
-                ".form-finalizar",
-                "¿Finalizar recorrido?",
-                "El recorrido pasará a estado FINALIZADO.",
-                "success",
-                "Sí, finalizar"
-            );
-
-            confirmarFormulario(
-                ".form-cancelar",
-                "¿Cancelar recorrido?",
-                "Esta acción cambiará el estado del recorrido a CANCELADO.",
-                "warning",
-                "Sí, cancelar"
-            );
-
-            confirmarFormulario(
-                ".form-eliminar",
-                "¿Eliminar recorrido?",
-                "Se realizará una eliminación lógica del recorrido.",
-                "warning",
-                "Sí, eliminar"
-            );
-        });
-    </script>
-
-    @if (TempData["ok"] != null)
-    {
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                Swal.fire({
-                    icon: "success",
-                    title: "Correcto",
-                    text: "@TempData["ok"]"
-                });
-            });
-        </script>
-    }
-
-    @if (TempData["error"] != null)
-    {
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                Swal.fire({
-                    icon: "error",
-                    title: "Error",
-                    text: "@TempData["error"]"
-                });
-            });
-        </script>
-    }
-}
