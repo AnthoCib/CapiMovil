@@ -21,13 +21,53 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    inicializarBuscadorAdmin();
+    inicializarBuscadorGlobal({
+        inputId: "adminGlobalSearch",
+        resultsId: "adminSearchResults",
+        dataNodeId: "admin-search-data",
+        itemClassName: "admin-search-item"
+    });
+
+    inicializarBuscadorGlobal({
+        inputId: "conductorGlobalSearch",
+        resultsId: "conductorSearchResults",
+        dataNodeId: "conductor-search-data",
+        itemClassName: "conductor-search-item"
+    });
+
+    inicializarBuscadorGlobal({
+        inputId: "padreGlobalSearch",
+        resultsId: "padreSearchResults",
+        dataNodeId: "padre-search-data",
+        itemClassName: "padre-search-item"
+    });
+
+    inicializarPanelNotificaciones({
+        toggleId: "adminNotificationToggle",
+        panelId: "adminNotificationPanel",
+        listId: "adminNotificationList",
+        dataNodeId: "admin-notification-data"
+    });
+
+    inicializarPanelNotificaciones({
+        toggleId: "conductorNotificationToggle",
+        panelId: "conductorNotificationPanel",
+        listId: "conductorNotificationList",
+        dataNodeId: "conductor-notification-data"
+    });
+
+    inicializarPanelNotificaciones({
+        toggleId: "padreNotificationToggle",
+        panelId: "padreNotificationPanel",
+        listId: "padreNotificationList",
+        dataNodeId: "padre-notification-data"
+    });
 });
 
-function inicializarBuscadorAdmin() {
-    const input = document.getElementById("adminGlobalSearch");
-    const results = document.getElementById("adminSearchResults");
-    const dataNode = document.getElementById("admin-search-data");
+function inicializarBuscadorGlobal(config) {
+    const input = document.getElementById(config.inputId);
+    const results = document.getElementById(config.resultsId);
+    const dataNode = document.getElementById(config.dataNodeId);
 
     if (!input || !results || !dataNode) {
         return;
@@ -91,7 +131,7 @@ function inicializarBuscadorAdmin() {
 
         results.innerHTML = filtrados
             .map((item, index) =>
-                `<button type="button" class="list-group-item list-group-item-action admin-search-item" data-index="${index}" data-url="${item.url}">
+                `<button type="button" class="list-group-item list-group-item-action ${config.itemClassName}" data-index="${index}" data-url="${item.url}">
                     <i class="bi bi-arrow-up-right-square me-2 text-muted"></i>${item.texto}
                 </button>`)
             .join("");
@@ -99,7 +139,7 @@ function inicializarBuscadorAdmin() {
         results.classList.remove("d-none");
         activeIndex = -1;
 
-        const rows = results.querySelectorAll(".admin-search-item");
+        const rows = results.querySelectorAll(`.${config.itemClassName}`);
         rows.forEach(row => {
             row.addEventListener("click", () => {
                 const url = row.getAttribute("data-url");
@@ -117,7 +157,7 @@ function inicializarBuscadorAdmin() {
     });
 
     input.addEventListener("keydown", (e) => {
-        const items = results.querySelectorAll(".admin-search-item");
+        const items = results.querySelectorAll(`.${config.itemClassName}`);
         if (results.classList.contains("d-none") || items.length === 0) {
             if (e.key === "Enter") {
                 e.preventDefault();
@@ -158,4 +198,54 @@ function inicializarBuscadorAdmin() {
             hideResults();
         }
     });
+}
+
+function inicializarPanelNotificaciones(config) {
+    const toggle = document.getElementById(config.toggleId);
+    const panel = document.getElementById(config.panelId);
+    const list = document.getElementById(config.listId);
+    const dataNode = document.getElementById(config.dataNodeId);
+
+    if (!toggle || !panel || !list || !dataNode) {
+        return;
+    }
+
+    let notifications = [];
+    try {
+        notifications = JSON.parse(dataNode.textContent || "[]");
+    } catch {
+        notifications = [];
+    }
+
+    if (!Array.isArray(notifications) || notifications.length === 0) {
+        list.innerHTML = '<div class="list-group-item text-muted small">Sin notificaciones recientes</div>';
+    } else {
+        list.innerHTML = notifications
+            .slice(0, 5)
+            .map(item => {
+                const texto = item.texto || item.Texto || "Notificación";
+                const url = item.url || item.Url || "#";
+                const tiempo = item.tiempo || item.Tiempo || "Reciente";
+                return `<a href="${url}" class="list-group-item list-group-item-action">
+                            <div class="fw-semibold small">${texto}</div>
+                            <small class="text-muted">${tiempo}</small>
+                        </a>`;
+            })
+            .join("");
+    }
+
+    const hidePanel = () => {
+        panel.classList.add("d-none");
+        toggle.setAttribute("aria-expanded", "false");
+    };
+
+    toggle.addEventListener("click", (e) => {
+        e.stopPropagation();
+        panel.classList.toggle("d-none");
+        const expanded = !panel.classList.contains("d-none");
+        toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+    });
+
+    panel.addEventListener("click", e => e.stopPropagation());
+    document.addEventListener("click", hidePanel);
 }

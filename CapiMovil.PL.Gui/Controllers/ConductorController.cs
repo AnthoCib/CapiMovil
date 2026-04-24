@@ -62,6 +62,7 @@ namespace CapiMovil.PL.Gui.Controllers
 
             List<RecorridoBE> recorridos = _recorridoBC.ListarPorConductor(conductor.IdConductor)
                 .OrderByDescending(r => r.Fecha)
+                .ThenByDescending(r => PrioridadEstadoRecorrido(r.EstadoRecorrido))
                 .ToList();
 
             RecorridoBE? recorridoHoy = recorridos

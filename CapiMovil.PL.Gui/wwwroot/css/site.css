@@ -101,3 +101,13 @@
     padding: 0.85rem;
     background: #fbfcff;
 }
+
+.app-notification-panel {
+    position: absolute;
+    right: 0;
+    top: calc(100% + .45rem);
+    min-width: 280px;
+    z-index: 1060;
+    border: 1px solid #ece9de;
+    border-radius: .8rem;
+}

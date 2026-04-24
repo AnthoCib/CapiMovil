@@ -15,6 +15,25 @@
             ? "nav-link active"
             : "nav-link";
     }
+
+    var conductorQuickLinks = new[]
+    {
+        new { Texto = "Dashboard", Url = Url.Action("Index", "Conductor"), Keywords = "inicio panel resumen" },
+        new { Texto = "Mi Ruta", Url = Url.Action("MiRuta", "Conductor"), Keywords = "ruta paraderos trayecto" },
+        new { Texto = "Recorridos", Url = Url.Action("Recorrido", "Conductor"), Keywords = "operacion iniciar finalizar" },
+        new { Texto = "Estudiantes", Url = Url.Action("Estudiantes", "Conductor"), Keywords = "alumnos lista" },
+        new { Texto = "Abordaje", Url = Url.Action("Abordaje", "Conductor"), Keywords = "subida bajada eventos" },
+        new { Texto = "Incidencias", Url = Url.Action("Incidencias", "Conductor"), Keywords = "alertas reportes" },
+        new { Texto = "Mi Bus", Url = Url.Action("MiBus", "Conductor"), Keywords = "bus unidad placa" },
+        new { Texto = "Mi Perfil", Url = Url.Action("MiPerfil", "Usuario"), Keywords = "perfil cuenta usuario" }
+    };
+
+    var conductorNotifications = new[]
+    {
+        new { Texto = "Revisar incidencias pendientes", Url = Url.Action("Incidencias", "Conductor"), Tiempo = "Hace 5 min" },
+        new { Texto = "Actualizar estado del recorrido en curso", Url = Url.Action("Recorrido", "Conductor"), Tiempo = "Hace 20 min" },
+        new { Texto = "Ver lista de estudiantes asignados", Url = Url.Action("Estudiantes", "Conductor"), Tiempo = "Hoy" }
+    };
 }
 <!DOCTYPE html>
 <html lang="es">
@@ -70,15 +89,26 @@
                         <button type="button" class="btn btn-light d-xl-none" id="conductorSidebarToggle" aria-label="Abrir menú">
                             <i class="bi bi-list"></i>
                         </button>
-                        <div class="input-group conductor-layout-search">
+                        <div class="input-group conductor-layout-search position-relative">
                             <span class="input-group-text bg-transparent border-0"><i class="bi bi-search"></i></span>
-                            <input class="form-control border-0" placeholder="Buscar acción..." />
+                            <input id="conductorGlobalSearch" class="form-control border-0" placeholder="Buscar acción..." autocomplete="off" />
+                            <div id="conductorSearchResults" class="admin-search-results list-group shadow-sm d-none" role="listbox" aria-label="Resultados de búsqueda"></div>
                         </div>
                     </div>
                     <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-light rounded-circle" aria-label="Notificaciones">
-                            <i class="bi bi-bell"></i>
-                        </button>
+                        <div class="position-relative">
+                            <button type="button" class="btn btn-light rounded-circle position-relative" id="conductorNotificationToggle" aria-label="Notificaciones" aria-expanded="false">
+                                <span class="admin-dot"></span>
+                                <i class="bi bi-bell"></i>
+                            </button>
+                            <div id="conductorNotificationPanel" class="app-notification-panel card shadow-sm d-none">
+                                <div class="card-body p-2">
+                                    <div class="small text-muted px-2 py-1">Notificaciones recientes</div>
+                                    <div id="conductorNotificationList" class="list-group list-group-flush"></div>
+                                    <a asp-controller="Notificacion" asp-action="Listar" class="btn btn-link btn-sm text-decoration-none w-100">Ver todas</a>
+                                </div>
+                            </div>
+                        </div>
                         <div class="conductor-user-pill">
                             @if (!string.IsNullOrWhiteSpace(fotoPerfilUrl))
                             {
@@ -108,6 +138,12 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/capimovil-maps.js" asp-append-version="true"></script>
+    <script id="conductor-search-data" type="application/json">
+        @Html.Raw(JsonSerializer.Serialize(conductorQuickLinks))
+    </script>
+    <script id="conductor-notification-data" type="application/json">
+        @Html.Raw(JsonSerializer.Serialize(conductorNotifications))
+    </script>
 
     @if (TempData["ok"] != null)
     {

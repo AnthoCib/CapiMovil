@@ -29,6 +29,15 @@
             new { Texto = "Auditoría", Url = Url.Action("Listar", "Auditoria"), Keywords = "auditoria historial" }
         }
         : Array.Empty<object>();
+
+    var adminNotifications = esAdmin
+        ? new[]
+        {
+            new { Texto = "Revisar incidencias abiertas", Url = Url.Action("Listar", "Incidencia"), Tiempo = "Hace 10 min" },
+            new { Texto = "Auditar últimos cambios del sistema", Url = Url.Action("Listar", "Auditoria"), Tiempo = "Hace 40 min" },
+            new { Texto = "Validar notificaciones pendientes", Url = Url.Action("Listar", "Notificacion"), Tiempo = "Hoy" }
+        }
+        : Array.Empty<object>();
 }
 
 <!DOCTYPE html>
@@ -100,7 +109,18 @@
                         </div>
 
                         <div class="d-flex align-items-center gap-2">
-                            <span class="btn btn-light rounded-circle position-relative"><i class="bi bi-bell"></i><span class="admin-dot"></span></span>
+                            <div class="position-relative">
+                                <button type="button" class="btn btn-light rounded-circle position-relative" id="adminNotificationToggle" aria-label="Notificaciones" aria-expanded="false">
+                                    <i class="bi bi-bell"></i><span class="admin-dot"></span>
+                                </button>
+                                <div id="adminNotificationPanel" class="app-notification-panel card shadow-sm d-none">
+                                    <div class="card-body p-2">
+                                        <div class="small text-muted px-2 py-1">Notificaciones recientes</div>
+                                        <div id="adminNotificationList" class="list-group list-group-flush"></div>
+                                        <a asp-controller="Notificacion" asp-action="Listar" class="btn btn-link btn-sm text-decoration-none w-100">Ver todas</a>
+                                    </div>
+                                </div>
+                            </div>
                             <a asp-controller="Usuario" asp-action="MiPerfil" class="btn btn-light rounded-circle d-inline-flex align-items-center justify-content-center" style="width:38px;height:38px;">
                                 @if (!string.IsNullOrWhiteSpace(fotoPerfilUrl))
                                 {
@@ -225,6 +245,9 @@
     {
         <script id="admin-search-data" type="application/json">
             @Html.Raw(JsonSerializer.Serialize(adminQuickLinks))
+        </script>
+        <script id="admin-notification-data" type="application/json">
+            @Html.Raw(JsonSerializer.Serialize(adminNotifications))
         </script>
     }
 
