@@ -380,3 +380,29 @@ BEGIN
     WHERE a.IdAuditoria = @IdAuditoria;
 END
 GO
+
+/* =============================================
+   SECCIÓN F: PADRE FAMILIA (COMBO ESTUDIANTE)
+   ============================================= */
+CREATE OR ALTER PROCEDURE dbo.sp_PadreFamilia_ListarParaCombo
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        p.IdPadre,
+        p.CodigoPadre,
+        p.Nombres,
+        p.ApellidoPaterno,
+        p.ApellidoMaterno,
+        u.Username,
+        u.Correo
+    FROM dbo.PadreFamilia p
+    INNER JOIN dbo.Usuario u ON u.IdUsuario = p.IdUsuario
+    WHERE p.Estado = 1
+      AND p.FechaEliminacion IS NULL
+      AND u.Estado = 1
+      AND u.FechaEliminacion IS NULL
+    ORDER BY p.ApellidoPaterno, p.ApellidoMaterno, p.Nombres;
+END
+GO

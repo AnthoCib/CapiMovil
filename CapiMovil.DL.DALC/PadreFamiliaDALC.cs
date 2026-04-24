@@ -150,6 +150,45 @@ namespace CapiMovil.DL.DALC
             return lista;
         }
 
+        public List<PadreFamiliaBE> ListarParaCombo()
+        {
+            List<PadreFamiliaBE> lista = new();
+
+            using SqlConnection cn = _bdConexion.ObtenerConexion();
+            using SqlCommand cmd = new("sp_PadreFamilia_ListarParaCombo", cn)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            cn.Open();
+            using SqlDataReader dr = cmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                PadreFamiliaBE padre = new()
+                {
+                    IdPadre = dr.GetGuid(dr.GetOrdinal("IdPadre")),
+                    CodigoPadre = dr["CodigoPadre"]?.ToString() ?? string.Empty,
+                    Nombres = dr["Nombres"]?.ToString() ?? string.Empty,
+                    ApellidoPaterno = dr["ApellidoPaterno"]?.ToString() ?? string.Empty,
+                    ApellidoMaterno = dr["ApellidoMaterno"]?.ToString() ?? string.Empty
+                };
+
+                if (ExisteColumna(dr, "Username") || ExisteColumna(dr, "Correo"))
+                {
+                    padre.Usuario = new UsuarioBE
+                    {
+                        Username = ExisteColumna(dr, "Username") ? dr["Username"]?.ToString() ?? string.Empty : string.Empty,
+                        Correo = ExisteColumna(dr, "Correo") ? dr["Correo"]?.ToString() ?? string.Empty : string.Empty
+                    };
+                }
+
+                lista.Add(padre);
+            }
+
+            return lista;
+        }
+
 
         public PadreFamiliaBE? ObtenerPorIdUsuario(Guid idUsuario)
         {
@@ -227,6 +266,17 @@ namespace CapiMovil.DL.DALC
                 FechaActualizacion = dr["FechaActualizacion"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaActualizacion"]),
                 FechaEliminacion = dr["FechaEliminacion"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaEliminacion"])
             };
+        }
+
+        private static bool ExisteColumna(SqlDataReader dr, string nombreColumna)
+        {
+            for (int i = 0; i < dr.FieldCount; i++)
+            {
+                if (dr.GetName(i).Equals(nombreColumna, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            return false;
         }
     }
 }

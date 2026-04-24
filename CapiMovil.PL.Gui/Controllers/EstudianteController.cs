@@ -203,13 +203,15 @@ namespace CapiMovil.PL.Gui.Controllers
 
         private List<SelectListItem> ObtenerPadres()
         {
-            var padres = _padreFamiliaBC.Listar();
+            List<PadreFamiliaBE> padres = _padreFamiliaBC.ListarParaCombo();
 
             return padres
                 .Select(p => new SelectListItem
                 {
                     Value = p.IdPadre.ToString(),
-                    Text = $"{p.CodigoPadre} - {p.NombreCompleto}"
+                    Text = string.IsNullOrWhiteSpace(p.Usuario?.Username)
+                        ? $"{p.CodigoPadre} - {p.NombreCompleto}"
+                        : $"{p.CodigoPadre} - {p.NombreCompleto} ({p.Usuario?.Username})"
                 })
                 .ToList();
         }

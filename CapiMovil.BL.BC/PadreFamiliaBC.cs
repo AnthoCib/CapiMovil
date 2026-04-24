@@ -39,6 +39,11 @@ namespace CapiMovil.BL.BC
             return _dalc.ListarUsuariosDisponibles();
         }
 
+        public List<PadreFamiliaBE> ListarParaCombo()
+        {
+            return _dalc.ListarParaCombo();
+        }
+
         public bool Registrar(PadreFamiliaBE entidad)
         {
             ValidarCamposObligatorios(entidad);
