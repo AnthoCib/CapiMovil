@@ -97,7 +97,7 @@
     @RenderSection("Styles", required: false)
 </head>
 <body class="pf-layout-body">
-    <div class="pf-layout-shell" id="pfLayoutShell">
+    <div class="pf-layout-shell" id="pfLayoutShell" data-sidebar-shell data-sidebar-nav=".pf-layout-nav .nav-link" data-sidebar-breakpoint="1200">
         <aside class="pf-layout-sidebar" id="pfLayoutSidebar">
             <div class="card border-0 shadow-sm h-100 pf-card">
                 <div class="card-body d-flex flex-column p-3 p-lg-4">
@@ -129,13 +129,13 @@
                 </div>
             </div>
         </aside>
-        <div class="pf-layout-backdrop d-xl-none" id="pfLayoutBackdrop"></div>
+        <div class="pf-layout-backdrop d-xl-none" id="pfLayoutBackdrop" data-sidebar-backdrop></div>
 
         <div class="pf-layout-main">
             <header class="card border-0 shadow-sm mb-3 pf-card">
                 <div class="card-body p-3 d-flex justify-content-between align-items-center gap-2">
                     <div class="d-flex align-items-center gap-2 flex-grow-1">
-                        <button type="button" class="btn btn-light d-xl-none" id="pfSidebarToggle" aria-label="Abrir menú">
+                        <button type="button" class="btn btn-light d-xl-none" id="pfSidebarToggle" data-sidebar-toggle aria-label="Abrir menú">
                             <i class="bi bi-list"></i>
                         </button>
                         <div class="input-group pf-layout-search app-search position-relative">
@@ -196,41 +196,8 @@
         @Html.Raw(JsonSerializer.Serialize(padreNotifications.Take(8)))
     </script>
 
-    @if (TempData["ok"] != null)
-    {
-        <script>
-            Swal.fire({ icon: 'success', title: 'Éxito', text: @Html.Raw(JsonSerializer.Serialize(TempData["ok"]?.ToString())), confirmButtonText: 'Aceptar' });
-        </script>
-    }
-
-    @if (TempData["error"] != null)
-    {
-        <script>
-            Swal.fire({ icon: 'error', title: 'Error', text: @Html.Raw(JsonSerializer.Serialize(TempData["error"]?.ToString())), confirmButtonText: 'Aceptar' });
-        </script>
-    }
+        <partial name="_SweetAlertMessages" />
 
     @RenderSection("Scripts", required: false)
-    <script>
-        (function () {
-            const shell = document.getElementById('pfLayoutShell');
-            const toggle = document.getElementById('pfSidebarToggle');
-            const backdrop = document.getElementById('pfLayoutBackdrop');
-            if (!shell || !toggle || !backdrop) return;
-
-            toggle.addEventListener('click', () => shell.classList.toggle('sidebar-open'));
-            backdrop.addEventListener('click', () => shell.classList.remove('sidebar-open'));
-
-            shell.querySelectorAll('.pf-layout-nav .nav-link').forEach(link => {
-                link.addEventListener('click', () => shell.classList.remove('sidebar-open'));
-            });
-
-            window.addEventListener('resize', () => {
-                if (window.innerWidth >= 1200) {
-                    shell.classList.remove('sidebar-open');
-                }
-            });
-        })();
-    </script>
 </body>
 </html>

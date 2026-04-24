@@ -21,47 +21,19 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    inicializarBuscadorGlobal({
-        inputId: "adminGlobalSearch",
-        resultsId: "adminSearchResults",
-        dataNodeId: "admin-search-data",
-        itemClassName: "admin-search-item"
-    });
+    [
+        { inputId: "adminGlobalSearch", resultsId: "adminSearchResults", dataNodeId: "admin-search-data", itemClassName: "admin-search-item" },
+        { inputId: "conductorGlobalSearch", resultsId: "conductorSearchResults", dataNodeId: "conductor-search-data", itemClassName: "conductor-search-item" },
+        { inputId: "padreGlobalSearch", resultsId: "padreSearchResults", dataNodeId: "padre-search-data", itemClassName: "padre-search-item" }
+    ].forEach(inicializarBuscadorGlobal);
 
-    inicializarBuscadorGlobal({
-        inputId: "conductorGlobalSearch",
-        resultsId: "conductorSearchResults",
-        dataNodeId: "conductor-search-data",
-        itemClassName: "conductor-search-item"
-    });
+    [
+        { toggleId: "adminNotificationToggle", panelId: "adminNotificationPanel", listId: "adminNotificationList", dataNodeId: "admin-notification-data" },
+        { toggleId: "conductorNotificationToggle", panelId: "conductorNotificationPanel", listId: "conductorNotificationList", dataNodeId: "conductor-notification-data" },
+        { toggleId: "padreNotificationToggle", panelId: "padreNotificationPanel", listId: "padreNotificationList", dataNodeId: "padre-notification-data" }
+    ].forEach(inicializarPanelNotificaciones);
 
-    inicializarBuscadorGlobal({
-        inputId: "padreGlobalSearch",
-        resultsId: "padreSearchResults",
-        dataNodeId: "padre-search-data",
-        itemClassName: "padre-search-item"
-    });
-
-    inicializarPanelNotificaciones({
-        toggleId: "adminNotificationToggle",
-        panelId: "adminNotificationPanel",
-        listId: "adminNotificationList",
-        dataNodeId: "admin-notification-data"
-    });
-
-    inicializarPanelNotificaciones({
-        toggleId: "conductorNotificationToggle",
-        panelId: "conductorNotificationPanel",
-        listId: "conductorNotificationList",
-        dataNodeId: "conductor-notification-data"
-    });
-
-    inicializarPanelNotificaciones({
-        toggleId: "padreNotificationToggle",
-        panelId: "padreNotificationPanel",
-        listId: "padreNotificationList",
-        dataNodeId: "padre-notification-data"
-    });
+    inicializarSidebarsDesdeData();
 });
 
 function inicializarBuscadorGlobal(config) {
@@ -244,3 +216,38 @@ function inicializarPanelNotificaciones(config) {
     panel.addEventListener("click", e => e.stopPropagation());
     document.addEventListener("click", hidePanel);
 }
+
+function inicializarSidebarShellById(shellId) {
+    const shell = document.getElementById(shellId);
+    if (!shell) return;
+
+    const toggle = shell.querySelector("[data-sidebar-toggle]");
+    const backdrop = shell.querySelector("[data-sidebar-backdrop]");
+    const navSelector = shell.dataset.sidebarNav || ".nav-link";
+    const desktopBreakpoint = Number(shell.dataset.sidebarBreakpoint || 1200);
+
+    if (!toggle || !backdrop) return;
+
+    toggle.addEventListener("click", () => shell.classList.toggle("sidebar-open"));
+    backdrop.addEventListener("click", () => shell.classList.remove("sidebar-open"));
+
+    shell.querySelectorAll(navSelector).forEach(link => {
+        link.addEventListener("click", () => shell.classList.remove("sidebar-open"));
+    });
+
+    window.addEventListener("resize", () => {
+        if (window.innerWidth >= desktopBreakpoint) {
+            shell.classList.remove("sidebar-open");
+        }
+    });
+}
+
+function inicializarSidebarsDesdeData() {
+    document.querySelectorAll("[data-sidebar-shell][id]").forEach(shell => {
+        inicializarSidebarShellById(shell.id);
+    });
+}
+
+window.CapiMovilUI = {
+    initSidebarShell: inicializarSidebarShellById
+};

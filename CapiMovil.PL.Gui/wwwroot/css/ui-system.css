@@ -123,6 +123,39 @@ body {
     border-radius: .85rem;
 }
 
+
+
+.conductor-layout-body,
+.pf-layout-body {
+    margin: 0;
+}
+
+.conductor-layout-shell,
+.pf-layout-shell {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 1rem;
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+.conductor-layout-sidebar,
+.pf-layout-sidebar {
+    position: sticky;
+    top: 1rem;
+    align-self: start;
+}
+
+.conductor-layout-main,
+.pf-layout-main {
+    min-width: 0;
+}
+
+.conductor-layout-search,
+.pf-layout-search {
+    max-width: 390px;
+}
+
 .app-user-pill {
     background: #f8f4eb;
     border: 1px solid #eadfce;
@@ -167,6 +200,45 @@ body {
     border-radius: .95rem;
     border: 1px solid #dfd3c1;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .45);
+}
+
+@media (max-width: 1199.98px) {
+    .conductor-layout-shell,
+    .pf-layout-shell {
+        grid-template-columns: 1fr;
+        position: relative;
+    }
+
+    .conductor-layout-sidebar,
+    .pf-layout-sidebar {
+        position: fixed;
+        top: 0;
+        left: -290px;
+        width: 280px;
+        height: 100vh;
+        z-index: 1045;
+        transition: left .22s ease;
+        padding: 1rem;
+    }
+
+    .conductor-layout-backdrop,
+    .pf-layout-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(17, 24, 39, .35);
+        z-index: 1040;
+    }
+
+    .conductor-layout-shell.sidebar-open .conductor-layout-sidebar,
+    .pf-layout-shell.sidebar-open .pf-layout-sidebar {
+        left: 0;
+    }
+
+    .conductor-layout-shell.sidebar-open .conductor-layout-backdrop,
+    .pf-layout-shell.sidebar-open .pf-layout-backdrop {
+        display: block;
+    }
 }
 
 @media (max-width: 767.98px) {
