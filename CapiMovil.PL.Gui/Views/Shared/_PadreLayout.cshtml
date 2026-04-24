@@ -1,6 +1,10 @@
 @using System.Text.Json
 @using Microsoft.AspNetCore.Http
+@using CapiMovil.BL.BC
 @inject IHttpContextAccessor HttpContextAccessor
+@inject PadreFamiliaBC PadreFamiliaBC
+@inject NotificacionBC NotificacionBC
+@inject IncidenciaBC IncidenciaBC
 
 @{
     var username = HttpContextAccessor.HttpContext?.Session.GetString("Username") ?? "Padre";
@@ -20,20 +24,62 @@
     var padreQuickLinks = new[]
     {
         new { Texto = "Dashboard", Url = Url.Action("Index", "PadreFamilia"), Keywords = "inicio panel resumen" },
-        new { Texto = "Mapa en Vivo", Url = Url.Action("MapaEnVivo", "PadreFamilia"), Keywords = "mapa ubicacion bus tiempo real" },
-        new { Texto = "Seguimiento", Url = Url.Action("Seguimiento", "PadreFamilia"), Keywords = "ruta seguimiento recorrido" },
-        new { Texto = "Mis Hijos", Url = Url.Action("MisHijos", "PadreFamilia"), Keywords = "hijos estudiantes familia" },
+        new { Texto = "Mis Hijos", Url = Url.Action("MisHijos", "PadreFamilia"), Keywords = "hijos estudiantes" },
+        new { Texto = "Seguimiento", Url = Url.Action("Seguimiento", "PadreFamilia"), Keywords = "seguimiento ruta bus" },
+        new { Texto = "Mapa en Vivo", Url = Url.Action("MapaEnVivo", "PadreFamilia"), Keywords = "mapa ubicacion tiempo real" },
+        new { Texto = "Historial", Url = Url.Action("Historial", "PadreFamilia"), Keywords = "historial eventos" },
         new { Texto = "Notificaciones", Url = Url.Action("Notificaciones", "PadreFamilia"), Keywords = "avisos mensajes alertas" },
-        new { Texto = "Incidencias", Url = Url.Action("Incidencias", "PadreFamilia"), Keywords = "eventos reportes" },
-        new { Texto = "Mi Perfil", Url = Url.Action("MiPerfil", "Usuario"), Keywords = "perfil cuenta usuario" }
+        new { Texto = "Perfil", Url = Url.Action("MiPerfil", "Usuario"), Keywords = "perfil cuenta" },
+        new { Texto = "Ajustes", Url = Url.Action("CambiarPassword", "Usuario"), Keywords = "ajustes seguridad" },
+        new { Texto = "Cambiar contraseña", Url = Url.Action("CambiarPassword", "Usuario"), Keywords = "password clave" }
     };
 
-    var padreNotifications = new[]
+    var padreNotifications = new List<object>();
+    int padreNoLeidas = 0;
+
+    try
     {
-        new { Texto = "Nuevo evento de abordaje registrado", Url = Url.Action("MisEventos", "PadreFamilia"), Tiempo = "Hace 3 min" },
-        new { Texto = "Revise incidencias de la ruta", Url = Url.Action("Incidencias", "PadreFamilia"), Tiempo = "Hace 1 hora" },
-        new { Texto = "Actualización disponible en notificaciones", Url = Url.Action("Notificaciones", "PadreFamilia"), Tiempo = "Hoy" }
-    };
+        string? usuarioIdSession = HttpContextAccessor.HttpContext?.Session.GetString("UsuarioId");
+        if (Guid.TryParse(usuarioIdSession, out Guid idUsuario))
+        {
+            var padre = PadreFamiliaBC.ObtenerPorIdUsuario(idUsuario);
+            if (padre != null)
+            {
+                var notificaciones = NotificacionBC.ListarPorPadre(padre.IdPadre)
+                    .OrderByDescending(x => x.FechaEnvio)
+                    .Take(6)
+                    .ToList();
+
+                padreNoLeidas = notificaciones.Count(x => !x.Leido);
+
+                padreNotifications.AddRange(notificaciones.Select(n => new
+                {
+                    Texto = n.Titulo,
+                    Url = Url.Action("DetalleNotificacion", "PadreFamilia", new { idNotificacion = n.IdNotificacion }),
+                    Tiempo = n.FechaEnvio.ToString("dd/MM HH:mm")
+                }));
+
+                var incidencias = IncidenciaBC.ListarPorPadre(padre.IdPadre)
+                    .OrderByDescending(x => x.FechaHora)
+                    .Take(2);
+
+                foreach (var incidencia in incidencias)
+                {
+                    padreNotifications.Add(new
+                    {
+                        Texto = $"Incidencia: {incidencia.TipoIncidencia} ({incidencia.EstadoIncidencia})",
+                        Url = Url.Action("Incidencias", "PadreFamilia"),
+                        Tiempo = incidencia.FechaHora.ToString("dd/MM HH:mm")
+                    });
+                }
+            }
+        }
+    }
+    catch
+    {
+        padreNotifications = new List<object>();
+        padreNoLeidas = 0;
+    }
 }
 <!DOCTYPE html>
 <html lang="es">
@@ -100,12 +146,15 @@
                     <div class="d-flex align-items-center gap-2">
                         <div class="position-relative">
                             <button type="button" class="btn btn-light rounded-circle position-relative" id="padreNotificationToggle" aria-label="Notificaciones" aria-expanded="false">
-                                <span class="admin-dot"></span>
                                 <i class="bi bi-bell"></i>
+                                @if (padreNoLeidas > 0)
+                                {
+                                    <span class="badge rounded-pill text-bg-danger position-absolute top-0 start-100 translate-middle">@padreNoLeidas</span>
+                                }
                             </button>
                             <div id="padreNotificationPanel" class="app-notification-panel card shadow-sm d-none">
                                 <div class="card-body p-2">
-                                    <div class="small text-muted px-2 py-1">Notificaciones recientes</div>
+                                    <div class="small text-muted px-2 py-1">Notificaciones recientes (Padre)</div>
                                     <div id="padreNotificationList" class="list-group list-group-flush"></div>
                                     <a asp-controller="PadreFamilia" asp-action="Notificaciones" class="btn btn-link btn-sm text-decoration-none w-100">Ver todas</a>
                                 </div>
@@ -143,7 +192,7 @@
         @Html.Raw(JsonSerializer.Serialize(padreQuickLinks))
     </script>
     <script id="padre-notification-data" type="application/json">
-        @Html.Raw(JsonSerializer.Serialize(padreNotifications))
+        @Html.Raw(JsonSerializer.Serialize(padreNotifications.Take(8)))
     </script>
 
     @if (TempData["ok"] != null)

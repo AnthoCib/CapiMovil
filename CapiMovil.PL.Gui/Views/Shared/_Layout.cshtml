@@ -1,6 +1,9 @@
 @using System.Text.Json
 @using Microsoft.AspNetCore.Http
+@using CapiMovil.BL.BC
 @inject IHttpContextAccessor HttpContextAccessor
+@inject IncidenciaBC IncidenciaBC
+@inject NotificacionBC NotificacionBC
 
 @{
     var httpContext = HttpContextAccessor.HttpContext;
@@ -27,20 +30,51 @@
             new { Texto = "Recorridos", Url = Url.Action("Listar", "Recorrido"), Keywords = "recorridos operaciones" },
             new { Texto = "Incidencias", Url = Url.Action("Listar", "Incidencia"), Keywords = "incidencias alertas" },
             new { Texto = "Notificaciones", Url = Url.Action("Listar", "Notificacion"), Keywords = "notificaciones mensajes" },
-            new { Texto = "Auditoría", Url = Url.Action("Listar", "Auditoria"), Keywords = "auditoria historial" }
+            new { Texto = "Auditoría", Url = Url.Action("Listar", "Auditoria"), Keywords = "auditoria historial" },
+            new { Texto = "Perfil", Url = Url.Action("MiPerfil", "Usuario"), Keywords = "perfil cuenta" },
+            new { Texto = "Cambiar contraseña", Url = Url.Action("CambiarPassword", "Usuario"), Keywords = "password clave seguridad" }
         }
         : Array.Empty<object>();
 
-    var adminNotifications = esAdmin
-        ? new[]
+    var adminNotifications = new List<object>();
+    int adminNoLeidas = 0;
+
+    if (esAdmin)
+    {
+        try
         {
-            new { Texto = "Revisar incidencias abiertas", Url = Url.Action("Listar", "Incidencia"), Tiempo = "Hace 10 min" },
-            new { Texto = "Auditar últimos cambios del sistema", Url = Url.Action("Listar", "Auditoria"), Tiempo = "Hace 40 min" },
-            new { Texto = "Validar notificaciones pendientes", Url = Url.Action("Listar", "Notificacion"), Tiempo = "Hoy" }
-        }
-        : Array.Empty<object>();
-}
+            var incidenciasRecientes = IncidenciaBC.Listar()
+                .OrderByDescending(x => x.FechaHora)
+                .Take(4)
+                .Select(x => new
+                {
+                    Texto = $"[{x.Prioridad}] {x.TipoIncidencia}: {x.CodigoIncidencia}",
+                    Url = Url.Action("Detalle", "Incidencia", new { id = x.IdIncidencia }),
+                    Tiempo = x.FechaHora.ToString("dd/MM HH:mm")
+                });
 
+            adminNotifications.AddRange(incidenciasRecientes);
+
+            var notificaciones = NotificacionBC.Listar();
+            adminNoLeidas = notificaciones.Count(x => !x.Leido);
+
+            foreach (var item in notificaciones.OrderByDescending(x => x.FechaEnvio).Take(3))
+            {
+                adminNotifications.Add(new
+                {
+                    Texto = item.Titulo,
+                    Url = Url.Action("Detalle", "Notificacion", new { id = item.IdNotificacion }),
+                    Tiempo = item.FechaEnvio.ToString("dd/MM HH:mm")
+                });
+            }
+        }
+        catch
+        {
+            adminNotifications = new List<object>();
+            adminNoLeidas = 0;
+        }
+    }
+}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -112,11 +146,15 @@
                         <div class="d-flex align-items-center gap-2">
                             <div class="position-relative">
                                 <button type="button" class="btn btn-light rounded-circle position-relative" id="adminNotificationToggle" aria-label="Notificaciones" aria-expanded="false">
-                                    <i class="bi bi-bell"></i><span class="admin-dot"></span>
+                                    <i class="bi bi-bell"></i>
+                                    @if (adminNoLeidas > 0)
+                                    {
+                                        <span class="badge rounded-pill text-bg-danger position-absolute top-0 start-100 translate-middle">@adminNoLeidas</span>
+                                    }
                                 </button>
                                 <div id="adminNotificationPanel" class="app-notification-panel card shadow-sm d-none">
                                     <div class="card-body p-2">
-                                        <div class="small text-muted px-2 py-1">Notificaciones recientes</div>
+                                        <div class="small text-muted px-2 py-1">Notificaciones recientes (Admin)</div>
                                         <div id="adminNotificationList" class="list-group list-group-flush"></div>
                                         <a asp-controller="Notificacion" asp-action="Listar" class="btn btn-link btn-sm text-decoration-none w-100">Ver todas</a>
                                     </div>
@@ -248,7 +286,7 @@
             @Html.Raw(JsonSerializer.Serialize(adminQuickLinks))
         </script>
         <script id="admin-notification-data" type="application/json">
-            @Html.Raw(JsonSerializer.Serialize(adminNotifications))
+            @Html.Raw(JsonSerializer.Serialize(adminNotifications.Take(8)))
         </script>
     }
 

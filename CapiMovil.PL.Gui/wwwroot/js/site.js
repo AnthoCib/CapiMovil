@@ -92,17 +92,6 @@ function inicializarBuscadorGlobal(config) {
         activeIndex = -1;
     };
 
-    const goToIndex = (index) => {
-        if (index < 0 || index >= modules.length) {
-            return;
-        }
-
-        const destino = modules[index]?.url || modules[index]?.Url;
-        if (destino) {
-            window.location.href = destino;
-        }
-    };
-
     const renderResults = (query) => {
         const term = (query || "").trim().toLowerCase();
         if (!term) {
@@ -123,9 +112,10 @@ function inicializarBuscadorGlobal(config) {
             .slice(0, 8);
 
         if (filtrados.length === 0) {
-            results.innerHTML = '<button type="button" class="list-group-item list-group-item-action disabled">Sin resultados</button>';
+            results.innerHTML = '<button type="button" class="list-group-item list-group-item-action disabled">Sin resultados para este rol</button>';
             results.classList.remove("d-none");
             activeIndex = -1;
+            input.dataset.filtered = "[]";
             return;
         }
 
@@ -158,14 +148,18 @@ function inicializarBuscadorGlobal(config) {
 
     input.addEventListener("keydown", (e) => {
         const items = results.querySelectorAll(`.${config.itemClassName}`);
-        if (results.classList.contains("d-none") || items.length === 0) {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                const list = JSON.parse(input.dataset.filtered || "[]");
-                if (list.length > 0 && list[0].url) {
-                    window.location.href = list[0].url;
-                }
+        const list = JSON.parse(input.dataset.filtered || "[]");
+
+        if (e.key === "Enter") {
+            e.preventDefault();
+            const target = activeIndex >= 0 ? list[activeIndex] : list[0];
+            if (target?.url) {
+                window.location.href = target.url;
             }
+            return;
+        }
+
+        if (results.classList.contains("d-none") || items.length === 0) {
             return;
         }
 
@@ -175,14 +169,6 @@ function inicializarBuscadorGlobal(config) {
         } else if (e.key === "ArrowUp") {
             e.preventDefault();
             activeIndex = (activeIndex - 1 + items.length) % items.length;
-        } else if (e.key === "Enter") {
-            e.preventDefault();
-            const list = JSON.parse(input.dataset.filtered || "[]");
-            const target = activeIndex >= 0 ? list[activeIndex] : list[0];
-            if (target?.url) {
-                window.location.href = target.url;
-            }
-            return;
         } else if (e.key === "Escape") {
             hideResults();
             return;
@@ -191,6 +177,12 @@ function inicializarBuscadorGlobal(config) {
         items.forEach((item, i) => {
             item.classList.toggle("active", i === activeIndex);
         });
+    });
+
+    input.addEventListener("focus", () => {
+        if (input.value.trim()) {
+            renderResults(input.value);
+        }
     });
 
     document.addEventListener("click", (e) => {
@@ -218,10 +210,14 @@ function inicializarPanelNotificaciones(config) {
     }
 
     if (!Array.isArray(notifications) || notifications.length === 0) {
-        list.innerHTML = '<div class="list-group-item text-muted small">Sin notificaciones recientes</div>';
+        list.innerHTML = `
+            <div class="list-group-item text-center py-3">
+                <i class="bi bi-bell-slash text-muted d-block mb-1"></i>
+                <small class="text-muted">Sin notificaciones recientes</small>
+            </div>`;
     } else {
         list.innerHTML = notifications
-            .slice(0, 5)
+            .slice(0, 6)
             .map(item => {
                 const texto = item.texto || item.Texto || "Notificación";
                 const url = item.url || item.Url || "#";
@@ -242,8 +238,7 @@ function inicializarPanelNotificaciones(config) {
     toggle.addEventListener("click", (e) => {
         e.stopPropagation();
         panel.classList.toggle("d-none");
-        const expanded = !panel.classList.contains("d-none");
-        toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+        toggle.setAttribute("aria-expanded", panel.classList.contains("d-none") ? "false" : "true");
     });
 
     panel.addEventListener("click", e => e.stopPropagation());

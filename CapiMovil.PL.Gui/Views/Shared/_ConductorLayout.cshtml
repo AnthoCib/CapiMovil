@@ -1,6 +1,10 @@
 @using System.Text.Json
 @using Microsoft.AspNetCore.Http
+@using CapiMovil.BL.BC
 @inject IHttpContextAccessor HttpContextAccessor
+@inject ConductorBC ConductorBC
+@inject IncidenciaBC IncidenciaBC
+@inject RecorridoBC RecorridoBC
 
 @{
     var username = HttpContextAccessor.HttpContext?.Session.GetString("Username") ?? "Conductor";
@@ -20,21 +24,64 @@
     var conductorQuickLinks = new[]
     {
         new { Texto = "Dashboard", Url = Url.Action("Index", "Conductor"), Keywords = "inicio panel resumen" },
-        new { Texto = "Mi Ruta", Url = Url.Action("MiRuta", "Conductor"), Keywords = "ruta paraderos trayecto" },
+        new { Texto = "Mi Ruta", Url = Url.Action("MiRuta", "Conductor"), Keywords = "ruta mapa paraderos trayecto" },
         new { Texto = "Recorridos", Url = Url.Action("Recorrido", "Conductor"), Keywords = "operacion iniciar finalizar" },
         new { Texto = "Estudiantes", Url = Url.Action("Estudiantes", "Conductor"), Keywords = "alumnos lista" },
         new { Texto = "Abordaje", Url = Url.Action("Abordaje", "Conductor"), Keywords = "subida bajada eventos" },
         new { Texto = "Incidencias", Url = Url.Action("Incidencias", "Conductor"), Keywords = "alertas reportes" },
         new { Texto = "Mi Bus", Url = Url.Action("MiBus", "Conductor"), Keywords = "bus unidad placa" },
-        new { Texto = "Mi Perfil", Url = Url.Action("MiPerfil", "Usuario"), Keywords = "perfil cuenta usuario" }
+        new { Texto = "Seguimiento en vivo", Url = Url.Action("MiRuta", "Conductor"), Keywords = "seguimiento vivo mapa" },
+        new { Texto = "Perfil", Url = Url.Action("MiPerfil", "Usuario"), Keywords = "perfil cuenta usuario" },
+        new { Texto = "Cambiar contraseña", Url = Url.Action("CambiarPassword", "Usuario"), Keywords = "password clave seguridad" }
     };
 
-    var conductorNotifications = new[]
+    var conductorNotifications = new List<object>();
+    int conductorNoLeidas = 0;
+
+    try
     {
-        new { Texto = "Revisar incidencias pendientes", Url = Url.Action("Incidencias", "Conductor"), Tiempo = "Hace 5 min" },
-        new { Texto = "Actualizar estado del recorrido en curso", Url = Url.Action("Recorrido", "Conductor"), Tiempo = "Hace 20 min" },
-        new { Texto = "Ver lista de estudiantes asignados", Url = Url.Action("Estudiantes", "Conductor"), Tiempo = "Hoy" }
-    };
+        string? usuarioIdSession = HttpContextAccessor.HttpContext?.Session.GetString("UsuarioId");
+        if (Guid.TryParse(usuarioIdSession, out Guid idUsuario))
+        {
+            var conductor = ConductorBC.ObtenerPorIdUsuario(idUsuario);
+            if (conductor != null)
+            {
+                var incidencias = IncidenciaBC.ListarPorConductor(conductor.IdConductor)
+                    .OrderByDescending(x => x.FechaHora)
+                    .Take(5)
+                    .ToList();
+
+                conductorNoLeidas = incidencias.Count(x => !string.Equals(x.EstadoIncidencia, "CERRADA", StringComparison.OrdinalIgnoreCase));
+
+                conductorNotifications.AddRange(incidencias.Select(x => new
+                {
+                    Texto = $"[{x.EstadoIncidencia}] {x.TipoIncidencia}",
+                    Url = Url.Action("Incidencias", "Conductor"),
+                    Tiempo = x.FechaHora.ToString("dd/MM HH:mm")
+                }));
+
+                var recorridosActivos = RecorridoBC.ListarPorConductor(conductor.IdConductor)
+                    .Where(x => x.EstadoRecorrido == "PROGRAMADO" || x.EstadoRecorrido == "EN_CURSO")
+                    .OrderByDescending(x => x.Fecha)
+                    .Take(3);
+
+                foreach (var recorrido in recorridosActivos)
+                {
+                    conductorNotifications.Add(new
+                    {
+                        Texto = $"Recorrido {recorrido.CodigoRecorrido}: {recorrido.EstadoRecorrido}",
+                        Url = Url.Action("Recorrido", "Conductor"),
+                        Tiempo = recorrido.Fecha.ToString("dd/MM/yyyy")
+                    });
+                }
+            }
+        }
+    }
+    catch
+    {
+        conductorNotifications = new List<object>();
+        conductorNoLeidas = 0;
+    }
 }
 <!DOCTYPE html>
 <html lang="es">
@@ -99,14 +146,17 @@
                     <div class="d-flex align-items-center gap-2">
                         <div class="position-relative">
                             <button type="button" class="btn btn-light rounded-circle position-relative" id="conductorNotificationToggle" aria-label="Notificaciones" aria-expanded="false">
-                                <span class="admin-dot"></span>
                                 <i class="bi bi-bell"></i>
+                                @if (conductorNoLeidas > 0)
+                                {
+                                    <span class="badge rounded-pill text-bg-danger position-absolute top-0 start-100 translate-middle">@conductorNoLeidas</span>
+                                }
                             </button>
                             <div id="conductorNotificationPanel" class="app-notification-panel card shadow-sm d-none">
                                 <div class="card-body p-2">
-                                    <div class="small text-muted px-2 py-1">Notificaciones recientes</div>
+                                    <div class="small text-muted px-2 py-1">Notificaciones recientes (Conductor)</div>
                                     <div id="conductorNotificationList" class="list-group list-group-flush"></div>
-                                    <a asp-controller="Notificacion" asp-action="Listar" class="btn btn-link btn-sm text-decoration-none w-100">Ver todas</a>
+                                    <a asp-controller="Conductor" asp-action="Incidencias" class="btn btn-link btn-sm text-decoration-none w-100">Ver todas</a>
                                 </div>
                             </div>
                         </div>
@@ -143,7 +193,7 @@
         @Html.Raw(JsonSerializer.Serialize(conductorQuickLinks))
     </script>
     <script id="conductor-notification-data" type="application/json">
-        @Html.Raw(JsonSerializer.Serialize(conductorNotifications))
+        @Html.Raw(JsonSerializer.Serialize(conductorNotifications.Take(8)))
     </script>
 
     @if (TempData["ok"] != null)
