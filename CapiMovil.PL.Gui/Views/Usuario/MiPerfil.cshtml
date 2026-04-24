@@ -49,11 +49,22 @@
                 <div class="col-md-6"><div class="profile-field"><small>Correo</small><span>@Model.Correo</span></div></div>
                 <div class="col-md-6"><div class="profile-field"><small>Teléfono</small><span>@(Model.Telefono ?? "-")</span></div></div>
                 <div class="col-md-6"><div class="profile-field"><small>Dirección</small><span>@(Model.Direccion ?? "-")</span></div></div>
-                <div class="col-md-6"><div class="profile-field"><small>DNI</small><span>@(Model.Documento ?? "-")</span></div></div>
-                <div class="col-md-6"><div class="profile-field"><small>Teléfono alterno</small><span>@(Model.TelefonoAlterno ?? "-")</span></div></div>
-                <div class="col-md-6"><div class="profile-field"><small>Licencia</small><span>@(Model.Licencia ?? "-")</span></div></div>
-                <div class="col-md-6"><div class="profile-field"><small>Categoría licencia</small><span>@(Model.CategoriaLicencia ?? "-")</span></div></div>
-                <div class="col-md-6"><div class="profile-field"><small>Correo contacto</small><span>@(Model.CorreoContacto ?? "-")</span></div></div>
+                @if (Model.EsConductor || Model.EsPadre)
+                {
+                    <div class="col-md-6"><div class="profile-field"><small>DNI</small><span>@(Model.Documento ?? "-")</span></div></div>
+                }
+
+                @if (Model.EsPadre)
+                {
+                    <div class="col-md-6"><div class="profile-field"><small>Teléfono alterno</small><span>@(Model.TelefonoAlterno ?? "-")</span></div></div>
+                    <div class="col-md-6"><div class="profile-field"><small>Correo contacto</small><span>@(Model.CorreoContacto ?? "-")</span></div></div>
+                }
+
+                @if (Model.EsConductor)
+                {
+                    <div class="col-md-6"><div class="profile-field"><small>Licencia</small><span>@(Model.Licencia ?? "-")</span></div></div>
+                    <div class="col-md-6"><div class="profile-field"><small>Categoría licencia</small><span>@(Model.CategoriaLicencia ?? "-")</span></div></div>
+                }
             </div>
         </div>
     </div>

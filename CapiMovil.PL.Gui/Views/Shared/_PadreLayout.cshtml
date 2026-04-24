@@ -5,6 +5,7 @@
 @{
     var username = HttpContextAccessor.HttpContext?.Session.GetString("Username") ?? "Padre";
     var fotoPerfilUrl = HttpContextAccessor.HttpContext?.Session.GetString("FotoPerfilUrl");
+    var inicialUsuario = string.IsNullOrWhiteSpace(username) ? "P" : username.Trim()[0].ToString().ToUpperInvariant();
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
 
@@ -116,7 +117,7 @@
                             }
                             else
                             {
-                                <i class="bi bi-person-heart"></i>
+                                <span class="avatar-initial">@inicialUsuario</span>
                             }
                             <span>@username</span>
                         </div>

@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace CapiMovil.PL.Gui.Models.ViewModels
@@ -21,6 +22,9 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
         public bool Estado { get; set; }
         public string? FotoPerfilUrl { get; set; }
         public string InicialesAvatar { get; set; } = "CM";
+        public bool EsConductor => string.Equals(Rol?.Trim(), "CONDUCTOR", StringComparison.OrdinalIgnoreCase);
+        public bool EsPadre => string.Equals(Rol?.Trim(), "PADRE", StringComparison.OrdinalIgnoreCase)
+                               || string.Equals(Rol?.Trim(), "PADRE DE FAMILIA", StringComparison.OrdinalIgnoreCase);
     }
 
     public class PerfilEditarViewModel
@@ -69,5 +73,8 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
         public bool Estado { get; set; }
         public string? FotoPerfilUrl { get; set; }
         public string InicialesAvatar { get; set; } = "CM";
+        public bool EsConductor => string.Equals(Rol?.Trim(), "CONDUCTOR", StringComparison.OrdinalIgnoreCase);
+        public bool EsPadre => string.Equals(Rol?.Trim(), "PADRE", StringComparison.OrdinalIgnoreCase)
+                               || string.Equals(Rol?.Trim(), "PADRE DE FAMILIA", StringComparison.OrdinalIgnoreCase);
     }
 }

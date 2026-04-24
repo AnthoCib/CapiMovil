@@ -8,6 +8,7 @@
     var fotoPerfilUrl = httpContext?.Session.GetString("FotoPerfilUrl");
     var rol = httpContext?.Session.GetString("RolNombre");
     var rolNormalizado = (rol ?? "").Trim().ToUpperInvariant();
+    var inicialUsuario = string.IsNullOrWhiteSpace(username) ? "U" : username.Trim()[0].ToString().ToUpperInvariant();
     bool esAdmin = rolNormalizado == "ADMINISTRADOR" || rolNormalizado == "ADMIN";
     bool esPadre = rolNormalizado == "PADRE" || rolNormalizado == "PADRE DE FAMILIA";
 
@@ -128,7 +129,7 @@
                                 }
                                 else
                                 {
-                                    <i class="bi bi-person"></i>
+                                    <span class="avatar-initial">@inicialUsuario</span>
                                 }
                             </a>
 
@@ -140,7 +141,7 @@
                                     }
                                     else
                                     {
-                                        <i class="bi bi-person-circle"></i>
+                                        <span class="avatar-initial">@inicialUsuario</span>
                                     }
                                     <span>@username</span>
                                 </a>

@@ -506,6 +506,32 @@ namespace CapiMovil.PL.Gui.Controllers
         private PerfilEditarViewModel MapearEdicion(UsuarioBE usuario)
         {
             PerfilViewModel perfil = ConstruirPerfil(usuario);
+            string rolNormalizado = (perfil.Rol ?? string.Empty).Trim().ToUpperInvariant();
+
+            string? nombres = null;
+            string? apellidoPaterno = null;
+            string? apellidoMaterno = null;
+
+            if (rolNormalizado == "CONDUCTOR")
+            {
+                ConductorBE? conductor = _conductorBC.ObtenerPorIdUsuario(usuario.IdUsuario);
+                if (conductor != null)
+                {
+                    nombres = conductor.Nombres;
+                    apellidoPaterno = conductor.ApellidoPaterno;
+                    apellidoMaterno = conductor.ApellidoMaterno;
+                }
+            }
+            else if (rolNormalizado is "PADRE" or "PADRE DE FAMILIA")
+            {
+                PadreFamiliaBE? padre = _padreFamiliaBC.ObtenerPorIdUsuario(usuario.IdUsuario);
+                if (padre != null)
+                {
+                    nombres = padre.Nombres;
+                    apellidoPaterno = padre.ApellidoPaterno;
+                    apellidoMaterno = padre.ApellidoMaterno;
+                }
+            }
 
             return new PerfilEditarViewModel
             {
@@ -523,9 +549,9 @@ namespace CapiMovil.PL.Gui.Controllers
                 CorreoContacto = perfil.CorreoContacto,
                 Licencia = perfil.Licencia,
                 CategoriaLicencia = perfil.CategoriaLicencia,
-                Nombres = perfil.NombreCompleto.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? perfil.NombreCompleto,
-                ApellidoPaterno = perfil.NombreCompleto.Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1).FirstOrDefault(),
-                ApellidoMaterno = perfil.NombreCompleto.Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(2).FirstOrDefault()
+                Nombres = nombres,
+                ApellidoPaterno = apellidoPaterno,
+                ApellidoMaterno = apellidoMaterno
             };
         }
 

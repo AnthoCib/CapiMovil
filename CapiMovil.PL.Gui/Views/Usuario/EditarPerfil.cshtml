@@ -60,26 +60,37 @@
                     <label asp-for="Telefono" class="form-label"></label>
                     <input asp-for="Telefono" class="form-control" />
                 </div>
-                <div class="col-md-6">
-                    <label asp-for="TelefonoAlterno" class="form-label"></label>
-                    <input asp-for="TelefonoAlterno" class="form-control" />
-                </div>
+                @if (Model.EsPadre)
+                {
+                    <div class="col-md-6">
+                        <label asp-for="TelefonoAlterno" class="form-label"></label>
+                        <input asp-for="TelefonoAlterno" class="form-control" />
+                    </div>
+                }
                 <div class="col-md-12">
                     <label asp-for="Direccion" class="form-label"></label>
                     <input asp-for="Direccion" class="form-control" />
                 </div>
-                <div class="col-md-6">
-                    <label asp-for="Licencia" class="form-label"></label>
-                    <input asp-for="Licencia" class="form-control" />
-                </div>
-                <div class="col-md-6">
-                    <label asp-for="CategoriaLicencia" class="form-label"></label>
-                    <input asp-for="CategoriaLicencia" class="form-control" />
-                </div>
-                <div class="col-md-6">
-                    <label asp-for="CorreoContacto" class="form-label"></label>
-                    <input asp-for="CorreoContacto" class="form-control" />
-                </div>
+
+                @if (Model.EsConductor)
+                {
+                    <div class="col-md-6">
+                        <label asp-for="Licencia" class="form-label"></label>
+                        <input asp-for="Licencia" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="CategoriaLicencia" class="form-label"></label>
+                        <input asp-for="CategoriaLicencia" class="form-control" />
+                    </div>
+                }
+
+                @if (Model.EsPadre)
+                {
+                    <div class="col-md-6">
+                        <label asp-for="CorreoContacto" class="form-label"></label>
+                        <input asp-for="CorreoContacto" class="form-control" />
+                    </div>
+                }
 
                 <div class="col-12 d-flex gap-2">
                     <button class="btn btn-primary"><i class="bi bi-save2 me-2"></i>Guardar cambios</button>

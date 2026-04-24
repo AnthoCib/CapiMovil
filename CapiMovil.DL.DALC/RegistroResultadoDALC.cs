@@ -13,20 +13,9 @@ namespace CapiMovil.DL.DALC
             if (!dr.Read())
                 return false;
 
-            if (ExisteColumna(dr, "FilasAfectadas") && dr["FilasAfectadas"] != DBNull.Value)
-            {
-                int.TryParse(dr["FilasAfectadas"]?.ToString(), out filasAfectadas);
-            }
-
-            if (ExisteColumna(dr, "CodigoGenerado") && dr["CodigoGenerado"] != DBNull.Value)
-            {
-                codigoGenerado = dr["CodigoGenerado"]?.ToString() ?? string.Empty;
-            }
-
-            if (ExisteColumna(dr, "Mensaje") && dr["Mensaje"] != DBNull.Value)
-            {
-                mensaje = dr["Mensaje"]?.ToString();
-            }
+            filasAfectadas = ObtenerEntero(dr, "FilasAfectadas", "Filas", "Resultado", "RowsAffected");
+            codigoGenerado = ObtenerTexto(dr, "CodigoGenerado", "Codigo", "CodigoRecorrido", "CodigoIncidencia", "CodigoAuditoria");
+            mensaje = ObtenerTexto(dr, "Mensaje", "Error", "Detalle");
 
             if (filasAfectadas > 0)
                 return true;
@@ -34,6 +23,28 @@ namespace CapiMovil.DL.DALC
             return filasAfectadas == 0
                    && !string.IsNullOrWhiteSpace(codigoGenerado)
                    && string.IsNullOrWhiteSpace(mensaje);
+        }
+
+        private static int ObtenerEntero(SqlDataReader dr, params string[] nombresColumna)
+        {
+            foreach (string nombre in nombresColumna)
+            {
+                if (ExisteColumna(dr, nombre) && dr[nombre] != DBNull.Value && int.TryParse(dr[nombre]?.ToString(), out int valor))
+                    return valor;
+            }
+
+            return 0;
+        }
+
+        private static string ObtenerTexto(SqlDataReader dr, params string[] nombresColumna)
+        {
+            foreach (string nombre in nombresColumna)
+            {
+                if (ExisteColumna(dr, nombre) && dr[nombre] != DBNull.Value)
+                    return dr[nombre]?.ToString() ?? string.Empty;
+            }
+
+            return string.Empty;
         }
 
         private static bool ExisteColumna(SqlDataReader dr, string nombreColumna)
