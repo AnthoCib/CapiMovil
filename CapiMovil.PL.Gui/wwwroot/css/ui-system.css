@@ -118,12 +118,51 @@ body {
 
 .app-search {
     max-width: 430px;
+    width: 100%;
     background: #f8f4eb;
     border: 1px solid var(--cm-border);
     border-radius: .85rem;
+    min-width: 0;
 }
 
+.app-search-wrap {
+    width: 100%;
+    min-width: 0;
+}
 
+.app-search .form-control,
+.app-search .input-group-text {
+    background: transparent;
+}
+
+.admin-search-results {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + .35rem);
+    z-index: 1080;
+    border-radius: .8rem;
+    overflow: hidden;
+    border: 1px solid #ece9de;
+    background: #fff;
+    max-height: min(360px, 52vh);
+    overflow-y: auto;
+}
+
+.admin-search-item,
+.conductor-search-item,
+.padre-search-item {
+    border: 0;
+    border-bottom: 1px solid #f0ece1;
+    font-size: .92rem;
+    text-align: left;
+}
+
+.admin-search-item:last-child,
+.conductor-search-item:last-child,
+.padre-search-item:last-child {
+    border-bottom: 0;
+}
 
 .conductor-layout-body,
 .pf-layout-body {
@@ -154,6 +193,7 @@ body {
 .conductor-layout-search,
 .pf-layout-search {
     max-width: 390px;
+    width: 100%;
 }
 
 .app-user-pill {
@@ -247,6 +287,13 @@ body {
     .conductor-op-shell,
     .pf-page,
     .admin-dashboard-shell { padding: .7rem; }
+
+    .app-search,
+    .conductor-layout-search,
+    .pf-layout-search {
+        max-width: 100%;
+        width: 100%;
+    }
 }
 
 

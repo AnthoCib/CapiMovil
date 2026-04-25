@@ -122,17 +122,16 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.AddWithValue("@FotoUrl", (object?)estudiante.FotoUrl ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Observaciones", (object?)estudiante.Observaciones ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Estado", estudiante.Estado);
-            SqlParameter codigoOutput = cmd.Parameters.Add("@CodigoGenerado", SqlDbType.VarChar, 20);
-            codigoOutput.Direction = ParameterDirection.Output;
+            SqlParameter codigoSalida = cmd.Parameters.Add("@CodigoGenerado", SqlDbType.VarChar, 20);
+            codigoSalida.Direction = ParameterDirection.Output;
             cn.Open();
             using SqlDataReader dr = cmd.ExecuteReader();
 
             if (RegistroResultadoDALC.EsRegistroExitoso(dr, out int filas, out string codigoGenerado, out string? mensaje))
             {
-                if (string.IsNullOrWhiteSpace(codigoGenerado))
-                    codigoGenerado = codigoOutput.Value?.ToString() ?? string.Empty;
-
-                estudiante.CodigoEstudiante = codigoGenerado;
+                estudiante.CodigoEstudiante = !string.IsNullOrWhiteSpace(codigoGenerado)
+                    ? codigoGenerado
+                    : (codigoSalida.Value?.ToString() ?? string.Empty);
                 return true;
             }
 
@@ -167,15 +166,8 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.AddWithValue("@Estado", estudiante.Estado);
 
             cn.Open();
-            object? result = cmd.ExecuteScalar();
-
-            if (result != null)
-            {
-                int filas = Convert.ToInt32(result);
-                return filas > 0;
-            }
-
-            return false;
+            using SqlDataReader dr = cmd.ExecuteReader();
+            return RegistroResultadoDALC.EsRegistroExitoso(dr, out _, out _, out _);
         }
 
         public bool Eliminar(Guid idEstudiante)
@@ -187,9 +179,8 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.AddWithValue("@IdEstudiante", idEstudiante);
 
             cn.Open();
-            int filas = cmd.ExecuteNonQuery();
-
-            return filas > 0;
+            using SqlDataReader dr = cmd.ExecuteReader();
+            return RegistroResultadoDALC.EsRegistroExitoso(dr, out _, out _, out _);
         }
 
         public List<EstudianteBE> ListarActivos()

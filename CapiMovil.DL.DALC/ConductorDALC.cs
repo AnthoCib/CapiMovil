@@ -68,18 +68,17 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.Add("@Telefono", SqlDbType.VarChar, 20).Value = (object?)conductor.Telefono ?? DBNull.Value;
             cmd.Parameters.Add("@Direccion", SqlDbType.VarChar, 200).Value = (object?)conductor.Direccion ?? DBNull.Value;
             cmd.Parameters.Add("@Estado", SqlDbType.Bit).Value = conductor.Estado;
-            SqlParameter codigoOutput = cmd.Parameters.Add("@CodigoGenerado", SqlDbType.VarChar, 20);
-            codigoOutput.Direction = ParameterDirection.Output;
+            SqlParameter codigoSalida = cmd.Parameters.Add("@CodigoGenerado", SqlDbType.VarChar, 20);
+            codigoSalida.Direction = ParameterDirection.Output;
 
             cn.Open();
             using SqlDataReader dr = cmd.ExecuteReader();
 
             if (RegistroResultadoDALC.EsRegistroExitoso(dr, out int filas, out string codigoGenerado, out string? mensaje))
             {
-                if (string.IsNullOrWhiteSpace(codigoGenerado))
-                    codigoGenerado = codigoOutput.Value?.ToString() ?? string.Empty;
-
-                conductor.CodigoConductor = codigoGenerado;
+                conductor.CodigoConductor = !string.IsNullOrWhiteSpace(codigoGenerado)
+                    ? codigoGenerado
+                    : (codigoSalida.Value?.ToString() ?? string.Empty);
                 return true;
             }
 
@@ -110,9 +109,8 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.Add("@Estado", SqlDbType.Bit).Value = conductor.Estado;
 
             cn.Open();
-            int filas = cmd.ExecuteNonQuery();
-
-            return filas > 0;
+            using SqlDataReader dr = cmd.ExecuteReader();
+            return RegistroResultadoDALC.EsRegistroExitoso(dr, out _, out _, out _);
         }
 
         public bool Eliminar(Guid idConductor)
@@ -126,9 +124,8 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.Add("@IdConductor", SqlDbType.UniqueIdentifier).Value = idConductor;
 
             cn.Open();
-            int filas = cmd.ExecuteNonQuery();
-
-            return filas > 0;
+            using SqlDataReader dr = cmd.ExecuteReader();
+            return RegistroResultadoDALC.EsRegistroExitoso(dr, out _, out _, out _);
         }
 
         public List<UsuarioBE> ListarUsuariosDisponibles()

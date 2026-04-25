@@ -137,15 +137,8 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.AddWithValue("@Estado", entidad.Estado);
 
             cn.Open();
-            object? result = cmd.ExecuteScalar();
-
-            if (result != null)
-            {
-                int filas = Convert.ToInt32(result);
-                return filas > 0;
-            }
-
-            return false;
+            using SqlDataReader dr = cmd.ExecuteReader();
+            return RegistroResultadoDALC.EsRegistroExitoso(dr, out _, out _, out _);
         }
 
         public bool Eliminar(Guid id)
@@ -157,15 +150,8 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.AddWithValue("@IdParadero", id);
 
             cn.Open();
-            object? result = cmd.ExecuteScalar();
-
-            if (result != null)
-            {
-                int filas = Convert.ToInt32(result);
-                return filas > 0;
-            }
-
-            return false;
+            using SqlDataReader dr = cmd.ExecuteReader();
+            return RegistroResultadoDALC.EsRegistroExitoso(dr, out _, out _, out _);
         }
 
         public List<ParaderoBE> ListarPorRuta(Guid idRuta)
