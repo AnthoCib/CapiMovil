@@ -6,6 +6,7 @@
 
 .admin-portal {
     background: #f6f3ea;
+    overflow-x: hidden;
 }
 
 .admin-portal-shell {
@@ -24,6 +25,10 @@
 
 .admin-global-main {
     min-width: 0;
+}
+
+.admin-layout-backdrop {
+    display: none;
 }
 
 .admin-content {
@@ -272,11 +277,34 @@
     .admin-portal-shell {
         grid-template-columns: 1fr;
         min-height: auto;
+        position: relative;
     }
 
     .admin-global-sidebar {
-        position: static;
-        top: auto;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: min(300px, 85vw);
+        height: 100vh;
+        z-index: 1045;
+        padding: 1rem;
+        transform: translateX(-105%);
+        transition: transform .24s ease;
+    }
+
+    .admin-layout-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(17, 24, 39, .35);
+        z-index: 1040;
+    }
+
+    .admin-portal-shell.sidebar-open .admin-global-sidebar {
+        transform: translateX(0);
+    }
+
+    .admin-portal-shell.sidebar-open .admin-layout-backdrop {
+        display: block;
     }
 
     .admin-global-main,
@@ -292,6 +320,11 @@
 
     .admin-topbar .card-body {
         padding: .9rem !important;
+    }
+
+    .admin-topbar .dropdown .btn,
+    .admin-topbar .admin-user-pill {
+        max-width: 100%;
     }
 
     .admin-search {
