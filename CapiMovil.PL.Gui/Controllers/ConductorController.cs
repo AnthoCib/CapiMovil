@@ -418,10 +418,10 @@ namespace CapiMovil.PL.Gui.Controllers
             ConductorBE? conductor = ObtenerConductorAutenticado();
             if (conductor == null) return RedirectToAction(nameof(Index));
 
-            RecorridoBE? recorridoOperacion = ObtenerRecorridoOperacion(conductor.IdConductor);
+            RecorridoBE? recorridoOperacion = _recorridoBC.ObtenerActivoPorConductor(conductor.IdConductor);
             if (recorridoOperacion == null)
             {
-                TempData["error"] = "No existe recorrido asignado para registrar incidencias.";
+                TempData["error"] = "No existe un recorrido EN_CURSO para registrar incidencias.";
                 return RedirectToAction(nameof(Incidencias));
             }
 

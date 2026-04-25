@@ -496,3 +496,83 @@ BEGIN
     SELECT 1 AS FilasAfectadas, @CodigoGenerado AS CodigoGenerado, CAST(NULL AS VARCHAR(200)) AS Mensaje;
 END
 GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_Incidencia_Registrar
+(
+    @IdRecorrido UNIQUEIDENTIFIER,
+    @IdConductor UNIQUEIDENTIFIER,
+    @ReportadoPor UNIQUEIDENTIFIER = NULL,
+    @TipoIncidencia VARCHAR(50),
+    @Descripcion VARCHAR(300),
+    @FechaHora DATETIME,
+    @EstadoIncidencia VARCHAR(20),
+    @Prioridad VARCHAR(20),
+    @Solucion VARCHAR(300) = NULL
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM dbo.Recorrido r
+        WHERE r.IdRecorrido = @IdRecorrido
+          AND r.IdConductor = @IdConductor
+          AND r.EstadoRecorrido = 'EN_CURSO'
+          AND r.FechaEliminacion IS NULL)
+    BEGIN
+        SELECT
+            0 AS FilasAfectadas,
+            CAST(NULL AS UNIQUEIDENTIFIER) AS IdIncidencia,
+            CAST(NULL AS VARCHAR(20)) AS CodigoGenerado,
+            'Solo se pueden registrar incidencias en recorridos EN_CURSO del conductor autenticado.' AS Mensaje;
+        RETURN;
+    END
+
+    DECLARE @IdIncidencia UNIQUEIDENTIFIER = NEWID();
+    DECLARE @Correlativo INT;
+    DECLARE @CodigoGenerado VARCHAR(20);
+    DECLARE @Fragmento VARCHAR(6) = dbo.fn_Codigo_Fragmento(@TipoIncidencia, 6, 'INCIDE');
+
+    BEGIN TRY
+        BEGIN TRAN;
+
+        SELECT @Correlativo = ISNULL(MAX(TRY_CAST(RIGHT(CodigoIncidencia, 4) AS INT)), 0) + 1
+        FROM dbo.Incidencia
+        WHERE CodigoIncidencia LIKE 'INC-%[A-Z0-9][A-Z0-9][A-Z0-9][A-Z0-9][A-Z0-9][A-Z0-9][0-9][0-9][0-9][0-9]';
+
+        SET @CodigoGenerado = CONCAT('INC-', @Fragmento, RIGHT(CONCAT('0000', @Correlativo), 4));
+
+        INSERT INTO dbo.Incidencia
+        (
+            IdIncidencia, IdRecorrido, IdConductor, ReportadoPor, CodigoIncidencia,
+            TipoIncidencia, Descripcion, FechaHora, EstadoIncidencia, Prioridad,
+            FechaCierre, Solucion, Estado, FechaCreacion, FechaActualizacion, FechaEliminacion
+        )
+        VALUES
+        (
+            @IdIncidencia, @IdRecorrido, @IdConductor, @ReportadoPor, @CodigoGenerado,
+            UPPER(LTRIM(RTRIM(@TipoIncidencia))), LTRIM(RTRIM(@Descripcion)), @FechaHora,
+            UPPER(LTRIM(RTRIM(@EstadoIncidencia))), UPPER(LTRIM(RTRIM(@Prioridad))),
+            NULL, NULLIF(LTRIM(RTRIM(@Solucion)), ''), 1, GETDATE(), NULL, NULL
+        );
+
+        COMMIT;
+
+        SELECT
+            1 AS FilasAfectadas,
+            @IdIncidencia AS IdIncidencia,
+            @CodigoGenerado AS CodigoGenerado,
+            CAST(NULL AS VARCHAR(200)) AS Mensaje;
+    END TRY
+    BEGIN CATCH
+        IF XACT_STATE() <> 0 ROLLBACK;
+
+        SELECT
+            0 AS FilasAfectadas,
+            CAST(NULL AS UNIQUEIDENTIFIER) AS IdIncidencia,
+            CAST(NULL AS VARCHAR(20)) AS CodigoGenerado,
+            ERROR_MESSAGE() AS Mensaje;
+    END CATCH
+END
+GO

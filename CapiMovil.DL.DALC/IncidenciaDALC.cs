@@ -112,12 +112,18 @@ namespace CapiMovil.DL.DALC
             if (dr.Read())
             {
                 int filas = Convert.ToInt32(dr["FilasAfectadas"]);
+                string? mensaje = ExisteColumna(dr, "Mensaje") && dr["Mensaje"] != DBNull.Value
+                    ? dr["Mensaje"].ToString()
+                    : null;
 
                 if (dr["CodigoGenerado"] != DBNull.Value)
                     entidad.CodigoIncidencia = dr["CodigoGenerado"].ToString() ?? string.Empty;
 
                 if (ExisteColumna(dr, "IdIncidencia") && dr["IdIncidencia"] != DBNull.Value)
                     entidad.IdIncidencia = (Guid)dr["IdIncidencia"];
+
+                if (filas <= 0 && !string.IsNullOrWhiteSpace(mensaje))
+                    throw new InvalidOperationException(mensaje);
 
                 return filas > 0;
             }
