@@ -539,6 +539,82 @@ BEGIN
 
     BEGIN TRANSACTION;
     BEGIN TRY
+        DECLARE @TotalSubidas INT = 0;
+        DECLARE @TotalBajadas INT = 0;
+        DECLARE @TotalAusentes INT = 0;
+        DECLARE @TotalNoAbordo INT = 0;
+        DECLARE @TipoEventoNormalizado VARCHAR(20) = UPPER(LTRIM(RTRIM(ISNULL(@TipoEvento, ''))));
+
+        IF @TipoEventoNormalizado NOT IN ('SUBIDA', 'BAJADA', 'AUSENTE', 'NO_ABORDO')
+            THROW 50001, 'El tipo de evento no es válido.', 1;
+
+        SELECT
+            @TotalSubidas = SUM(CASE WHEN UPPER(LTRIM(RTRIM(TipoEvento))) = 'SUBIDA' THEN 1 ELSE 0 END),
+            @TotalBajadas = SUM(CASE WHEN UPPER(LTRIM(RTRIM(TipoEvento))) = 'BAJADA' THEN 1 ELSE 0 END),
+            @TotalAusentes = SUM(CASE WHEN UPPER(LTRIM(RTRIM(TipoEvento))) = 'AUSENTE' THEN 1 ELSE 0 END),
+            @TotalNoAbordo = SUM(CASE WHEN UPPER(LTRIM(RTRIM(TipoEvento))) = 'NO_ABORDO' THEN 1 ELSE 0 END)
+        FROM dbo.EventoAbordaje WITH (UPDLOCK, HOLDLOCK)
+        WHERE IdRecorrido = @IdRecorrido
+          AND IdEstudiante = @IdEstudiante
+          AND FechaEliminacion IS NULL
+          AND Estado = 1;
+
+        SET @TotalSubidas = ISNULL(@TotalSubidas, 0);
+        SET @TotalBajadas = ISNULL(@TotalBajadas, 0);
+        SET @TotalAusentes = ISNULL(@TotalAusentes, 0);
+        SET @TotalNoAbordo = ISNULL(@TotalNoAbordo, 0);
+
+        IF @TipoEventoNormalizado = 'SUBIDA'
+        BEGIN
+            IF @TotalAusentes > 0
+                THROW 50002, 'No se puede registrar este evento porque ya fue marcado como ausente.', 1;
+
+            IF @TotalNoAbordo > 0
+                THROW 50003, 'No se puede registrar este evento porque ya fue marcado como no abordó.', 1;
+
+            IF @TotalSubidas > 0 AND @TotalBajadas = 0
+                THROW 50004, 'El alumno ya registró una subida en este recorrido.', 1;
+
+            IF @TotalSubidas > 0 AND @TotalBajadas > 0
+                THROW 50005, 'El alumno ya completó su ciclo de abordaje en este recorrido.', 1;
+        END
+        ELSE IF @TipoEventoNormalizado = 'BAJADA'
+        BEGIN
+            IF @TotalAusentes > 0
+                THROW 50006, 'No se puede registrar este evento porque ya fue marcado como ausente.', 1;
+
+            IF @TotalNoAbordo > 0
+                THROW 50007, 'No se puede registrar este evento porque ya fue marcado como no abordó.', 1;
+
+            IF @TotalSubidas = 0
+                THROW 50008, 'No se puede registrar la bajada porque el alumno aún no tiene una subida.', 1;
+
+            IF @TotalBajadas > 0
+                THROW 50009, 'El alumno ya registró una bajada en este recorrido.', 1;
+        END
+        ELSE IF @TipoEventoNormalizado = 'AUSENTE'
+        BEGIN
+            IF @TotalSubidas > 0 OR @TotalBajadas > 0
+                THROW 50010, 'No se puede registrar este evento porque el alumno ya tiene eventos de abordaje en este recorrido.', 1;
+
+            IF @TotalAusentes > 0
+                THROW 50011, 'El alumno ya fue marcado como ausente en este recorrido.', 1;
+
+            IF @TotalNoAbordo > 0
+                THROW 50012, 'No se puede registrar ausente porque el alumno ya fue marcado como no abordó.', 1;
+        END
+        ELSE IF @TipoEventoNormalizado = 'NO_ABORDO'
+        BEGIN
+            IF @TotalSubidas > 0 OR @TotalBajadas > 0
+                THROW 50013, 'No se puede registrar este evento porque el alumno ya tiene eventos de abordaje en este recorrido.', 1;
+
+            IF @TotalNoAbordo > 0
+                THROW 50014, 'El alumno ya fue marcado como no abordó en este recorrido.', 1;
+
+            IF @TotalAusentes > 0
+                THROW 50015, 'No se puede registrar no abordó porque el alumno ya fue marcado como ausente.', 1;
+        END
+
         IF OBJECT_ID('dbo.CorrelativoDocumento', 'U') IS NOT NULL
         BEGIN
             IF NOT EXISTS (SELECT 1 FROM dbo.CorrelativoDocumento WITH (UPDLOCK, HOLDLOCK) WHERE TipoCodigo = 'EVE')
@@ -570,7 +646,7 @@ BEGIN
         VALUES
         (
             NEWID(), @IdRecorrido, @IdEstudiante, @IdParadero, @RegistradoPor,
-            @CodigoGenerado, @TipoEvento, @FechaHora, NULLIF(@Observacion, ''), @Estado,
+            @CodigoGenerado, @TipoEventoNormalizado, @FechaHora, NULLIF(@Observacion, ''), @Estado,
             SYSUTCDATETIME(), NULL, NULL
         );
 
@@ -581,6 +657,37 @@ BEGIN
         IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
         SELECT CAST(0 AS INT) AS FilasAfectadas, CAST(NULL AS VARCHAR(20)) AS CodigoGenerado, ERROR_MESSAGE() AS Mensaje;
     END CATCH
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_EventoAbordaje_ObtenerResumenEstudianteRecorrido
+    @IdRecorrido UNIQUEIDENTIFIER,
+    @IdEstudiante UNIQUEIDENTIFIER
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    ;WITH Eventos AS
+    (
+        SELECT
+            UPPER(LTRIM(RTRIM(e.TipoEvento))) AS TipoEvento,
+            e.FechaHora
+        FROM dbo.EventoAbordaje e
+        WHERE e.IdRecorrido = @IdRecorrido
+          AND e.IdEstudiante = @IdEstudiante
+          AND e.FechaEliminacion IS NULL
+          AND e.Estado = 1
+    )
+    SELECT
+        @IdRecorrido AS IdRecorrido,
+        @IdEstudiante AS IdEstudiante,
+        COUNT(1) AS TotalEventos,
+        SUM(CASE WHEN TipoEvento = 'SUBIDA' THEN 1 ELSE 0 END) AS TotalSubidas,
+        SUM(CASE WHEN TipoEvento = 'BAJADA' THEN 1 ELSE 0 END) AS TotalBajadas,
+        SUM(CASE WHEN TipoEvento = 'AUSENTE' THEN 1 ELSE 0 END) AS TotalAusentes,
+        SUM(CASE WHEN TipoEvento = 'NO_ABORDO' THEN 1 ELSE 0 END) AS TotalNoAbordo,
+        (SELECT TOP 1 TipoEvento FROM Eventos ORDER BY FechaHora DESC) AS UltimoTipoEvento
+    FROM Eventos;
 END
 GO
 
