@@ -10,7 +10,7 @@ namespace CapiMovil.DL.DALC
             codigoGenerado = string.Empty;
             mensaje = null;
 
-            if (!dr.Read())
+            if (!LeerFilaResultado(dr))
                 return false;
 
             filasAfectadas = ObtenerEntero(dr, "FilasAfectadas", "Filas", "Resultado", "RowsAffected");
@@ -41,6 +41,20 @@ namespace CapiMovil.DL.DALC
             return filasAfectadas == 0
                    && !string.IsNullOrWhiteSpace(codigoGenerado)
                    && string.IsNullOrWhiteSpace(mensaje);
+        }
+
+        private static bool LeerFilaResultado(SqlDataReader dr)
+        {
+            if (dr.Read())
+                return true;
+
+            while (dr.NextResult())
+            {
+                if (dr.Read())
+                    return true;
+            }
+
+            return false;
         }
 
         private static int ObtenerEntero(SqlDataReader dr, params string[] nombresColumna)
