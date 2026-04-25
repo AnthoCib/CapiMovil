@@ -208,6 +208,10 @@ function inicializarConfirmacionesGlobales() {
 function inicializarFeedbackEnvioFormularios() {
     document.querySelectorAll("form[data-disable-on-submit]").forEach(form => {
         form.addEventListener("submit", function () {
+            if (typeof form.checkValidity === "function" && !form.checkValidity()) {
+                return;
+            }
+
             const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
             submitButtons.forEach(btn => {
                 if (btn.disabled) return;

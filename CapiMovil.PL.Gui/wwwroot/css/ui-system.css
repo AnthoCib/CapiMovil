@@ -263,3 +263,28 @@ body {
     font-size: .83rem;
     font-weight: 600;
 }
+
+
+.app-fallback-navbar {
+    background: #fffdf8;
+    border-bottom: 1px solid var(--cm-border);
+}
+
+.app-fallback-navbar .navbar-brand,
+.app-fallback-navbar .nav-link {
+    color: #2b3340;
+}
+
+.app-fallback-navbar .nav-link:hover,
+.app-fallback-navbar .nav-link:focus,
+.app-fallback-navbar .navbar-brand:hover {
+    color: #101828;
+}
+
+.app-fallback-navbar .navbar-toggler {
+    border-color: #d7cfbf;
+}
+
+.app-fallback-navbar .navbar-toggler-icon {
+    filter: invert(27%) sepia(8%) saturate(884%) hue-rotate(179deg) brightness(89%) contrast(84%);
+}
