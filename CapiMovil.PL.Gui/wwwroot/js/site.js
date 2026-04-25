@@ -71,7 +71,7 @@ function inicializarBuscadorGlobal(config) {
         results.innerHTML = filtrados
             .map((item, index) =>
                 `<button type="button" class="list-group-item list-group-item-action ${config.itemClassName}" data-index="${index}" data-url="${item.url}">
-                    <i class="bi bi-arrow-up-right-square me-2 text-muted"></i>${item.texto}
+                    ${item.texto}
                 </button>`)
             .join("");
 

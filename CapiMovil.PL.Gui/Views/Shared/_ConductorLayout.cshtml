@@ -138,9 +138,11 @@
                         <button type="button" class="btn btn-light d-xl-none" id="conductorSidebarToggle" data-sidebar-toggle aria-label="Abrir menú">
                             <i class="bi bi-list"></i>
                         </button>
-                        <div class="input-group conductor-layout-search app-search position-relative">
-                            <span class="input-group-text bg-transparent border-0"><i class="bi bi-search"></i></span>
-                            <input id="conductorGlobalSearch" class="form-control border-0" placeholder="Buscar acción..." autocomplete="off" />
+                        <div class="conductor-layout-search app-search-wrap position-relative">
+                            <div class="input-group app-search">
+                                <span class="input-group-text bg-transparent border-0"><i class="bi bi-search"></i></span>
+                                <input id="conductorGlobalSearch" class="form-control border-0" placeholder="Buscar acción..." autocomplete="off" />
+                            </div>
                             <div id="conductorSearchResults" class="admin-search-results list-group shadow-sm d-none" role="listbox" aria-label="Resultados de búsqueda"></div>
                         </div>
                     </div>

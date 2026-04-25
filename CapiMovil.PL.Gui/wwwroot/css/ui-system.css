@@ -118,9 +118,15 @@ body {
 
 .app-search {
     max-width: 430px;
+    width: 100%;
     background: #f8f4eb;
     border: 1px solid var(--cm-border);
     border-radius: .85rem;
+    min-width: 0;
+}
+
+.app-search-wrap {
+    width: 100%;
     min-width: 0;
 }
 
@@ -187,6 +193,7 @@ body {
 .conductor-layout-search,
 .pf-layout-search {
     max-width: 390px;
+    width: 100%;
 }
 
 .app-user-pill {
