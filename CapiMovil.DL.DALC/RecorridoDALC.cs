@@ -131,6 +131,9 @@ namespace CapiMovil.DL.DALC
                     return true;
             }
 
+            if (!string.IsNullOrWhiteSpace(mensaje))
+                throw new InvalidOperationException(mensaje);
+
             return false;
         }
 

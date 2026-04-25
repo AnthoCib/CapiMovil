@@ -122,14 +122,22 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.AddWithValue("@FotoUrl", (object?)estudiante.FotoUrl ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Observaciones", (object?)estudiante.Observaciones ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Estado", estudiante.Estado);
+            SqlParameter codigoOutput = cmd.Parameters.Add("@CodigoGenerado", SqlDbType.VarChar, 20);
+            codigoOutput.Direction = ParameterDirection.Output;
             cn.Open();
             using SqlDataReader dr = cmd.ExecuteReader();
 
             if (RegistroResultadoDALC.EsRegistroExitoso(dr, out int filas, out string codigoGenerado, out string? mensaje))
             {
+                if (string.IsNullOrWhiteSpace(codigoGenerado))
+                    codigoGenerado = codigoOutput.Value?.ToString() ?? string.Empty;
+
                 estudiante.CodigoEstudiante = codigoGenerado;
                 return true;
             }
+
+            if (!string.IsNullOrWhiteSpace(mensaje))
+                throw new InvalidOperationException(mensaje);
 
             return false;
         }

@@ -68,15 +68,23 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.Add("@Telefono", SqlDbType.VarChar, 20).Value = (object?)conductor.Telefono ?? DBNull.Value;
             cmd.Parameters.Add("@Direccion", SqlDbType.VarChar, 200).Value = (object?)conductor.Direccion ?? DBNull.Value;
             cmd.Parameters.Add("@Estado", SqlDbType.Bit).Value = conductor.Estado;
+            SqlParameter codigoOutput = cmd.Parameters.Add("@CodigoGenerado", SqlDbType.VarChar, 20);
+            codigoOutput.Direction = ParameterDirection.Output;
 
             cn.Open();
             using SqlDataReader dr = cmd.ExecuteReader();
 
             if (RegistroResultadoDALC.EsRegistroExitoso(dr, out int filas, out string codigoGenerado, out string? mensaje))
             {
+                if (string.IsNullOrWhiteSpace(codigoGenerado))
+                    codigoGenerado = codigoOutput.Value?.ToString() ?? string.Empty;
+
                 conductor.CodigoConductor = codigoGenerado;
                 return true;
             }
+
+            if (!string.IsNullOrWhiteSpace(mensaje))
+                throw new InvalidOperationException(mensaje);
 
             return false;
         }
