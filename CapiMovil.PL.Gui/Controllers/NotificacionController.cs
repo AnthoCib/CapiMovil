@@ -1,6 +1,8 @@
 ﻿using CapiMovil.BL.BC;
 using CapiMovil.BL.BE;
+using CapiMovil.PL.Gui.Infrastructure;
 using CapiMovil.PL.Gui.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -32,6 +34,12 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Crear()
         {
+            if (EsAdminActual())
+            {
+                TempData["error"] = "La creación de notificaciones desde Admin está restringida. Use el módulo solo para consulta y seguimiento.";
+                return RedirectToAction(nameof(Listar));
+            }
+
             var vm = new NotificacionFormViewModel();
             CargarCombos(vm);
             return View(vm);
@@ -41,6 +49,12 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Crear(NotificacionFormViewModel vm)
         {
+            if (EsAdminActual())
+            {
+                TempData["error"] = "La creación de notificaciones desde Admin está restringida.";
+                return RedirectToAction(nameof(Listar));
+            }
+
             if (!ModelState.IsValid)
             {
                 CargarCombos(vm);
@@ -84,6 +98,12 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Editar(Guid id)
         {
+            if (EsAdminActual())
+            {
+                TempData["error"] = "La edición de notificaciones está restringida para Admin.";
+                return RedirectToAction(nameof(Listar));
+            }
+
             var entidad = _notificacionBC.ListarPorId(id);
 
             if (entidad == null)
@@ -113,6 +133,12 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Editar(NotificacionFormViewModel vm)
         {
+            if (EsAdminActual())
+            {
+                TempData["error"] = "La edición de notificaciones está restringida para Admin.";
+                return RedirectToAction(nameof(Listar));
+            }
+
             if (!ModelState.IsValid)
             {
                 CargarCombos(vm);
@@ -172,6 +198,12 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Eliminar(Guid id)
         {
+            if (EsAdminActual())
+            {
+                TempData["error"] = "La eliminación de notificaciones está restringida para Admin.";
+                return RedirectToAction(nameof(Listar));
+            }
+
             try
             {
                 bool ok = _notificacionBC.Eliminar(id);
@@ -195,6 +227,12 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult MarcarLeida(Guid id)
         {
+            if (EsAdminActual())
+            {
+                TempData["error"] = "El marcado manual de notificaciones está restringido para Admin.";
+                return RedirectToAction(nameof(Listar));
+            }
+
             try
             {
                 bool ok = _notificacionBC.MarcarLeida(id);
@@ -249,6 +287,13 @@ namespace CapiMovil.PL.Gui.Controllers
                 new SelectListItem { Value = "SMS", Text = "SMS", Selected = vm.Canal == "SMS" },
                 new SelectListItem { Value = "PUSH", Text = "PUSH", Selected = vm.Canal == "PUSH" }
             };
+        }
+
+        private bool EsAdminActual()
+        {
+            string rol = HttpContext.Session.GetString("RolNombre") ?? string.Empty;
+            string rolNormalizado = AutenticacionSesion.NormalizarRol(rol);
+            return RolesSistema.Administracion.Contains(rolNormalizado);
         }
     }
 }
