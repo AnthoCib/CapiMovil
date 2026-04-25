@@ -17,6 +17,12 @@ namespace CapiMovil.BL.BE
         public TimeSpan HoraFin { get; set; }
         public string? PuntoInicio { get; set; }
         public string? PuntoFin { get; set; }
+        public decimal? LatitudInicio { get; set; }
+        public decimal? LongitudInicio { get; set; }
+        public string? DireccionInicio { get; set; }
+        public decimal? LatitudFin { get; set; }
+        public decimal? LongitudFin { get; set; }
+        public string? DireccionFin { get; set; }
         public string EstadoRuta { get; set; } = "ACTIVA";
         public bool Estado { get; set; } = true;
 

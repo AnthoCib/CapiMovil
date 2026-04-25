@@ -37,6 +37,24 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
         [Display(Name = "Punto Fin")]
         public string? PuntoFin { get; set; }
 
+        [Display(Name = "Latitud Inicio")]
+        public decimal? LatitudInicio { get; set; }
+
+        [Display(Name = "Longitud Inicio")]
+        public decimal? LongitudInicio { get; set; }
+
+        [Display(Name = "Dirección Inicio")]
+        public string? DireccionInicio { get; set; }
+
+        [Display(Name = "Latitud Fin")]
+        public decimal? LatitudFin { get; set; }
+
+        [Display(Name = "Longitud Fin")]
+        public decimal? LongitudFin { get; set; }
+
+        [Display(Name = "Dirección Fin")]
+        public string? DireccionFin { get; set; }
+
         [Required(ErrorMessage = "Debe seleccionar el estado de la ruta.")]
         [Display(Name = "Estado Ruta")]
         public string EstadoRuta { get; set; } = "ACTIVA";

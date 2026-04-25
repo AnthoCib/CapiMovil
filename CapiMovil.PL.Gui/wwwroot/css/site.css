@@ -33,6 +33,10 @@
     min-height: 280px;
 }
 
+.capi-map-md {
+    min-height: 420px;
+}
+
 .capi-coords-badge {
     font-size: 0.9rem;
 }
