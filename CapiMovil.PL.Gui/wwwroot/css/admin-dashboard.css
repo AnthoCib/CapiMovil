@@ -93,6 +93,25 @@
     font-weight: 500;
 }
 
+.admin-nav-section {
+    padding-top: .35rem;
+    border-top: 1px dashed #e8e1d0;
+}
+
+.admin-nav-section:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+.admin-nav-title {
+    font-size: .7rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #8a7d67;
+    font-weight: 700;
+    margin: .35rem .55rem;
+}
+
 .btn-admin-highlight {
     background: #f4bf42;
     border-color: #f4bf42;
@@ -254,6 +273,41 @@
 .admin-activity-icon.secondary { background: #eceef2; color: #4b5563; }
 
 .x-small { font-size: .74rem; }
+
+.admin-quick-link-group {
+    border: 1px solid #ece8dd;
+    border-radius: .9rem;
+    padding: .9rem;
+    background: #fff;
+}
+
+.admin-quick-link-group-title {
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #7b6d55;
+    font-weight: 700;
+    margin-bottom: .5rem;
+}
+
+.admin-quick-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    border: 1px solid #efece1;
+    border-radius: .75rem;
+    padding: .45rem .6rem;
+    color: #2f343b;
+    text-decoration: none;
+    font-size: .9rem;
+}
+
+.admin-quick-link:hover {
+    background: #f8f6ee;
+    color: #111827;
+    border-color: #e2dac8;
+}
 
 /* Base visual consistente para vistas admin (listas/formularios) */
 .admin-portal .page-title {

@@ -38,14 +38,8 @@ namespace CapiMovil.PL.Gui.Controllers
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
-            EstudianteFormViewModel vm = new EstudianteFormViewModel
-            {
-                Estado = true,
-                Padres = ObtenerPadres(),
-                Generos = ObtenerGeneros()
-            };
-
-            return View(vm);
+            TempData["error"] = "El alta de estudiantes corresponde al Padre de Familia autenticado desde su módulo Mis Hijos.";
+            return RedirectToAction(nameof(Listar));
         }
 
         [HttpPost]
@@ -55,54 +49,8 @@ namespace CapiMovil.PL.Gui.Controllers
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
-            if (!ValidarFoto(vm.FotoArchivo, out string? errorFoto))
-                ModelState.AddModelError(nameof(vm.FotoArchivo), errorFoto!);
-
-            if (!ModelState.IsValid)
-                return RetornarVistaCrear(vm);
-
-            try
-            {
-                string? rutaFoto = GuardarFoto(vm.FotoArchivo);
-
-                EstudianteBE entidad = new EstudianteBE
-                {
-                    IdPadre = vm.IdPadre,
-                    Nombres = vm.Nombres,
-                    ApellidoPaterno = vm.ApellidoPaterno,
-                    ApellidoMaterno = vm.ApellidoMaterno,
-                    DNI = vm.DNI,
-                    FechaNacimiento = vm.FechaNacimiento,
-                    Genero = vm.Genero,
-                    Grado = vm.Grado,
-                    Seccion = vm.Seccion,
-                    Direccion = vm.Direccion,
-                    LatitudCasa = vm.LatitudCasa,
-                    LongitudCasa = vm.LongitudCasa,
-                    FotoUrl = rutaFoto,
-                    Observaciones = vm.Observaciones,
-                    Estado = vm.Estado
-                };
-
-                bool ok = _estudianteBC.Registrar(entidad);
-
-                if (ok)
-                {
-                    TempData["ok"] = "Estudiante registrado correctamente.";
-                    return RedirectToAction(nameof(Listar));
-                }
-
-                const string mensajeError = "No se pudo registrar el estudiante.";
-                ModelState.AddModelError(string.Empty, mensajeError);
-                ViewBag.SwalError = mensajeError;
-            }
-            catch (Exception ex)
-            {
-                ModelState.AddModelError(string.Empty, ex.Message);
-                ViewBag.SwalError = ex.Message;
-            }
-
-            return RetornarVistaCrear(vm);
+            TempData["error"] = "El alta de estudiantes para administración está deshabilitada. Use el flujo de Padre de Familia.";
+            return RedirectToAction(nameof(Listar));
         }
 
         [HttpGet]
@@ -223,13 +171,6 @@ namespace CapiMovil.PL.Gui.Controllers
             }
 
             return RedirectToAction(nameof(Listar));
-        }
-
-        private IActionResult RetornarVistaCrear(EstudianteFormViewModel vm)
-        {
-            vm.Padres = ObtenerPadres();
-            vm.Generos = ObtenerGeneros();
-            return View("Crear", vm);
         }
 
         private IActionResult RetornarVistaEditar(EstudianteFormViewModel vm)

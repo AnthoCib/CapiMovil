@@ -28,10 +28,12 @@
             new { Texto = "Paraderos", Url = Url.Action("Listar", "Paradero"), Keywords = "paraderos paradas" },
             new { Texto = "Ruta-Estudiante", Url = Url.Action("Listar", "RutaEstudiante"), Keywords = "ruta estudiante asignaciones" },
             new { Texto = "Recorridos", Url = Url.Action("Listar", "Recorrido"), Keywords = "recorridos operaciones" },
+            new { Texto = "Abordajes", Url = Url.Action("Listar", "EventoAbordaje"), Keywords = "abordajes eventos embarque" },
+            new { Texto = "Seguimiento en vivo", Url = Url.Action("Listar", "Recorrido"), Keywords = "seguimiento en vivo mapa gps" },
             new { Texto = "Incidencias", Url = Url.Action("Listar", "Incidencia"), Keywords = "incidencias alertas" },
             new { Texto = "Notificaciones", Url = Url.Action("Listar", "Notificacion"), Keywords = "notificaciones mensajes" },
             new { Texto = "Auditoría", Url = Url.Action("Listar", "Auditoria"), Keywords = "auditoria historial" },
-            new { Texto = "Perfil", Url = Url.Action("MiPerfil", "Usuario"), Keywords = "perfil cuenta" },
+            new { Texto = "Mi perfil", Url = Url.Action("MiPerfil", "Usuario"), Keywords = "perfil cuenta" },
             new { Texto = "Cambiar contraseña", Url = Url.Action("CambiarPassword", "Usuario"), Keywords = "password clave seguridad" }
         }
         : Array.Empty<object>();
@@ -112,20 +114,47 @@
                             </div>
                         </div>
 
-                        <nav class="nav flex-column gap-2 admin-nav mb-4">
-                            <a asp-controller="Admin" asp-action="Index" class="nav-link"><i class="bi bi-grid-1x2-fill"></i>Dashboard</a>
-                            <a asp-controller="Usuario" asp-action="Listar" class="nav-link"><i class="bi bi-person-gear"></i>Usuarios</a>
-                            <a asp-controller="PadreFamilia" asp-action="Listar" class="nav-link"><i class="bi bi-people"></i>Padres</a>
-                            <a asp-controller="Conductor" asp-action="Listar" class="nav-link"><i class="bi bi-person-badge"></i>Conductores</a>
-                            <a asp-controller="Estudiante" asp-action="Listar" class="nav-link"><i class="bi bi-mortarboard"></i>Estudiantes</a>
-                            <a asp-controller="Bus" asp-action="Listar" class="nav-link"><i class="bi bi-bus-front"></i>Buses</a>
-                            <a asp-controller="Ruta" asp-action="Listar" class="nav-link"><i class="bi bi-signpost-2"></i>Rutas</a>
-                            <a asp-controller="Paradero" asp-action="Listar" class="nav-link"><i class="bi bi-geo-alt"></i>Paraderos</a>
-                            <a asp-controller="RutaEstudiante" asp-action="Listar" class="nav-link"><i class="bi bi-diagram-3"></i>Ruta-Estudiante</a>
-                            <a asp-controller="Recorrido" asp-action="Listar" class="nav-link"><i class="bi bi-map"></i>Recorridos</a>
-                            <a asp-controller="Incidencia" asp-action="Listar" class="nav-link"><i class="bi bi-exclamation-triangle"></i>Incidencias</a>
-                            <a asp-controller="Notificacion" asp-action="Listar" class="nav-link"><i class="bi bi-bell"></i>Notificaciones</a>
-                            <a asp-controller="Auditoria" asp-action="Listar" class="nav-link"><i class="bi bi-clipboard-data"></i>Auditoría</a>
+                        <nav class="nav flex-column gap-1 admin-nav mb-4">
+                            <div class="admin-nav-section">
+                                <div class="admin-nav-title">Panel principal</div>
+                                <a asp-controller="Admin" asp-action="Index" class="nav-link"><i class="bi bi-grid-1x2-fill"></i>Dashboard</a>
+                            </div>
+
+                            <div class="admin-nav-section">
+                                <div class="admin-nav-title">Gestión de personas</div>
+                                <a asp-controller="Usuario" asp-action="Listar" class="nav-link"><i class="bi bi-person-gear"></i>Usuarios</a>
+                                <a asp-controller="PadreFamilia" asp-action="Listar" class="nav-link"><i class="bi bi-people"></i>Padres de familia</a>
+                                <a asp-controller="Conductor" asp-action="Listar" class="nav-link"><i class="bi bi-person-badge"></i>Conductores</a>
+                                <a asp-controller="Estudiante" asp-action="Listar" class="nav-link"><i class="bi bi-mortarboard"></i>Estudiantes</a>
+                            </div>
+
+                            <div class="admin-nav-section">
+                                <div class="admin-nav-title">Gestión de transporte</div>
+                                <a asp-controller="Bus" asp-action="Listar" class="nav-link"><i class="bi bi-bus-front"></i>Buses</a>
+                                <a asp-controller="Ruta" asp-action="Listar" class="nav-link"><i class="bi bi-signpost-2"></i>Rutas</a>
+                                <a asp-controller="Paradero" asp-action="Listar" class="nav-link"><i class="bi bi-geo-alt"></i>Paraderos</a>
+                                <a asp-controller="RutaEstudiante" asp-action="Listar" class="nav-link"><i class="bi bi-diagram-3"></i>Ruta-Estudiante</a>
+                            </div>
+
+                            <div class="admin-nav-section">
+                                <div class="admin-nav-title">Operación diaria</div>
+                                <a asp-controller="Recorrido" asp-action="Listar" class="nav-link"><i class="bi bi-map"></i>Recorridos</a>
+                                <a asp-controller="EventoAbordaje" asp-action="Listar" class="nav-link"><i class="bi bi-check2-square"></i>Abordajes</a>
+                                <a asp-controller="Recorrido" asp-action="Listar" class="nav-link"><i class="bi bi-broadcast-pin"></i>Seguimiento en vivo</a>
+                            </div>
+
+                            <div class="admin-nav-section">
+                                <div class="admin-nav-title">Control y monitoreo</div>
+                                <a asp-controller="Incidencia" asp-action="Listar" class="nav-link"><i class="bi bi-exclamation-triangle"></i>Incidencias</a>
+                                <a asp-controller="Notificacion" asp-action="Listar" class="nav-link"><i class="bi bi-bell"></i>Notificaciones</a>
+                                <a asp-controller="Auditoria" asp-action="Listar" class="nav-link"><i class="bi bi-clipboard-data"></i>Auditoría</a>
+                            </div>
+
+                            <div class="admin-nav-section">
+                                <div class="admin-nav-title">Cuenta</div>
+                                <a asp-controller="Usuario" asp-action="MiPerfil" class="nav-link"><i class="bi bi-person-circle"></i>Mi perfil</a>
+                                <a asp-controller="Usuario" asp-action="CambiarPassword" class="nav-link"><i class="bi bi-key"></i>Cambiar contraseña</a>
+                            </div>
                         </nav>
 
                         <a asp-controller="Recorrido" asp-action="Listar" class="btn btn-admin-highlight mt-auto">

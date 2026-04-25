@@ -62,6 +62,53 @@
         </div>
     </div>
 
+    <div class="card border-0 shadow-sm admin-analytics mb-3 mb-xl-4">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h5 fw-bold mb-0">Accesos por área funcional</h2>
+                <span class="badge text-bg-light border">Navegación rápida</span>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="admin-quick-link-group h-100">
+                        <div class="admin-quick-link-group-title">Gestión de personas</div>
+                        <div class="d-grid gap-2">
+                            <a asp-controller="Usuario" asp-action="Listar" class="admin-quick-link"><span><i class="bi bi-person-gear me-2"></i>Usuarios</span><i class="bi bi-chevron-right"></i></a>
+                            <a asp-controller="PadreFamilia" asp-action="Listar" class="admin-quick-link"><span><i class="bi bi-people me-2"></i>Padres de familia</span><i class="bi bi-chevron-right"></i></a>
+                            <a asp-controller="Conductor" asp-action="Listar" class="admin-quick-link"><span><i class="bi bi-person-badge me-2"></i>Conductores</span><i class="bi bi-chevron-right"></i></a>
+                            <a asp-controller="Estudiante" asp-action="Listar" class="admin-quick-link"><span><i class="bi bi-mortarboard me-2"></i>Estudiantes</span><i class="bi bi-chevron-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="admin-quick-link-group h-100">
+                        <div class="admin-quick-link-group-title">Gestión de transporte</div>
+                        <div class="d-grid gap-2">
+                            <a asp-controller="Bus" asp-action="Listar" class="admin-quick-link"><span><i class="bi bi-bus-front me-2"></i>Buses</span><i class="bi bi-chevron-right"></i></a>
+                            <a asp-controller="Ruta" asp-action="Listar" class="admin-quick-link"><span><i class="bi bi-signpost-2 me-2"></i>Rutas</span><i class="bi bi-chevron-right"></i></a>
+                            <a asp-controller="Paradero" asp-action="Listar" class="admin-quick-link"><span><i class="bi bi-geo-alt me-2"></i>Paraderos</span><i class="bi bi-chevron-right"></i></a>
+                            <a asp-controller="RutaEstudiante" asp-action="Listar" class="admin-quick-link"><span><i class="bi bi-diagram-3 me-2"></i>Ruta-Estudiante</span><i class="bi bi-chevron-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="admin-quick-link-group h-100">
+                        <div class="admin-quick-link-group-title">Operación, control y cuenta</div>
+                        <div class="d-grid gap-2">
+                            <a asp-controller="Recorrido" asp-action="Listar" class="admin-quick-link"><span><i class="bi bi-map me-2"></i>Recorridos y seguimiento</span><i class="bi bi-chevron-right"></i></a>
+                            <a asp-controller="EventoAbordaje" asp-action="Listar" class="admin-quick-link"><span><i class="bi bi-check2-square me-2"></i>Abordajes</span><i class="bi bi-chevron-right"></i></a>
+                            <a asp-controller="Incidencia" asp-action="Listar" class="admin-quick-link"><span><i class="bi bi-exclamation-triangle me-2"></i>Incidencias</span><i class="bi bi-chevron-right"></i></a>
+                            <a asp-controller="Notificacion" asp-action="Listar" class="admin-quick-link"><span><i class="bi bi-bell me-2"></i>Notificaciones</span><i class="bi bi-chevron-right"></i></a>
+                            <a asp-controller="Auditoria" asp-action="Listar" class="admin-quick-link"><span><i class="bi bi-clipboard-data me-2"></i>Auditoría</span><i class="bi bi-chevron-right"></i></a>
+                            <a asp-controller="Usuario" asp-action="MiPerfil" class="admin-quick-link"><span><i class="bi bi-person-circle me-2"></i>Mi perfil</span><i class="bi bi-chevron-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row g-3">
         <div class="col-12 col-lg-8">
             <div class="card border-0 shadow-sm admin-analytics h-100">
