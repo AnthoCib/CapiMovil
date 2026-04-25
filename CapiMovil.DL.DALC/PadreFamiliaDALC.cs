@@ -68,13 +68,17 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.Add("@Direccion", SqlDbType.VarChar, 200).Value = (object?)padre.Direccion ?? DBNull.Value;
             cmd.Parameters.Add("@CorreoContacto", SqlDbType.VarChar, 120).Value = (object?)padre.CorreoContacto ?? DBNull.Value;
             cmd.Parameters.Add("@Estado", SqlDbType.Bit).Value = padre.Estado;
+            SqlParameter codigoSalida = cmd.Parameters.Add("@CodigoGenerado", SqlDbType.VarChar, 20);
+            codigoSalida.Direction = ParameterDirection.Output;
 
             cn.Open();
             using SqlDataReader dr = cmd.ExecuteReader();
 
             if (RegistroResultadoDALC.EsRegistroExitoso(dr, out int filas, out string codigoGenerado, out string? mensaje))
             {
-                padre.CodigoPadre = codigoGenerado;
+                padre.CodigoPadre = !string.IsNullOrWhiteSpace(codigoGenerado)
+                    ? codigoGenerado
+                    : (codigoSalida.Value?.ToString() ?? string.Empty);
                 return true;
             }
 
@@ -102,9 +106,8 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.Add("@Estado", SqlDbType.Bit).Value = padre.Estado;
 
             cn.Open();
-            int filas = cmd.ExecuteNonQuery();
-
-            return filas > 0;
+            using SqlDataReader dr = cmd.ExecuteReader();
+            return RegistroResultadoDALC.EsRegistroExitoso(dr, out _, out _, out _);
         }
 
         public bool Eliminar(Guid idPadre)
@@ -118,9 +121,8 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.Add("@IdPadre", SqlDbType.UniqueIdentifier).Value = idPadre;
 
             cn.Open();
-            int filas = cmd.ExecuteNonQuery();
-
-            return filas > 0;
+            using SqlDataReader dr = cmd.ExecuteReader();
+            return RegistroResultadoDALC.EsRegistroExitoso(dr, out _, out _, out _);
         }
 
         public List<UsuarioBE> ListarUsuariosDisponibles()
