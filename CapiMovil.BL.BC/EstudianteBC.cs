@@ -33,6 +33,7 @@ namespace CapiMovil.BL.BC
             if (string.IsNullOrWhiteSpace(entidad.Nombres))
                 throw new ArgumentException("Nombres obligatorios.");
 
+            ValidarDniUnico(entidad.DNI, null);
             ValidarCoordenadas(entidad.LatitudCasa, entidad.LongitudCasa);
 
             return _dalc.Registrar(entidad);
@@ -49,6 +50,7 @@ namespace CapiMovil.BL.BC
                 entidad.CodigoEstudiante = actual?.CodigoEstudiante ?? string.Empty;
             }
 
+            ValidarDniUnico(entidad.DNI, entidad.IdEstudiante);
             ValidarCoordenadas(entidad.LatitudCasa, entidad.LongitudCasa);
 
             return _dalc.Actualizar(entidad);
@@ -77,6 +79,24 @@ namespace CapiMovil.BL.BC
 
             if (longitud.HasValue && (longitud < -180m || longitud > 180m))
                 throw new ArgumentException("La longitud de casa debe estar entre -180 y 180.");
+        }
+
+        private void ValidarDniUnico(string? dni, Guid? idActual)
+        {
+            if (string.IsNullOrWhiteSpace(dni))
+                return;
+
+            string dniNormalizado = dni.Trim();
+            if (dniNormalizado.Length != 8 || !dniNormalizado.All(char.IsDigit))
+                throw new ArgumentException("El DNI del estudiante debe tener 8 dígitos.");
+
+            bool existe = _dalc.Listar().Any(e =>
+                !string.IsNullOrWhiteSpace(e.DNI) &&
+                string.Equals(e.DNI.Trim(), dniNormalizado, StringComparison.OrdinalIgnoreCase) &&
+                (!idActual.HasValue || e.IdEstudiante != idActual.Value));
+
+            if (existe)
+                throw new ArgumentException("Ya existe un estudiante registrado con el DNI ingresado.");
         }
     }
 }

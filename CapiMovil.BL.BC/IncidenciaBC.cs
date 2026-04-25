@@ -141,6 +141,16 @@ namespace CapiMovil.BL.BC
             if (entidad.IdConductor == Guid.Empty)
                 throw new ArgumentException("Debe seleccionar un conductor.");
 
+            RecorridoBE? recorrido = _recorridoBC.ListarPorId(entidad.IdRecorrido);
+            if (recorrido == null || !recorrido.Estado)
+                throw new ArgumentException("El recorrido no existe o no está disponible.");
+
+            if (recorrido.IdConductor != entidad.IdConductor)
+                throw new ArgumentException("El conductor no corresponde al recorrido indicado.");
+
+            if (esNuevo && !string.Equals(recorrido.EstadoRecorrido, "EN_CURSO", StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("Solo se pueden registrar incidencias cuando el recorrido está EN_CURSO.");
+
             if (string.IsNullOrWhiteSpace(entidad.TipoIncidencia))
                 throw new ArgumentException("Debe seleccionar el tipo de incidencia.");
 

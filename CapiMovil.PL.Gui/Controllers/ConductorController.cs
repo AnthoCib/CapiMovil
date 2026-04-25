@@ -756,7 +756,10 @@ namespace CapiMovil.PL.Gui.Controllers
             if (ausente) estadoActual = "AUSENTE";
             else if (noAbordo) estadoActual = "NO_ABORDO";
             else if (tieneSubida && tieneBajada) estadoActual = "COMPLETADO";
-            else if (tieneSubida) estadoActual = "SUBIDO";
+            else if (tieneSubida) estadoActual = "EN_BUS";
+            else estadoActual = "PENDIENTE";
+
+            bool bloqueado = ausente || noAbordo;
 
             return new ConductorAbordajeAlumnoEstadoViewModel
             {
@@ -766,7 +769,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 TotalBajadas = resumen.TotalBajadas,
                 TotalAusentes = resumen.TotalAusentes,
                 TotalNoAbordo = resumen.TotalNoAbordo,
-                EstadoActual = estadoActual,
+                EstadoActual = bloqueado ? "BLOQUEADO" : estadoActual,
                 PermiteSubida = !ausente && !noAbordo && !(tieneSubida && !tieneBajada) && !(tieneSubida && tieneBajada),
                 PermiteBajada = !ausente && !noAbordo && tieneSubida && !tieneBajada,
                 PermiteAusente = !ausente && !noAbordo && !tieneSubida && !tieneBajada,

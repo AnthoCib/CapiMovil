@@ -8,14 +8,20 @@ namespace CapiMovil.BL.BC
         private readonly EventoAbordajeDALC _eventoAbordajeDALC;
         private readonly NotificacionBC _notificacionBC;
         private readonly EstudianteBC _estudianteBC;
+        private readonly RecorridoBC _recorridoBC;
+        private readonly RutaEstudianteBC _rutaEstudianteBC;
         public EventoAbordajeBC(
               EventoAbordajeDALC eventoAbordajeDALC,
               NotificacionBC notificacionBC,
-              EstudianteBC estudianteBC)
+              EstudianteBC estudianteBC,
+              RecorridoBC recorridoBC,
+              RutaEstudianteBC rutaEstudianteBC)
         {
             _eventoAbordajeDALC = eventoAbordajeDALC;
             _notificacionBC = notificacionBC;
             _estudianteBC = estudianteBC;
+            _recorridoBC = recorridoBC;
+            _rutaEstudianteBC = rutaEstudianteBC;
         }
 
         public List<EventoAbordajeBE> Listar()
@@ -56,6 +62,16 @@ namespace CapiMovil.BL.BC
                     {
                         titulo = "Estudiante descendió de la unidad";
                         mensaje = "Se registró la bajada del estudiante de la unidad de transporte.";
+                    }
+                    else if (tipo == "AUSENTE")
+                    {
+                        titulo = "Estudiante ausente en el recorrido";
+                        mensaje = "Se registró al estudiante como ausente en el recorrido.";
+                    }
+                    else if (tipo == "NO_ABORDO")
+                    {
+                        titulo = "Estudiante no abordó la unidad";
+                        mensaje = "Se registró que el estudiante no abordó la unidad de transporte.";
                     }
 
                     if (!string.IsNullOrWhiteSpace(titulo))
@@ -129,6 +145,26 @@ namespace CapiMovil.BL.BC
 
         private void ValidarSecuenciaAbordaje(EventoAbordajeBE entidad)
         {
+            RecorridoBE? recorrido = _recorridoBC.ListarPorId(entidad.IdRecorrido);
+            if (recorrido == null || !recorrido.Estado)
+                throw new ArgumentException("El recorrido no existe o no está disponible.");
+
+            string estadoRecorrido = (recorrido.EstadoRecorrido ?? string.Empty).Trim().ToUpperInvariant();
+            if (!string.Equals(estadoRecorrido, "EN_CURSO", StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("Solo se pueden registrar eventos en recorridos EN_CURSO.");
+
+            EstudianteBE? estudiante = _estudianteBC.ListarPorId(entidad.IdEstudiante);
+            if (estudiante == null || !estudiante.Estado)
+                throw new ArgumentException("El estudiante no existe o se encuentra inactivo.");
+
+            bool perteneceRuta = _rutaEstudianteBC.Listar().Any(x =>
+                x.Estado &&
+                x.IdRuta == recorrido.IdRuta &&
+                x.IdEstudiante == entidad.IdEstudiante);
+
+            if (!perteneceRuta)
+                throw new ArgumentException("El estudiante no pertenece a la ruta del recorrido.");
+
             EventoAbordajeResumenBE resumen = _eventoAbordajeDALC.ObtenerResumenPorEstudianteRecorrido(entidad.IdRecorrido, entidad.IdEstudiante);
             string tipo = (entidad.TipoEvento ?? string.Empty).Trim().ToUpperInvariant();
 
