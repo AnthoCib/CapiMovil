@@ -137,3 +137,13 @@
     background: #dbeafe;
     color: #1d4ed8;
 }
+
+.conductor-event-btn {
+    text-align: left;
+    font-weight: 700;
+}
+
+.conductor-event-btn.active {
+    box-shadow: 0 0 0 .2rem rgba(216, 169, 61, .2);
+    transform: translateY(-1px);
+}

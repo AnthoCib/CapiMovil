@@ -33,8 +33,7 @@ namespace CapiMovil.BL.BC
 
         public bool Registrar(EventoAbordajeBE entidad)
         {
-            Validar(entidad);
-            ValidarSecuenciaAbordaje(entidad);
+            ValidarRegistro(entidad);
 
             bool ok = _eventoAbordajeDALC.Registrar(entidad);
 
@@ -83,6 +82,23 @@ namespace CapiMovil.BL.BC
 
             Validar(entidad);
             return _eventoAbordajeDALC.Actualizar(entidad);
+        }
+
+        public void ValidarRegistro(EventoAbordajeBE entidad)
+        {
+            Validar(entidad);
+            ValidarSecuenciaAbordaje(entidad);
+        }
+
+        public EventoAbordajeResumenBE ObtenerResumenPorEstudianteRecorrido(Guid idRecorrido, Guid idEstudiante)
+        {
+            if (idRecorrido == Guid.Empty)
+                throw new ArgumentException("El recorrido es inválido.");
+
+            if (idEstudiante == Guid.Empty)
+                throw new ArgumentException("El estudiante es inválido.");
+
+            return _eventoAbordajeDALC.ObtenerResumenPorEstudianteRecorrido(idRecorrido, idEstudiante);
         }
 
         public bool Eliminar(Guid id)

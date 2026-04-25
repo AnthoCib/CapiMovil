@@ -338,6 +338,32 @@ namespace CapiMovil.PL.Gui.Controllers
                 return RedirectToAction(nameof(Abordaje));
             }
 
+            string tipoEvento = (vm.TipoEvento ?? string.Empty).Trim().ToUpperInvariant();
+            HashSet<string> tiposPermitidos = new(StringComparer.OrdinalIgnoreCase)
+            {
+                "SUBIDA",
+                "BAJADA",
+                "AUSENTE",
+                "NO_ABORDO"
+            };
+
+            if (!tiposPermitidos.Contains(tipoEvento))
+            {
+                TempData["error"] = "El tipo de evento no es válido.";
+                return RedirectToAction(nameof(Abordaje));
+            }
+
+            HashSet<Guid> estudiantesPermitidos = _rutaEstudianteBC.Listar()
+                .Where(re => re.IdRuta == recorridoActivo.IdRuta && re.Estado)
+                .Select(re => re.IdEstudiante)
+                .ToHashSet();
+
+            if (!estudiantesPermitidos.Contains(vm.IdEstudiante))
+            {
+                TempData["error"] = "El alumno no pertenece al recorrido activo.";
+                return RedirectToAction(nameof(Abordaje));
+            }
+
             try
             {
                 string? usuarioIdSession = HttpContext.Session.GetString("UsuarioId");
@@ -349,12 +375,13 @@ namespace CapiMovil.PL.Gui.Controllers
                     IdEstudiante = vm.IdEstudiante,
                     IdParadero = vm.IdParadero,
                     RegistradoPor = usuarioId,
-                    TipoEvento = vm.TipoEvento,
+                    TipoEvento = tipoEvento,
                     FechaHora = vm.FechaHora,
                     Observacion = vm.Observacion,
                     Estado = true
                 };
 
+                _eventoAbordajeBC.ValidarRegistro(entidad);
                 bool ok = _eventoAbordajeBC.Registrar(entidad);
                 TempData[ok ? "ok" : "error"] = ok
                     ? $"Evento registrado correctamente. Código: {entidad.CodigoEvento}"
@@ -694,19 +721,56 @@ namespace CapiMovil.PL.Gui.Controllers
                     .ToList();
             }
 
+            List<ConductorAbordajeAlumnoEstadoViewModel> estadosPorAlumno = new();
+            if (recorridoActivo != null)
+            {
+                foreach (SelectListItem estudiante in estudiantes)
+                {
+                    if (!Guid.TryParse(estudiante.Value, out Guid idEstudiante))
+                        continue;
+
+                    var resumen = _eventoAbordajeBC.ObtenerResumenPorEstudianteRecorrido(recorridoActivo.IdRecorrido, idEstudiante);
+                    estadosPorAlumno.Add(MapearEstadoAbordaje(estudiante, resumen));
+                }
+            }
+
             return new ConductorAbordajeViewModel
             {
                 RecorridoActivo = recorridoActivo,
                 Eventos = eventos,
                 Estudiantes = estudiantes,
                 Paraderos = paraderos,
-                TiposEvento = new List<SelectListItem>
-                {
-                    new("SUBIDA", "SUBIDA"),
-                    new("BAJADA", "BAJADA"),
-                    new("AUSENTE", "AUSENTE"),
-                    new("NO_ABORDO", "NO_ABORDO")
-                }
+                TiposEvento = new List<SelectListItem>(),
+                EstadosPorAlumno = estadosPorAlumno
+            };
+        }
+
+        private static ConductorAbordajeAlumnoEstadoViewModel MapearEstadoAbordaje(SelectListItem estudiante, EventoAbordajeResumenBE resumen)
+        {
+            bool tieneSubida = resumen.TotalSubidas > 0;
+            bool tieneBajada = resumen.TotalBajadas > 0;
+            bool ausente = resumen.TotalAusentes > 0;
+            bool noAbordo = resumen.TotalNoAbordo > 0;
+
+            string estadoActual = "SIN_EVENTOS";
+            if (ausente) estadoActual = "AUSENTE";
+            else if (noAbordo) estadoActual = "NO_ABORDO";
+            else if (tieneSubida && tieneBajada) estadoActual = "COMPLETADO";
+            else if (tieneSubida) estadoActual = "SUBIDO";
+
+            return new ConductorAbordajeAlumnoEstadoViewModel
+            {
+                IdEstudiante = Guid.Parse(estudiante.Value!),
+                NombreEstudiante = estudiante.Text,
+                TotalSubidas = resumen.TotalSubidas,
+                TotalBajadas = resumen.TotalBajadas,
+                TotalAusentes = resumen.TotalAusentes,
+                TotalNoAbordo = resumen.TotalNoAbordo,
+                EstadoActual = estadoActual,
+                PermiteSubida = !ausente && !noAbordo && !(tieneSubida && !tieneBajada) && !(tieneSubida && tieneBajada),
+                PermiteBajada = !ausente && !noAbordo && tieneSubida && !tieneBajada,
+                PermiteAusente = !ausente && !noAbordo && !tieneSubida && !tieneBajada,
+                PermiteNoAbordo = !ausente && !noAbordo && !tieneSubida && !tieneBajada
             };
         }
 

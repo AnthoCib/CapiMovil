@@ -16,5 +16,6 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
         public List<SelectListItem> Estudiantes { get; set; } = new();
         public List<SelectListItem> Paraderos { get; set; } = new();
         public List<SelectListItem> TiposEvento { get; set; } = new();
+        public List<ConductorAbordajeAlumnoEstadoViewModel> EstadosPorAlumno { get; set; } = new();
     }
 }
