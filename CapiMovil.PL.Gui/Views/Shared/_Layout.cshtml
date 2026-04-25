@@ -96,7 +96,7 @@
 
     @RenderSection("Styles", required: false)
 </head>
-<body class="d-flex flex-column min-vh-100 @(esAdmin ? "admin-portal" : "")">
+<body class="@(esAdmin ? "admin-portal" : "d-flex flex-column min-vh-100")">
 
     @if (!string.IsNullOrEmpty(username) && esAdmin)
     {
@@ -268,9 +268,12 @@
         </main>
     }
 
-    <footer class="border-top py-3 mt-auto bg-light">
-        <div class="container text-center text-muted">&copy; @DateTime.Now.Year - CapiMovil</div>
-    </footer>
+    @if (!esAdmin)
+    {
+        <footer class="border-top py-3 mt-auto bg-light">
+            <div class="container text-center text-muted">&copy; @DateTime.Now.Year - CapiMovil</div>
+        </footer>
+    }
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

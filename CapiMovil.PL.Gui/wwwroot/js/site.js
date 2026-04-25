@@ -237,16 +237,61 @@ function inicializarSidebarShellById(shellId) {
 
     if (!toggle || !backdrop) return;
 
-    toggle.addEventListener("click", () => shell.classList.toggle("sidebar-open"));
-    backdrop.addEventListener("click", () => shell.classList.remove("sidebar-open"));
+    const syncSidebarState = () => {
+        const isOpen = shell.classList.contains("sidebar-open");
+        toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+
+        if (window.innerWidth < desktopBreakpoint) {
+            document.body.classList.toggle("overflow-hidden", isOpen);
+        } else {
+            document.body.classList.remove("overflow-hidden");
+        }
+    };
+
+    const openSidebar = () => {
+        shell.classList.add("sidebar-open");
+        syncSidebarState();
+    };
+
+    const closeSidebar = () => {
+        shell.classList.remove("sidebar-open");
+        syncSidebarState();
+    };
+
+    toggle.addEventListener("click", () => {
+        if (shell.classList.contains("sidebar-open")) {
+            closeSidebar();
+            return;
+        }
+
+        openSidebar();
+    });
+
+    backdrop.addEventListener("click", closeSidebar);
 
     shell.querySelectorAll(navSelector).forEach(link => {
-        link.addEventListener("click", () => shell.classList.remove("sidebar-open"));
+        link.addEventListener("click", () => {
+            if (window.innerWidth < desktopBreakpoint) {
+                closeSidebar();
+            }
+        });
     });
 
     window.addEventListener("resize", () => {
-        if (window.innerWidth >= desktopBreakpoint) shell.classList.remove("sidebar-open");
+        if (window.innerWidth >= desktopBreakpoint) {
+            closeSidebar();
+        } else {
+            syncSidebarState();
+        }
     });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && shell.classList.contains("sidebar-open")) {
+            closeSidebar();
+        }
+    });
+
+    syncSidebarState();
 }
 
 function inicializarSidebarsDesdeData() {
