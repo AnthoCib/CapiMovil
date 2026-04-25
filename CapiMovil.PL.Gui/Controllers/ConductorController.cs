@@ -376,7 +376,7 @@ namespace CapiMovil.PL.Gui.Controllers
                     IdParadero = vm.IdParadero,
                     RegistradoPor = usuarioId,
                     TipoEvento = tipoEvento,
-                    FechaHora = vm.FechaHora,
+                    FechaHora = vm.FechaHora == default ? DateTime.Now : vm.FechaHora,
                     Observacion = vm.Observacion,
                     Estado = true
                 };

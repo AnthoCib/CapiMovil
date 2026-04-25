@@ -147,3 +147,8 @@
     box-shadow: 0 0 0 .2rem rgba(216, 169, 61, .2);
     transform: translateY(-1px);
 }
+
+.conductor-quick-action {
+    min-width: 90px;
+    font-weight: 700;
+}

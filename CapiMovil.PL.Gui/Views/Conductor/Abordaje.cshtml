@@ -192,6 +192,7 @@
                                 <th>Alumno</th>
                                 <th>Estado</th>
                                 <th>Permitido</th>
+                                <th>Acción rápida</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -207,6 +208,38 @@
                                         <span class="badge @(estado.PermiteBajada ? "text-bg-primary" : "text-bg-secondary") me-1">BAJADA</span>
                                         <span class="badge @(estado.PermiteAusente ? "text-bg-warning" : "text-bg-secondary") me-1">AUSENTE</span>
                                         <span class="badge @(estado.PermiteNoAbordo ? "text-bg-dark" : "text-bg-secondary")">NO_ABORDO</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            <form asp-action="RegistrarAbordaje" method="post" class="m-0">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="IdEstudiante" value="@estado.IdEstudiante" />
+                                                <input type="hidden" name="TipoEvento" value="SUBIDA" />
+                                                <input type="hidden" name="FechaHora" value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss")" />
+                                                <button type="submit" class="btn btn-sm btn-success conductor-quick-action" disabled="@(!estado.PermiteSubida)">SUBIDA</button>
+                                            </form>
+                                            <form asp-action="RegistrarAbordaje" method="post" class="m-0">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="IdEstudiante" value="@estado.IdEstudiante" />
+                                                <input type="hidden" name="TipoEvento" value="BAJADA" />
+                                                <input type="hidden" name="FechaHora" value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss")" />
+                                                <button type="submit" class="btn btn-sm btn-primary conductor-quick-action" disabled="@(!estado.PermiteBajada)">BAJADA</button>
+                                            </form>
+                                            <form asp-action="RegistrarAbordaje" method="post" class="m-0">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="IdEstudiante" value="@estado.IdEstudiante" />
+                                                <input type="hidden" name="TipoEvento" value="AUSENTE" />
+                                                <input type="hidden" name="FechaHora" value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss")" />
+                                                <button type="submit" class="btn btn-sm btn-warning conductor-quick-action" disabled="@(!estado.PermiteAusente)">AUSENTE</button>
+                                            </form>
+                                            <form asp-action="RegistrarAbordaje" method="post" class="m-0">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="IdEstudiante" value="@estado.IdEstudiante" />
+                                                <input type="hidden" name="TipoEvento" value="NO_ABORDO" />
+                                                <input type="hidden" name="FechaHora" value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss")" />
+                                                <button type="submit" class="btn btn-sm btn-dark conductor-quick-action" disabled="@(!estado.PermiteNoAbordo)">NO_ABORDO</button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             }
