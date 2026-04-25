@@ -2,7 +2,8 @@
     CapiMovil - Consolidado RUTA (Mapa Inicio/Fin)
     Incluye:
     1) ALTER TABLE Ruta para coordenadas/direcciones de inicio y fin
-    2) CREATE OR ALTER SPs de Ruta para listar/obtener/registrar/actualizar
+    2) Funciones auxiliares para fragmento de código
+    3) CREATE OR ALTER SPs de Ruta para listar/obtener/registrar/actualizar
 */
 
 SET ANSI_NULLS ON
@@ -33,7 +34,62 @@ IF COL_LENGTH('dbo.Ruta', 'DireccionFin') IS NULL
 GO
 
 /* =========================================================
-   2) SP_RUTA_LISTAR
+   2) FUNCIONES AUXILIARES CÓDIGO RUTA
+   ========================================================= */
+CREATE OR ALTER FUNCTION dbo.fn_Codigo_SoloAlfanumerico
+(
+    @Texto NVARCHAR(200)
+)
+RETURNS VARCHAR(200)
+AS
+BEGIN
+    DECLARE @I INT = 1;
+    DECLARE @Len INT = LEN(ISNULL(@Texto, ''));
+    DECLARE @Salida VARCHAR(200) = '';
+    DECLARE @Ch NCHAR(1);
+    DECLARE @Ascii INT;
+
+    WHILE @I <= @Len
+    BEGIN
+        SET @Ch = SUBSTRING(@Texto, @I, 1);
+        SET @Ascii = UNICODE(@Ch);
+
+        IF (@Ascii BETWEEN 48 AND 57) OR (@Ascii BETWEEN 65 AND 90) OR (@Ascii BETWEEN 97 AND 122)
+            SET @Salida += CONVERT(VARCHAR(1), @Ch);
+
+        SET @I += 1;
+    END
+
+    RETURN UPPER(@Salida);
+END
+GO
+
+CREATE OR ALTER FUNCTION dbo.fn_Codigo_Fragmento
+(
+    @Texto NVARCHAR(200),
+    @Longitud INT,
+    @Fallback VARCHAR(20)
+)
+RETURNS VARCHAR(20)
+AS
+BEGIN
+    DECLARE @Limpio VARCHAR(200) = dbo.fn_Codigo_SoloAlfanumerico(@Texto);
+
+    IF @Longitud IS NULL OR @Longitud <= 0
+        SET @Longitud = 6;
+
+    IF LEN(@Limpio) = 0
+        SET @Limpio = dbo.fn_Codigo_SoloAlfanumerico(@Fallback);
+
+    IF LEN(@Limpio) = 0
+        SET @Limpio = 'RUTA';
+
+    RETURN LEFT(@Limpio + REPLICATE('X', @Longitud), @Longitud);
+END
+GO
+
+/* =========================================================
+   3) SP_RUTA_LISTAR
    ========================================================= */
 CREATE OR ALTER PROCEDURE dbo.sp_Ruta_Listar
 AS
@@ -68,7 +124,7 @@ END
 GO
 
 /* =========================================================
-   3) SP_RUTA_OBTENERPORID
+   4) SP_RUTA_OBTENERPORID
    ========================================================= */
 CREATE OR ALTER PROCEDURE dbo.sp_Ruta_ObtenerPorId
 (
@@ -106,7 +162,7 @@ END
 GO
 
 /* =========================================================
-   4) SP_RUTA_REGISTRAR
+   5) SP_RUTA_REGISTRAR
    ========================================================= */
 CREATE OR ALTER PROCEDURE dbo.sp_Ruta_Registrar
 (
@@ -175,16 +231,35 @@ BEGIN
     END
 
     DECLARE @Correlativo INT;
+    DECLARE @Fragmento VARCHAR(6);
     DECLARE @CodigoGenerado VARCHAR(20);
 
     BEGIN TRY
         BEGIN TRAN;
 
-        SELECT @Correlativo = ISNULL(MAX(TRY_CAST(RIGHT(CodigoRuta, 4) AS INT)), 0) + 1
-        FROM dbo.Ruta
-        WHERE CodigoRuta LIKE 'RUT-%[0-9][0-9][0-9][0-9]';
+        SET @Fragmento = dbo.fn_Codigo_Fragmento(@Nombre, 6, 'RUTA');
 
-        SET @CodigoGenerado = CONCAT('RUT-', RIGHT(CONCAT('0000', @Correlativo), 4));
+        IF OBJECT_ID('dbo.CorrelativoDocumento', 'U') IS NOT NULL
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM dbo.CorrelativoDocumento WITH (UPDLOCK, HOLDLOCK) WHERE TipoCodigo = 'RUT')
+                INSERT INTO dbo.CorrelativoDocumento (TipoCodigo, UltimoNumero) VALUES ('RUT', 0);
+
+            UPDATE dbo.CorrelativoDocumento
+               SET UltimoNumero = UltimoNumero + 1
+             WHERE TipoCodigo = 'RUT';
+
+            SELECT @Correlativo = UltimoNumero
+            FROM dbo.CorrelativoDocumento WITH (UPDLOCK, HOLDLOCK)
+            WHERE TipoCodigo = 'RUT';
+        END
+        ELSE
+        BEGIN
+            SELECT @Correlativo = ISNULL(MAX(TRY_CAST(RIGHT(CodigoRuta, 4) AS INT)), 0) + 1
+            FROM dbo.Ruta
+            WHERE CodigoRuta LIKE 'RUT-[A-Z0-9][A-Z0-9][A-Z0-9][A-Z0-9][A-Z0-9][A-Z0-9][0-9][0-9][0-9][0-9]';
+        END
+
+        SET @CodigoGenerado = CONCAT('RUT-', @Fragmento, RIGHT(CONCAT('0000', @Correlativo), 4));
 
         INSERT INTO dbo.Ruta
         (
@@ -245,7 +320,7 @@ END
 GO
 
 /* =========================================================
-   5) SP_RUTA_ACTUALIZAR
+   6) SP_RUTA_ACTUALIZAR
    ========================================================= */
 CREATE OR ALTER PROCEDURE dbo.sp_Ruta_Actualizar
 (

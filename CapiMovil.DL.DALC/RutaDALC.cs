@@ -123,10 +123,13 @@ namespace CapiMovil.DL.DALC
             cn.Open();
             using SqlDataReader dr = cmd.ExecuteReader();
 
-            if (RegistroResultadoDALC.EsRegistroExitoso(dr, out int filas, out string codigoGenerado, out string? mensaje))
+            if (RegistroResultadoDALC.EsRegistroExitoso(dr, out _, out string codigoGenerado, out string? mensaje))
             {
+                if (string.IsNullOrWhiteSpace(codigoGenerado))
+                    throw new InvalidOperationException("El procedimiento sp_Ruta_Registrar no devolvió CodigoGenerado.");
+
                 ruta.CodigoRuta = codigoGenerado;
-                    return true;
+                return true;
             }
 
             if (!string.IsNullOrWhiteSpace(mensaje))
