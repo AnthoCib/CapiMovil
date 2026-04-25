@@ -1,4 +1,12 @@
 @using Microsoft.AspNetCore.Http
 @{
-    Layout = "~/Views/Shared/_PadreLayout.cshtml";
+    var rol = (Context.Session.GetString("RolNombre") ?? string.Empty).Trim().ToUpperInvariant();
+    bool esConductor = rol.Contains("CONDUCTOR");
+    bool esPadre = rol == "PADRE" || rol == "PADRE DE FAMILIA" || rol.Contains("PADRE");
+
+    Layout = esConductor
+        ? "~/Views/Shared/_ConductorLayout.cshtml"
+        : esPadre
+            ? "~/Views/Shared/_PadreLayout.cshtml"
+            : "~/Views/Shared/_Layout.cshtml";
 }
