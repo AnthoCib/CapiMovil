@@ -99,12 +99,6 @@
                                     <i class="bi bi-check2-circle me-1"></i>Cerrar
                                 </button>
                             }
-
-                            <form asp-action="Eliminar" method="post" class="d-inline form-eliminar">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@item.IdIncidencia" />
-                                <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Eliminar</button>
-                            </form>
                         </div>
                     </article>
                 </div>

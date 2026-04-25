@@ -18,7 +18,11 @@
     <div class="list-toolbar mb-4">
         <div>
             <h2 class="list-title mb-1">Gestión de Notificaciones</h2>
-            <p class="list-subtitle mb-0">Seguimiento de alertas enviadas a padres y estudiantes.</p>
+            <p class="list-subtitle mb-0">
+                @(esAdmin
+                    ? "Seguimiento de alertas enviadas. Para Admin la acción principal es consultar (Ver)."
+                    : "Seguimiento de alertas enviadas a padres y estudiantes.")
+            </p>
         </div>
         @if (!esAdmin)
         {

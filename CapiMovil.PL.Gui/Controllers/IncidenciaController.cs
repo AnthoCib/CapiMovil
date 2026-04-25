@@ -224,22 +224,7 @@ namespace CapiMovil.PL.Gui.Controllers
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
-            try
-            {
-                bool ok = _incidenciaBC.Eliminar(id);
-
-                TempData[ok ? "ok" : "error"] = ok
-                    ? "Incidencia eliminada correctamente."
-                    : "No se pudo eliminar la incidencia.";
-            }
-            catch (ArgumentException ex)
-            {
-                TempData["error"] = ex.Message;
-            }
-            catch (Exception)
-            {
-                TempData["error"] = "Ocurrió un error al eliminar la incidencia.";
-            }
+            TempData["error"] = "La eliminación de incidencias está deshabilitada para preservar la trazabilidad operativa.";
 
             return RedirectToAction(nameof(Listar));
         }
