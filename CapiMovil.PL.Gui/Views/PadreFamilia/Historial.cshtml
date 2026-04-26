@@ -17,18 +17,18 @@
         </div>
 
         <form asp-action="Historial" method="get" class="row g-2 align-items-end">
-            <div class="col-md-3"><label class="form-label small">Desde</label><input type="date" name="fechaDesde" value="@Model.FechaDesde.ToString("yyyy-MM-dd")" class="form-control" /></div>
-            <div class="col-md-3"><label class="form-label small">Hasta</label><input type="date" name="fechaHasta" value="@Model.FechaHasta.ToString("yyyy-MM-dd")" class="form-control" /></div>
             <div class="col-md-4">
-                <label class="form-label small">Filtro rápido</label>
-                <div class="d-flex gap-2 flex-wrap">
-                    <span class="pf-badge-soft pf-badge-muted">Todos los viajes</span>
-                    <span class="pf-badge-soft pf-badge-info">Recogida Mañana</span>
-                    <span class="pf-badge-soft pf-badge-warning">Entrega Tarde</span>
-                    <span class="pf-badge-soft pf-badge-danger">Excepciones</span>
-                </div>
+                <label class="form-label small" for="fechaInicio">Fecha inicio</label>
+                <input id="fechaInicio" type="date" name="fechaInicio" value="@Model.FechaInicio.ToString("yyyy-MM-dd")" class="form-control" />
             </div>
-            <div class="col-md-2 d-grid"><button type="submit" class="btn btn-outline-primary">Aplicar</button></div>
+            <div class="col-md-4">
+                <label class="form-label small" for="fechaFin">Fecha fin</label>
+                <input id="fechaFin" type="date" name="fechaFin" value="@Model.FechaFin.ToString("yyyy-MM-dd")" class="form-control" />
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-outline-primary flex-fill"><i class="bi bi-funnel me-1"></i>Aplicar</button>
+                <a asp-action="Historial" class="btn btn-outline-secondary flex-fill"><i class="bi bi-arrow-clockwise me-1"></i>Limpiar</a>
+            </div>
         </form>
     </section>
 
@@ -51,7 +51,9 @@
                             <div class="pf-data-cell"><small>Estado</small>@viaje.Estado</div>
                             <div class="pf-data-cell"><small>Conductor</small>@viaje.Conductor</div>
                         </div>
-                        <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye me-1"></i>Ver detalles</button>
+                        <a asp-action="MisEventos" asp-route-idEstudiante="@viaje.IdEstudiante" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-eye me-1"></i>Ver detalles
+                        </a>
                     </article>
                 </div>
             }

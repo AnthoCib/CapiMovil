@@ -20,8 +20,8 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
 
     public class PadreHistorialViewModel
     {
-        public DateTime FechaDesde { get; set; }
-        public DateTime FechaHasta { get; set; }
+        public DateTime FechaInicio { get; set; }
+        public DateTime FechaFin { get; set; }
         public int TotalViajes { get; set; }
         public int ViajesSeguros { get; set; }
         public List<PadreHistorialViajeItemViewModel> Viajes { get; set; } = new();
@@ -29,6 +29,7 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
 
     public class PadreHistorialViajeItemViewModel
     {
+        public Guid IdEstudiante { get; set; }
         public string Estudiante { get; set; } = string.Empty;
         public DateTime? Fecha { get; set; }
         public string TipoRecorrido { get; set; } = "Sin tipo";

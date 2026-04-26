@@ -371,7 +371,7 @@ namespace CapiMovil.PL.Gui.Controllers
         }
 
         [HttpGet]
-        public IActionResult Historial(DateTime? fechaDesde, DateTime? fechaHasta)
+        public IActionResult Historial(DateTime? fechaInicio, DateTime? fechaFin)
         {
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
             if (acceso != null)
@@ -381,8 +381,15 @@ namespace CapiMovil.PL.Gui.Controllers
             if (padre == null)
                 return View(new PadreHistorialViewModel());
 
-            DateTime inicio = (fechaDesde ?? DateTime.Today.AddDays(-30)).Date;
-            DateTime fin = (fechaHasta ?? DateTime.Today).Date;
+            DateTime inicio = (fechaInicio ?? DateTime.Today.AddDays(-30)).Date;
+            DateTime fin = (fechaFin ?? DateTime.Today).Date;
+
+            if (inicio > fin)
+            {
+                DateTime tmp = inicio;
+                inicio = fin;
+                fin = tmp;
+            }
 
             List<EstudianteBE> hijos = ObtenerHijos(padre.IdPadre);
             HashSet<Guid> idsHijos = hijos.Select(h => h.IdEstudiante).ToHashSet();
@@ -396,16 +403,21 @@ namespace CapiMovil.PL.Gui.Controllers
                 .Where(e => e.FechaHora.Date >= inicio && e.FechaHora.Date <= fin && idsHijos.Contains(e.IdEstudiante))
                 .OrderByDescending(e => e.FechaHora)
                 .ToList();
+            List<IncidenciaBE> incidencias = _incidenciaBC.ListarPorPadre(padre.IdPadre);
 
             List<PadreHistorialViajeItemViewModel> viajes = rutas
                 .Select(r =>
                 {
                     EstudianteBE hijo = hijosDict[r.IdEstudiante];
-                    RecorridoBE? recorrido = recorridos.FirstOrDefault(x => x.IdRuta == r.IdRuta);
+                    RecorridoBE? recorrido = recorridos
+                        .Where(x => x.IdRuta == r.IdRuta)
+                        .OrderByDescending(x => x.Fecha)
+                        .FirstOrDefault();
                     EventoAbordajeBE? ultimoEvento = eventos.FirstOrDefault(x => x.IdEstudiante == r.IdEstudiante);
 
                     return new PadreHistorialViajeItemViewModel
                     {
+                        IdEstudiante = r.IdEstudiante,
                         Estudiante = hijo.NombreCompleto,
                         Fecha = recorrido?.Fecha ?? ultimoEvento?.FechaHora.Date,
                         TipoRecorrido = recorrido?.EstadoRecorrido ?? "Programado",
@@ -413,7 +425,7 @@ namespace CapiMovil.PL.Gui.Controllers
                         Hora = ultimoEvento?.FechaHora.ToString("HH:mm") ?? "--:--",
                         Estado = recorrido?.EstadoRecorrido ?? "Sin estado",
                         Conductor = recorrido?.Conductor?.NombreCompleto ?? "No disponible",
-                        TieneIncidencia = _incidenciaBC.ListarPorPadre(padre.IdPadre)
+                        TieneIncidencia = incidencias
                             .Any(i => string.Equals(i.CodigoRecorrido, recorrido?.CodigoRecorrido, StringComparison.OrdinalIgnoreCase))
                     };
                 })
@@ -422,8 +434,8 @@ namespace CapiMovil.PL.Gui.Controllers
 
             PadreHistorialViewModel vm = new()
             {
-                FechaDesde = inicio,
-                FechaHasta = fin,
+                FechaInicio = inicio,
+                FechaFin = fin,
                 TotalViajes = viajes.Count,
                 ViajesSeguros = viajes.Count(v => !v.TieneIncidencia),
                 Viajes = viajes
