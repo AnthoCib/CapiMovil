@@ -16,10 +16,56 @@ SET QUOTED_IDENTIFIER ON;
 GO
 
 /* =========================
-   0) PARÁMETROS DE EJECUCIÓN
+   0) DIAGNÓSTICO INICIAL
    ========================= */
-DECLARE @LimpiarDatosPrueba BIT = 1;   -- 1 = borra datos de prueba (recomendado)
-DECLARE @NormalizarSinBorrar BIT = 0;  -- 1 = normaliza códigos históricos sin borrar
+SELECT 'Ruta' AS Entidad, LEFT(ISNULL(CodigoRuta, ''), 8) AS MuestraPrefijo, COUNT(*) AS Total
+FROM dbo.Ruta
+GROUP BY LEFT(ISNULL(CodigoRuta, ''), 8)
+UNION ALL
+SELECT 'Bus', LEFT(ISNULL(CodigoBus, ''), 8), COUNT(*) FROM dbo.Bus GROUP BY LEFT(ISNULL(CodigoBus, ''), 8)
+UNION ALL
+SELECT 'Paradero', LEFT(ISNULL(CodigoParadero, ''), 8), COUNT(*) FROM dbo.Paradero GROUP BY LEFT(ISNULL(CodigoParadero, ''), 8)
+UNION ALL
+SELECT 'Recorrido', LEFT(ISNULL(CodigoRecorrido, ''), 8), COUNT(*) FROM dbo.Recorrido GROUP BY LEFT(ISNULL(CodigoRecorrido, ''), 8)
+UNION ALL
+SELECT 'RutaEstudiante', LEFT(ISNULL(CodigoAsignacion, ''), 8), COUNT(*) FROM dbo.RutaEstudiante GROUP BY LEFT(ISNULL(CodigoAsignacion, ''), 8)
+UNION ALL
+SELECT 'Incidencia', LEFT(ISNULL(CodigoIncidencia, ''), 8), COUNT(*) FROM dbo.Incidencia GROUP BY LEFT(ISNULL(CodigoIncidencia, ''), 8)
+UNION ALL
+SELECT 'PadreFamilia', LEFT(ISNULL(CodigoPadre, ''), 8), COUNT(*) FROM dbo.PadreFamilia GROUP BY LEFT(ISNULL(CodigoPadre, ''), 8)
+UNION ALL
+SELECT 'Conductor', LEFT(ISNULL(CodigoConductor, ''), 8), COUNT(*) FROM dbo.Conductor GROUP BY LEFT(ISNULL(CodigoConductor, ''), 8)
+UNION ALL
+SELECT 'Estudiante', LEFT(ISNULL(CodigoEstudiante, ''), 8), COUNT(*) FROM dbo.Estudiante GROUP BY LEFT(ISNULL(CodigoEstudiante, ''), 8)
+UNION ALL
+SELECT 'Auditoria', LEFT(ISNULL(CodigoAuditoria, ''), 8), COUNT(*) FROM dbo.Auditoria GROUP BY LEFT(ISNULL(CodigoAuditoria, ''), 8);
+
+IF OBJECT_ID('dbo.CorrelativoDocumento', 'U') IS NOT NULL
+BEGIN
+    SELECT c.TipoCodigo,
+           c.UltimoNumero AS CorrelativoActual,
+           x.MaxTabla,
+           (x.MaxTabla - c.UltimoNumero) AS Desfase
+    FROM dbo.CorrelativoDocumento c
+    OUTER APPLY (
+        SELECT MaxTabla =
+            CASE c.TipoCodigo
+                WHEN 'RUT' THEN (SELECT ISNULL(MAX(TRY_CAST(RIGHT(CodigoRuta, 4) AS INT)), 0) FROM dbo.Ruta)
+                WHEN 'BUS' THEN (SELECT ISNULL(MAX(TRY_CAST(RIGHT(CodigoBus, 4) AS INT)), 0) FROM dbo.Bus)
+                WHEN 'PAR' THEN (SELECT ISNULL(MAX(TRY_CAST(RIGHT(CodigoParadero, 4) AS INT)), 0) FROM dbo.Paradero)
+                WHEN 'RAS' THEN (SELECT ISNULL(MAX(TRY_CAST(RIGHT(CodigoAsignacion, 4) AS INT)), 0) FROM dbo.RutaEstudiante)
+                WHEN 'REC' THEN (SELECT ISNULL(MAX(TRY_CAST(RIGHT(CodigoRecorrido, 4) AS INT)), 0) FROM dbo.Recorrido)
+                WHEN 'INC' THEN (SELECT ISNULL(MAX(TRY_CAST(RIGHT(CodigoIncidencia, 4) AS INT)), 0) FROM dbo.Incidencia)
+                WHEN 'PAD' THEN (SELECT ISNULL(MAX(TRY_CAST(RIGHT(CodigoPadre, 4) AS INT)), 0) FROM dbo.PadreFamilia)
+                WHEN 'CON' THEN (SELECT ISNULL(MAX(TRY_CAST(RIGHT(CodigoConductor, 4) AS INT)), 0) FROM dbo.Conductor)
+                WHEN 'EST' THEN (SELECT ISNULL(MAX(TRY_CAST(RIGHT(CodigoEstudiante, 4) AS INT)), 0) FROM dbo.Estudiante)
+                WHEN 'AUD' THEN (SELECT ISNULL(MAX(TRY_CAST(RIGHT(CodigoAuditoria, 4) AS INT)), 0) FROM dbo.Auditoria)
+                ELSE 0
+            END
+    ) x
+    ORDER BY c.TipoCodigo;
+END
+GO
 
 /* =========================
    1) FUNCIÓN AUXILIAR
