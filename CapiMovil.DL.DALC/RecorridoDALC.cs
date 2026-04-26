@@ -182,7 +182,13 @@ namespace CapiMovil.DL.DALC
 
             cn.Open();
             using SqlDataReader dr = cmd.ExecuteReader();
-            return RegistroResultadoDALC.EsRegistroExitoso(dr, out _, out _, out _);
+            if (RegistroResultadoDALC.EsRegistroExitoso(dr, out _, out _, out string? mensaje))
+                return true;
+
+            if (!string.IsNullOrWhiteSpace(mensaje))
+                throw new InvalidOperationException(mensaje);
+
+            return false;
         }
 
         public bool Finalizar(Guid id)
@@ -195,7 +201,13 @@ namespace CapiMovil.DL.DALC
 
             cn.Open();
             using SqlDataReader dr = cmd.ExecuteReader();
-            return RegistroResultadoDALC.EsRegistroExitoso(dr, out _, out _, out _);
+            if (RegistroResultadoDALC.EsRegistroExitoso(dr, out _, out _, out string? mensaje))
+                return true;
+
+            if (!string.IsNullOrWhiteSpace(mensaje))
+                throw new InvalidOperationException(mensaje);
+
+            return false;
         }
 
         public bool Cancelar(Guid id)

@@ -1,5 +1,6 @@
 ﻿using CapiMovil.BL.BC;
 using CapiMovil.BL.BE;
+using CapiMovil.PL.Gui.Infrastructure;
 using CapiMovil.PL.Gui.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -17,6 +18,9 @@ namespace CapiMovil.PL.Gui.Controllers
 
         public IActionResult Listar()
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             var lista = _rutaBC.Listar();
             return View(lista);
         }
@@ -24,6 +28,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Crear()
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             RutaFormViewModel vm = new()
             {
                 Turnos = ObtenerTurnos(),
@@ -40,6 +47,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Crear(RutaFormViewModel vm)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             if (!ModelState.IsValid)
             {
                 vm.Turnos = ObtenerTurnos();
@@ -58,6 +68,12 @@ namespace CapiMovil.PL.Gui.Controllers
                     HoraFin = vm.HoraFin,
                     PuntoInicio = vm.PuntoInicio,
                     PuntoFin = vm.PuntoFin,
+                    LatitudInicio = vm.LatitudInicio,
+                    LongitudInicio = vm.LongitudInicio,
+                    DireccionInicio = vm.DireccionInicio,
+                    LatitudFin = vm.LatitudFin,
+                    LongitudFin = vm.LongitudFin,
+                    DireccionFin = vm.DireccionFin,
                     EstadoRuta = vm.EstadoRuta,
                     Estado = vm.Estado
                 };
@@ -84,6 +100,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Editar(Guid id)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             var ruta = _rutaBC.ListarPorId(id);
 
             if (ruta == null)
@@ -103,6 +122,12 @@ namespace CapiMovil.PL.Gui.Controllers
                 HoraFin = ruta.HoraFin,
                 PuntoInicio = ruta.PuntoInicio,
                 PuntoFin = ruta.PuntoFin,
+                LatitudInicio = ruta.LatitudInicio,
+                LongitudInicio = ruta.LongitudInicio,
+                DireccionInicio = ruta.DireccionInicio,
+                LatitudFin = ruta.LatitudFin,
+                LongitudFin = ruta.LongitudFin,
+                DireccionFin = ruta.DireccionFin,
                 EstadoRuta = ruta.EstadoRuta,
                 Estado = ruta.Estado,
                 Turnos = ObtenerTurnos(),
@@ -116,6 +141,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Editar(RutaFormViewModel vm)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             if (!ModelState.IsValid)
             {
                 vm.Turnos = ObtenerTurnos();
@@ -135,6 +163,12 @@ namespace CapiMovil.PL.Gui.Controllers
                     HoraFin = vm.HoraFin,
                     PuntoInicio = vm.PuntoInicio,
                     PuntoFin = vm.PuntoFin,
+                    LatitudInicio = vm.LatitudInicio,
+                    LongitudInicio = vm.LongitudInicio,
+                    DireccionInicio = vm.DireccionInicio,
+                    LatitudFin = vm.LatitudFin,
+                    LongitudFin = vm.LongitudFin,
+                    DireccionFin = vm.DireccionFin,
                     EstadoRuta = vm.EstadoRuta,
                     Estado = vm.Estado
                 };
@@ -162,6 +196,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Eliminar(Guid id)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             try
             {
                 bool ok = _rutaBC.Eliminar(id);

@@ -14,17 +14,22 @@
     grid-template-columns: 280px 1fr;
     gap: 1rem;
     padding: 1rem;
-    min-height: calc(100vh - 72px);
+    min-height: 100vh;
+    align-items: start;
 }
 
 .admin-global-sidebar {
     position: sticky;
     top: 1rem;
     align-self: start;
+    min-height: calc(100vh - 2rem);
 }
 
 .admin-global-main {
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 2rem);
 }
 
 .admin-layout-backdrop {
@@ -34,6 +39,7 @@
 .admin-content {
     padding-bottom: 1rem;
     min-width: 0;
+    flex: 1 1 auto;
 }
 
 .admin-side,
@@ -85,6 +91,81 @@
 
 .admin-portal .admin-nav .nav-link {
     font-weight: 500;
+}
+
+.admin-nav-section {
+    padding-top: .35rem;
+    border-top: 1px dashed #e8e1d0;
+}
+
+.admin-nav-section:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+.admin-nav-title {
+    font-size: .7rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #8a7d67;
+    font-weight: 700;
+    margin: .35rem .55rem;
+}
+
+.admin-nav-parent {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    padding: .45rem .55rem;
+    border-radius: .65rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #6b5f4a;
+    font-size: .86rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.admin-nav-parent:hover {
+    background: #f4f1e8;
+    color: #3a3326;
+}
+
+.admin-nav-parent-label {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+}
+
+.admin-nav-caret {
+    transition: transform .2s ease;
+    font-size: .85rem;
+}
+
+.admin-nav-group.open .admin-nav-caret {
+    transform: rotate(180deg);
+}
+
+.admin-submenu {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    margin-top: .2rem;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height .24s ease, opacity .2s ease;
+}
+
+.admin-nav-group.open .admin-submenu {
+    opacity: 1;
+}
+
+.admin-submenu .nav-link {
+    margin-left: .45rem;
+    font-size: .93rem;
 }
 
 .btn-admin-highlight {
@@ -249,6 +330,41 @@
 
 .x-small { font-size: .74rem; }
 
+.admin-quick-link-group {
+    border: 1px solid #ece8dd;
+    border-radius: .9rem;
+    padding: .9rem;
+    background: #fff;
+}
+
+.admin-quick-link-group-title {
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #7b6d55;
+    font-weight: 700;
+    margin-bottom: .5rem;
+}
+
+.admin-quick-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    border: 1px solid #efece1;
+    border-radius: .75rem;
+    padding: .45rem .6rem;
+    color: #2f343b;
+    text-decoration: none;
+    font-size: .9rem;
+}
+
+.admin-quick-link:hover {
+    background: #f8f6ee;
+    color: #111827;
+    border-color: #e2dac8;
+}
+
 /* Base visual consistente para vistas admin (listas/formularios) */
 .admin-portal .page-title {
     color: #1f2937;
@@ -278,6 +394,7 @@
         grid-template-columns: 1fr;
         min-height: auto;
         position: relative;
+        padding: .75rem;
     }
 
     .admin-global-sidebar {
@@ -290,6 +407,7 @@
         padding: 1rem;
         transform: translateX(-105%);
         transition: transform .24s ease;
+        min-height: 100vh;
     }
 
     .admin-layout-backdrop {
@@ -310,6 +428,10 @@
     .admin-global-main,
     .admin-content {
         min-width: 0;
+    }
+
+    .admin-global-main {
+        min-height: auto;
     }
 }
 
@@ -399,15 +521,27 @@
 }
 
 @media (max-width: 1199.98px) {
+    .admin-dashboard-shell {
+        padding: .75rem;
+    }
+}
+
+@media (max-width: 767.98px) {
     .admin-portal-shell {
-        grid-template-columns: 1fr;
+        gap: .75rem;
+        padding: .5rem;
     }
 
-    .admin-global-sidebar {
-        position: static;
+    .admin-topbar {
+        margin-bottom: .75rem !important;
+    }
+
+    .admin-content {
+        padding-bottom: .5rem;
     }
 
     .admin-dashboard-shell {
-        padding: .75rem;
+        border-radius: .9rem;
+        padding: .65rem;
     }
 }

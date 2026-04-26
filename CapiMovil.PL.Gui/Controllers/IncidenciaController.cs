@@ -114,31 +114,8 @@ namespace CapiMovil.PL.Gui.Controllers
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
-            IncidenciaBE? entidad = _incidenciaBC.ListarPorId(id);
-
-            if (entidad == null)
-            {
-                TempData["error"] = "La incidencia no existe.";
-                return RedirectToAction(nameof(Listar));
-            }
-
-            IncidenciaFormViewModel vm = new IncidenciaFormViewModel
-            {
-                IdIncidencia = entidad.IdIncidencia,
-                CodigoIncidencia = entidad.CodigoIncidencia,
-                IdRecorrido = entidad.IdRecorrido,
-                IdConductor = entidad.IdConductor,
-                ReportadoPor = entidad.ReportadoPor,
-                TipoIncidencia = entidad.TipoIncidencia,
-                Descripcion = entidad.Descripcion,
-                FechaHora = entidad.FechaHora,
-                EstadoIncidencia = entidad.EstadoIncidencia,
-                Prioridad = entidad.Prioridad,
-                Solucion = entidad.Solucion
-            };
-
-            CargarCombos(vm);
-            return View(vm);
+            TempData["error"] = "La edición directa de incidencias está restringida. Use las acciones de seguimiento (detalle/cierre/estado).";
+            return RedirectToAction(nameof(Listar));
         }
 
         [HttpPost]
@@ -148,56 +125,8 @@ namespace CapiMovil.PL.Gui.Controllers
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
-            if (!ModelState.IsValid)
-            {
-                CargarCombos(vm);
-                return View(vm);
-            }
-
-            try
-            {
-                RecorridoBE? recorrido = _recorridoBC.ListarPorId(vm.IdRecorrido);
-
-                if (recorrido == null)
-                {
-                    ModelState.AddModelError(string.Empty, "No se encontró el recorrido seleccionado.");
-                    CargarCombos(vm);
-                    return View(vm);
-                }
-
-                IncidenciaBE entidad = new IncidenciaBE
-                {
-                    IdIncidencia = vm.IdIncidencia,
-                    IdRecorrido = vm.IdRecorrido,
-                    IdConductor = recorrido.IdConductor,
-                    ReportadoPor = vm.ReportadoPor,
-                    TipoIncidencia = vm.TipoIncidencia,
-                    Descripcion = vm.Descripcion,
-                    FechaHora = vm.FechaHora,
-                    EstadoIncidencia = vm.EstadoIncidencia,
-                    Prioridad = vm.Prioridad,
-                    Solucion = vm.Solucion
-                };
-
-                bool ok = _incidenciaBC.Actualizar(entidad);
-
-                TempData[ok ? "ok" : "error"] = ok
-                    ? "Incidencia actualizada correctamente."
-                    : "No se pudo actualizar la incidencia.";
-
-                return RedirectToAction(nameof(Listar));
-            }
-            catch (ArgumentException ex)
-            {
-                ModelState.AddModelError(string.Empty, ex.Message);
-            }
-            catch (Exception)
-            {
-                ModelState.AddModelError(string.Empty, "Ocurrió un error al actualizar la incidencia.");
-            }
-
-            CargarCombos(vm);
-            return View(vm);
+            TempData["error"] = "La edición directa de incidencias está restringida para administración.";
+            return RedirectToAction(nameof(Listar));
         }
 
         [HttpGet]
@@ -224,22 +153,7 @@ namespace CapiMovil.PL.Gui.Controllers
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
-            try
-            {
-                bool ok = _incidenciaBC.Eliminar(id);
-
-                TempData[ok ? "ok" : "error"] = ok
-                    ? "Incidencia eliminada correctamente."
-                    : "No se pudo eliminar la incidencia.";
-            }
-            catch (ArgumentException ex)
-            {
-                TempData["error"] = ex.Message;
-            }
-            catch (Exception)
-            {
-                TempData["error"] = "Ocurrió un error al eliminar la incidencia.";
-            }
+            TempData["error"] = "La eliminación de incidencias está deshabilitada para preservar la trazabilidad operativa.";
 
             return RedirectToAction(nameof(Listar));
         }

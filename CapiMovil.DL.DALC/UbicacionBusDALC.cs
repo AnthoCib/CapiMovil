@@ -108,8 +108,11 @@ namespace CapiMovil.DL.DALC
             if (RegistroResultadoDALC.EsRegistroExitoso(dr, out int filas, out string codigoGenerado, out string? mensaje))
             {
                 entidad.CodigoUbicacion = codigoGenerado;
-                    return true;
+                return true;
             }
+
+            if (!string.IsNullOrWhiteSpace(mensaje))
+                throw new InvalidOperationException(mensaje);
 
             return false;
         }

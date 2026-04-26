@@ -12,8 +12,22 @@
     var rol = httpContext?.Session.GetString("RolNombre");
     var rolNormalizado = (rol ?? "").Trim().ToUpperInvariant();
     var inicialUsuario = string.IsNullOrWhiteSpace(username) ? "U" : username.Trim()[0].ToString().ToUpperInvariant();
+    var currentController = (ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty).Trim();
+    var currentAction = (ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty).Trim();
     bool esAdmin = rolNormalizado == "ADMINISTRADOR" || rolNormalizado == "ADMIN";
     bool esPadre = rolNormalizado == "PADRE" || rolNormalizado == "PADRE DE FAMILIA";
+    bool esDashboardActivo = currentController.Equals("Admin", StringComparison.OrdinalIgnoreCase);
+    bool seccionPersonasActiva = new[] { "Usuario", "PadreFamilia", "Conductor", "Estudiante" }
+        .Contains(currentController, StringComparer.OrdinalIgnoreCase);
+    bool seccionTransporteActiva = new[] { "Bus", "Ruta", "Paradero", "RutaEstudiante" }
+        .Contains(currentController, StringComparer.OrdinalIgnoreCase);
+    bool seccionOperacionActiva = new[] { "Recorrido", "EventoAbordaje" }
+        .Contains(currentController, StringComparer.OrdinalIgnoreCase);
+    bool seccionControlActiva = new[] { "Incidencia", "Notificacion", "Auditoria" }
+        .Contains(currentController, StringComparer.OrdinalIgnoreCase);
+    bool seccionCuentaActiva = currentController.Equals("Usuario", StringComparison.OrdinalIgnoreCase)
+        && (currentAction.Equals("MiPerfil", StringComparison.OrdinalIgnoreCase)
+            || currentAction.Equals("CambiarPassword", StringComparison.OrdinalIgnoreCase));
 
     var adminQuickLinks = esAdmin
         ? new[]
@@ -28,10 +42,12 @@
             new { Texto = "Paraderos", Url = Url.Action("Listar", "Paradero"), Keywords = "paraderos paradas" },
             new { Texto = "Ruta-Estudiante", Url = Url.Action("Listar", "RutaEstudiante"), Keywords = "ruta estudiante asignaciones" },
             new { Texto = "Recorridos", Url = Url.Action("Listar", "Recorrido"), Keywords = "recorridos operaciones" },
+            new { Texto = "Abordajes", Url = Url.Action("Listar", "EventoAbordaje"), Keywords = "abordajes eventos embarque" },
+            new { Texto = "Seguimiento en vivo", Url = Url.Action("Listar", "Recorrido"), Keywords = "seguimiento en vivo mapa gps" },
             new { Texto = "Incidencias", Url = Url.Action("Listar", "Incidencia"), Keywords = "incidencias alertas" },
             new { Texto = "Notificaciones", Url = Url.Action("Listar", "Notificacion"), Keywords = "notificaciones mensajes" },
             new { Texto = "Auditoría", Url = Url.Action("Listar", "Auditoria"), Keywords = "auditoria historial" },
-            new { Texto = "Perfil", Url = Url.Action("MiPerfil", "Usuario"), Keywords = "perfil cuenta" },
+            new { Texto = "Mi perfil", Url = Url.Action("MiPerfil", "Usuario"), Keywords = "perfil cuenta" },
             new { Texto = "Cambiar contraseña", Url = Url.Action("CambiarPassword", "Usuario"), Keywords = "password clave seguridad" }
         }
         : Array.Empty<object>();
@@ -96,11 +112,11 @@
 
     @RenderSection("Styles", required: false)
 </head>
-<body class="d-flex flex-column min-vh-100 @(esAdmin ? "admin-portal" : "")">
+<body class="@(esAdmin ? "admin-portal" : "d-flex flex-column min-vh-100")">
 
     @if (!string.IsNullOrEmpty(username) && esAdmin)
     {
-        <div class="admin-portal-shell" id="adminPortalShell" data-sidebar-shell data-sidebar-nav=".admin-nav .nav-link" data-sidebar-breakpoint="1200">
+        <div class="admin-portal-shell" id="adminPortalShell" data-sidebar-shell data-sidebar-nav=".admin-nav .nav-link" data-sidebar-breakpoint="1200" data-sidebar-accordion="true">
             <aside class="admin-global-sidebar" id="adminGlobalSidebar">
                 <div class="admin-side card border-0 shadow-sm h-100">
                     <div class="card-body d-flex flex-column p-3 p-lg-4">
@@ -112,20 +128,72 @@
                             </div>
                         </div>
 
-                        <nav class="nav flex-column gap-2 admin-nav mb-4">
-                            <a asp-controller="Admin" asp-action="Index" class="nav-link"><i class="bi bi-grid-1x2-fill"></i>Dashboard</a>
-                            <a asp-controller="Usuario" asp-action="Listar" class="nav-link"><i class="bi bi-person-gear"></i>Usuarios</a>
-                            <a asp-controller="PadreFamilia" asp-action="Listar" class="nav-link"><i class="bi bi-people"></i>Padres</a>
-                            <a asp-controller="Conductor" asp-action="Listar" class="nav-link"><i class="bi bi-person-badge"></i>Conductores</a>
-                            <a asp-controller="Estudiante" asp-action="Listar" class="nav-link"><i class="bi bi-mortarboard"></i>Estudiantes</a>
-                            <a asp-controller="Bus" asp-action="Listar" class="nav-link"><i class="bi bi-bus-front"></i>Buses</a>
-                            <a asp-controller="Ruta" asp-action="Listar" class="nav-link"><i class="bi bi-signpost-2"></i>Rutas</a>
-                            <a asp-controller="Paradero" asp-action="Listar" class="nav-link"><i class="bi bi-geo-alt"></i>Paraderos</a>
-                            <a asp-controller="RutaEstudiante" asp-action="Listar" class="nav-link"><i class="bi bi-diagram-3"></i>Ruta-Estudiante</a>
-                            <a asp-controller="Recorrido" asp-action="Listar" class="nav-link"><i class="bi bi-map"></i>Recorridos</a>
-                            <a asp-controller="Incidencia" asp-action="Listar" class="nav-link"><i class="bi bi-exclamation-triangle"></i>Incidencias</a>
-                            <a asp-controller="Notificacion" asp-action="Listar" class="nav-link"><i class="bi bi-bell"></i>Notificaciones</a>
-                            <a asp-controller="Auditoria" asp-action="Listar" class="nav-link"><i class="bi bi-clipboard-data"></i>Auditoría</a>
+                        <nav class="nav flex-column gap-1 admin-nav mb-4">
+                            <div class="admin-nav-section admin-nav-group open">
+                                <div class="admin-nav-title">Panel principal</div>
+                                <a asp-controller="Admin" asp-action="Index" class="nav-link @(esDashboardActivo ? "active" : string.Empty)"><i class="bi bi-grid-1x2-fill"></i>Dashboard</a>
+                            </div>
+
+                            <div class="admin-nav-section admin-nav-group @(seccionPersonasActiva ? "open" : string.Empty)">
+                                <button type="button" class="admin-nav-parent" data-sidebar-submenu-toggle aria-expanded="@(seccionPersonasActiva ? "true" : "false")" aria-controls="adminSubmenuPersonas">
+                                    <span class="admin-nav-parent-label"><i class="bi bi-people"></i>Gestión de personas</span>
+                                    <i class="bi bi-chevron-down admin-nav-caret"></i>
+                                </button>
+                                <div id="adminSubmenuPersonas" class="admin-submenu">
+                                    <a asp-controller="Usuario" asp-action="Listar" class="nav-link"><i class="bi bi-person-gear"></i>Usuarios</a>
+                                    <a asp-controller="PadreFamilia" asp-action="Listar" class="nav-link"><i class="bi bi-people"></i>Padres de familia</a>
+                                    <a asp-controller="Conductor" asp-action="Listar" class="nav-link"><i class="bi bi-person-badge"></i>Conductores</a>
+                                    <a asp-controller="Estudiante" asp-action="Listar" class="nav-link"><i class="bi bi-mortarboard"></i>Estudiantes</a>
+                                </div>
+                            </div>
+
+                            <div class="admin-nav-section admin-nav-group @(seccionTransporteActiva ? "open" : string.Empty)">
+                                <button type="button" class="admin-nav-parent" data-sidebar-submenu-toggle aria-expanded="@(seccionTransporteActiva ? "true" : "false")" aria-controls="adminSubmenuTransporte">
+                                    <span class="admin-nav-parent-label"><i class="bi bi-truck"></i>Gestión de transporte</span>
+                                    <i class="bi bi-chevron-down admin-nav-caret"></i>
+                                </button>
+                                <div id="adminSubmenuTransporte" class="admin-submenu">
+                                    <a asp-controller="Bus" asp-action="Listar" class="nav-link"><i class="bi bi-bus-front"></i>Buses</a>
+                                    <a asp-controller="Ruta" asp-action="Listar" class="nav-link"><i class="bi bi-signpost-2"></i>Rutas</a>
+                                    <a asp-controller="Paradero" asp-action="Listar" class="nav-link"><i class="bi bi-geo-alt"></i>Paraderos</a>
+                                    <a asp-controller="RutaEstudiante" asp-action="Listar" class="nav-link"><i class="bi bi-diagram-3"></i>Ruta-Estudiante</a>
+                                </div>
+                            </div>
+
+                            <div class="admin-nav-section admin-nav-group @(seccionOperacionActiva ? "open" : string.Empty)">
+                                <button type="button" class="admin-nav-parent" data-sidebar-submenu-toggle aria-expanded="@(seccionOperacionActiva ? "true" : "false")" aria-controls="adminSubmenuOperacion">
+                                    <span class="admin-nav-parent-label"><i class="bi bi-activity"></i>Operación diaria</span>
+                                    <i class="bi bi-chevron-down admin-nav-caret"></i>
+                                </button>
+                                <div id="adminSubmenuOperacion" class="admin-submenu">
+                                    <a asp-controller="Recorrido" asp-action="Listar" class="nav-link"><i class="bi bi-map"></i>Recorridos</a>
+                                    <a asp-controller="EventoAbordaje" asp-action="Listar" class="nav-link"><i class="bi bi-check2-square"></i>Abordajes</a>
+                                    <a asp-controller="Recorrido" asp-action="Listar" class="nav-link"><i class="bi bi-broadcast-pin"></i>Seguimiento en vivo</a>
+                                </div>
+                            </div>
+
+                            <div class="admin-nav-section admin-nav-group @(seccionControlActiva ? "open" : string.Empty)">
+                                <button type="button" class="admin-nav-parent" data-sidebar-submenu-toggle aria-expanded="@(seccionControlActiva ? "true" : "false")" aria-controls="adminSubmenuControl">
+                                    <span class="admin-nav-parent-label"><i class="bi bi-shield-check"></i>Control y monitoreo</span>
+                                    <i class="bi bi-chevron-down admin-nav-caret"></i>
+                                </button>
+                                <div id="adminSubmenuControl" class="admin-submenu">
+                                    <a asp-controller="Incidencia" asp-action="Listar" class="nav-link"><i class="bi bi-exclamation-triangle"></i>Incidencias</a>
+                                    <a asp-controller="Notificacion" asp-action="Listar" class="nav-link"><i class="bi bi-bell"></i>Notificaciones</a>
+                                    <a asp-controller="Auditoria" asp-action="Listar" class="nav-link"><i class="bi bi-clipboard-data"></i>Auditoría</a>
+                                </div>
+                            </div>
+
+                            <div class="admin-nav-section admin-nav-group @(seccionCuentaActiva ? "open" : string.Empty)">
+                                <button type="button" class="admin-nav-parent" data-sidebar-submenu-toggle aria-expanded="@(seccionCuentaActiva ? "true" : "false")" aria-controls="adminSubmenuCuenta">
+                                    <span class="admin-nav-parent-label"><i class="bi bi-person-circle"></i>Cuenta</span>
+                                    <i class="bi bi-chevron-down admin-nav-caret"></i>
+                                </button>
+                                <div id="adminSubmenuCuenta" class="admin-submenu">
+                                    <a asp-controller="Usuario" asp-action="MiPerfil" class="nav-link"><i class="bi bi-person-circle"></i>Mi perfil</a>
+                                    <a asp-controller="Usuario" asp-action="CambiarPassword" class="nav-link"><i class="bi bi-key"></i>Cambiar contraseña</a>
+                                </div>
+                            </div>
                         </nav>
 
                         <a asp-controller="Recorrido" asp-action="Listar" class="btn btn-admin-highlight mt-auto">
@@ -268,9 +336,12 @@
         </main>
     }
 
-    <footer class="border-top py-3 mt-auto bg-light">
-        <div class="container text-center text-muted">&copy; @DateTime.Now.Year - CapiMovil</div>
-    </footer>
+    @if (!esAdmin)
+    {
+        <footer class="border-top py-3 mt-auto bg-light">
+            <div class="container text-center text-muted">&copy; @DateTime.Now.Year - CapiMovil</div>
+        </footer>
+    }
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

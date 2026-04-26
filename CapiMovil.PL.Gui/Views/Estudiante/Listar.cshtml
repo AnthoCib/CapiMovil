@@ -8,9 +8,13 @@
     <div class="list-toolbar mb-4">
         <div>
             <h2 class="list-title mb-1">Lista de Estudiantes</h2>
-            <p class="list-subtitle mb-0">Gestión académica y datos principales de estudiantes.</p>
+            <p class="list-subtitle mb-0">Supervisión y administración de estudiantes registrados por Padres de Familia.</p>
         </div>
-        <a asp-action="Crear" class="btn btn-primary list-btn-primary"><i class="bi bi-plus-circle me-1"></i>Nuevo estudiante</a>
+    </div>
+
+    <div class="alert alert-info border-0 shadow-sm" role="alert">
+        <i class="bi bi-info-circle me-2"></i>
+        El alta de estudiantes se realiza desde el módulo <strong>Mis Hijos</strong> del Padre de Familia. Desde Admin se supervisa, edita y gestiona.
     </div>
 
     @if (TempData["ok"] != null)

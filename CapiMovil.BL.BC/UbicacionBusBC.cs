@@ -6,10 +6,12 @@ namespace CapiMovil.BL.BC
     public class UbicacionBusBC : ICrudBC<UbicacionBusBE>
     {
         private readonly UbicacionBusDALC _ubicacionBusDALC;
+        private readonly RecorridoBC _recorridoBC;
 
-        public UbicacionBusBC(UbicacionBusDALC ubicacionBusDALC)
+        public UbicacionBusBC(UbicacionBusDALC ubicacionBusDALC, RecorridoBC recorridoBC)
         {
             _ubicacionBusDALC = ubicacionBusDALC;
+            _recorridoBC = recorridoBC;
         }
 
         public List<UbicacionBusBE> Listar()
@@ -28,6 +30,13 @@ namespace CapiMovil.BL.BC
         public bool Registrar(UbicacionBusBE entidad)
         {
             Validar(entidad);
+            RecorridoBE? recorrido = _recorridoBC.ListarPorId(entidad.IdRecorrido);
+            if (recorrido == null || !recorrido.Estado)
+                throw new ArgumentException("El recorrido no existe o no está disponible.");
+
+            if (!string.Equals(recorrido.EstadoRecorrido, "EN_CURSO", StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("Solo se puede registrar ubicación para recorridos EN_CURSO.");
+
             return _ubicacionBusDALC.Registrar(entidad);
         }
 
@@ -53,6 +62,12 @@ namespace CapiMovil.BL.BC
             if (entidad.IdRecorrido == Guid.Empty)
                 throw new ArgumentException("Debe seleccionar un recorrido.");
 
+            if (entidad.Latitud < -90m || entidad.Latitud > 90m)
+                throw new ArgumentException("La latitud debe estar entre -90 y 90.");
+
+            if (entidad.Longitud < -180m || entidad.Longitud > 180m)
+                throw new ArgumentException("La longitud debe estar entre -180 y 180.");
+
             string fuente = (entidad.Fuente ?? "").Trim().ToUpperInvariant();
             if (!string.IsNullOrWhiteSpace(fuente) &&
                 fuente != "GPS" &&
@@ -62,5 +77,6 @@ namespace CapiMovil.BL.BC
                 throw new ArgumentException("La fuente no es válida.");
             }
         }
+
     }
 }

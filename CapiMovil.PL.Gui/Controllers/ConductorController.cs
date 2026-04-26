@@ -418,10 +418,10 @@ namespace CapiMovil.PL.Gui.Controllers
             ConductorBE? conductor = ObtenerConductorAutenticado();
             if (conductor == null) return RedirectToAction(nameof(Index));
 
-            RecorridoBE? recorridoOperacion = ObtenerRecorridoOperacion(conductor.IdConductor);
+            RecorridoBE? recorridoOperacion = _recorridoBC.ObtenerActivoPorConductor(conductor.IdConductor);
             if (recorridoOperacion == null)
             {
-                TempData["error"] = "No existe recorrido asignado para registrar incidencias.";
+                TempData["error"] = "No existe un recorrido EN_CURSO para registrar incidencias.";
                 return RedirectToAction(nameof(Incidencias));
             }
 
@@ -756,7 +756,10 @@ namespace CapiMovil.PL.Gui.Controllers
             if (ausente) estadoActual = "AUSENTE";
             else if (noAbordo) estadoActual = "NO_ABORDO";
             else if (tieneSubida && tieneBajada) estadoActual = "COMPLETADO";
-            else if (tieneSubida) estadoActual = "SUBIDO";
+            else if (tieneSubida) estadoActual = "EN_BUS";
+            else estadoActual = "PENDIENTE";
+
+            bool bloqueado = ausente || noAbordo;
 
             return new ConductorAbordajeAlumnoEstadoViewModel
             {
@@ -766,7 +769,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 TotalBajadas = resumen.TotalBajadas,
                 TotalAusentes = resumen.TotalAusentes,
                 TotalNoAbordo = resumen.TotalNoAbordo,
-                EstadoActual = estadoActual,
+                EstadoActual = bloqueado ? "BLOQUEADO" : estadoActual,
                 PermiteSubida = !ausente && !noAbordo && !(tieneSubida && !tieneBajada) && !(tieneSubida && tieneBajada),
                 PermiteBajada = !ausente && !noAbordo && tieneSubida && !tieneBajada,
                 PermiteAusente = !ausente && !noAbordo && !tieneSubida && !tieneBajada,

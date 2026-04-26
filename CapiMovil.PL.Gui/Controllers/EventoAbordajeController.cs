@@ -1,6 +1,7 @@
 ﻿using CapiMovil.BL.BC;
 using CapiMovil.BL.BE;
 using CapiMovil.DL.DALC;
+using CapiMovil.PL.Gui.Infrastructure;
 using CapiMovil.PL.Gui.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -28,6 +29,9 @@ namespace CapiMovil.PL.Gui.Controllers
 
         public IActionResult Listar()
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             var lista = _eventoAbordajeBC.Listar();
             return View(lista);
         }
@@ -35,6 +39,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Crear()
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             EventoAbordajeFormViewModel vm = new()
             {
                 Recorridos = ObtenerRecorridos(),
@@ -53,6 +60,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Crear(EventoAbordajeFormViewModel vm)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             if (vm.IdRecorrido == Guid.Empty)
                 ModelState.AddModelError(nameof(vm.IdRecorrido), "Debe seleccionar un recorrido.");
 
@@ -109,6 +119,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Editar(Guid id)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             var entidad = _eventoAbordajeBC.ListarPorId(id);
 
             if (entidad == null)
@@ -142,6 +155,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Editar(EventoAbordajeFormViewModel vm)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             if (vm.IdRecorrido == Guid.Empty)
                 ModelState.AddModelError(nameof(vm.IdRecorrido), "Debe seleccionar un recorrido.");
 
@@ -197,6 +213,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Eliminar(Guid id)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             try
             {
                 bool ok = _eventoAbordajeBC.Eliminar(id);

@@ -303,9 +303,231 @@
         return { map: map };
     }
 
+    function createRouteEditor(options) {
+        const mapElement = document.getElementById(options.mapId);
+        const latInicioInput = document.getElementById(options.latInicioInputId);
+        const lngInicioInput = document.getElementById(options.lngInicioInputId);
+        const dirInicioInput = document.getElementById(options.dirInicioInputId);
+        const refInicioInput = document.getElementById(options.refInicioInputId);
+        const latFinInput = document.getElementById(options.latFinInputId);
+        const lngFinInput = document.getElementById(options.lngFinInputId);
+        const dirFinInput = document.getElementById(options.dirFinInputId);
+        const refFinInput = document.getElementById(options.refFinInputId);
+
+        if (!mapElement || typeof L === 'undefined' ||
+            !latInicioInput || !lngInicioInput || !latFinInput || !lngFinInput) {
+            return null;
+        }
+
+        const infoElement = options.infoElementId ? document.getElementById(options.infoElementId) : null;
+        const btnInicio = options.selectInicioButtonId ? document.getElementById(options.selectInicioButtonId) : null;
+        const btnFin = options.selectFinButtonId ? document.getElementById(options.selectFinButtonId) : null;
+        const btnClear = options.clearButtonId ? document.getElementById(options.clearButtonId) : null;
+
+        const defaultCenter = options.defaultCenter || [-12.046374, -77.042793];
+        const map = L.map(mapElement).setView(defaultCenter, 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        const markerInicio = L.marker(defaultCenter, { draggable: true, opacity: 0 }).addTo(map);
+        const markerFin = L.marker(defaultCenter, { draggable: true, opacity: 0 }).addTo(map);
+        const polyline = L.polyline([], { color: '#0d6efd', weight: 4, opacity: 0.85 }).addTo(map);
+
+        let requestInicio = 0;
+        let requestFin = 0;
+        let target = 'inicio';
+
+        function setInfo(message) {
+            if (infoElement) infoElement.textContent = message;
+        }
+
+        function setTarget(newTarget) {
+            target = newTarget;
+            if (btnInicio) btnInicio.classList.toggle('active', target === 'inicio');
+            if (btnFin) btnFin.classList.toggle('active', target === 'fin');
+            setInfo(target === 'inicio'
+                ? 'Modo selección: INICIO. Haz clic en el mapa.'
+                : 'Modo selección: FIN. Haz clic en el mapa.');
+        }
+
+        function hasInicio() {
+            return toNumber(latInicioInput.value) !== null && toNumber(lngInicioInput.value) !== null;
+        }
+
+        function hasFin() {
+            return toNumber(latFinInput.value) !== null && toNumber(lngFinInput.value) !== null;
+        }
+
+        function updatePolyline() {
+            const latInicio = toNumber(latInicioInput.value);
+            const lngInicio = toNumber(lngInicioInput.value);
+            const latFin = toNumber(latFinInput.value);
+            const lngFin = toNumber(lngFinInput.value);
+
+            if (latInicio === null || lngInicio === null || latFin === null || lngFin === null) {
+                polyline.setLatLngs([]);
+                return;
+            }
+
+            const points = [[latInicio, lngInicio], [latFin, lngFin]];
+            polyline.setLatLngs(points);
+            map.fitBounds(L.latLngBounds(points), { padding: [30, 30] });
+        }
+
+        function updateMarker(marker, lat, lng, label) {
+            if (lat === null || lng === null) {
+                marker.setOpacity(0);
+                return;
+            }
+
+            marker.setLatLng([lat, lng]);
+            marker.setOpacity(1);
+            marker.bindPopup(`<strong>${label}</strong><br/>${formatCoord(lat)}, ${formatCoord(lng)}`);
+        }
+
+        function syncReference(input, lat, lng) {
+            if (!input) return;
+            if (!String(input.value || '').trim()) {
+                input.value = `${formatCoord(lat)}, ${formatCoord(lng)}`;
+            }
+        }
+
+        function resolveAddressFor(point, lat, lng) {
+            if (point === 'inicio' && !dirInicioInput) return;
+            if (point === 'fin' && !dirFinInput) return;
+
+            if (point === 'inicio') requestInicio += 1;
+            if (point === 'fin') requestFin += 1;
+
+            const currentRequest = point === 'inicio' ? requestInicio : requestFin;
+
+            resolveAddress(lat, lng)
+                .then(function (address) {
+                    if (point === 'inicio' && currentRequest !== requestInicio) return;
+                    if (point === 'fin' && currentRequest !== requestFin) return;
+
+                    const normalized = address && String(address).trim()
+                        ? String(address).trim()
+                        : `Referencia aproximada: ${formatCoord(lat)}, ${formatCoord(lng)}`;
+
+                    if (point === 'inicio' && dirInicioInput) dirInicioInput.value = normalized;
+                    if (point === 'fin' && dirFinInput) dirFinInput.value = normalized;
+                })
+                .catch(function () {
+                    const fallback = `Referencia aproximada: ${formatCoord(lat)}, ${formatCoord(lng)}`;
+                    if (point === 'inicio' && dirInicioInput) dirInicioInput.value = fallback;
+                    if (point === 'fin' && dirFinInput) dirFinInput.value = fallback;
+                });
+        }
+
+        function setPoint(point, lat, lng, withAddress) {
+            const latValue = Number(lat).toFixed(6);
+            const lngValue = Number(lng).toFixed(6);
+
+            if (point === 'inicio') {
+                latInicioInput.value = latValue;
+                lngInicioInput.value = lngValue;
+                syncReference(refInicioInput, lat, lng);
+                updateMarker(markerInicio, lat, lng, 'Punto de inicio');
+                if (withAddress) resolveAddressFor('inicio', lat, lng);
+            } else {
+                latFinInput.value = latValue;
+                lngFinInput.value = lngValue;
+                syncReference(refFinInput, lat, lng);
+                updateMarker(markerFin, lat, lng, 'Punto de fin');
+                if (withAddress) resolveAddressFor('fin', lat, lng);
+            }
+
+            updatePolyline();
+
+            if (hasInicio() && hasFin()) {
+                setInfo('Ruta lista: inicio y fin definidos. Trayecto dibujado en el mapa.');
+            }
+        }
+
+        function clearAll() {
+            latInicioInput.value = '';
+            lngInicioInput.value = '';
+            latFinInput.value = '';
+            lngFinInput.value = '';
+            if (dirInicioInput) dirInicioInput.value = '';
+            if (dirFinInput) dirFinInput.value = '';
+            if (refInicioInput) refInicioInput.value = '';
+            if (refFinInput) refFinInput.value = '';
+            markerInicio.setOpacity(0);
+            markerFin.setOpacity(0);
+            polyline.setLatLngs([]);
+            setTarget('inicio');
+        }
+
+        markerInicio.on('dragend', function (e) {
+            const pos = e.target.getLatLng();
+            setPoint('inicio', pos.lat, pos.lng, true);
+        });
+
+        markerFin.on('dragend', function (e) {
+            const pos = e.target.getLatLng();
+            setPoint('fin', pos.lat, pos.lng, true);
+        });
+
+        map.on('click', function (e) {
+            setPoint(target, e.latlng.lat, e.latlng.lng, true);
+        });
+
+        if (btnInicio) btnInicio.addEventListener('click', function () { setTarget('inicio'); });
+        if (btnFin) btnFin.addEventListener('click', function () { setTarget('fin'); });
+        if (btnClear) btnClear.addEventListener('click', clearAll);
+
+        const latInicio = toNumber(latInicioInput.value);
+        const lngInicio = toNumber(lngInicioInput.value);
+        const latFin = toNumber(latFinInput.value);
+        const lngFin = toNumber(lngFinInput.value);
+
+        if (latInicio !== null && lngInicio !== null) {
+            setPoint('inicio', latInicio, lngInicio, !String((dirInicioInput && dirInicioInput.value) || '').trim());
+        }
+        if (latFin !== null && lngFin !== null) {
+            setPoint('fin', latFin, lngFin, !String((dirFinInput && dirFinInput.value) || '').trim());
+        }
+
+        if (latInicio !== null && lngInicio !== null && latFin !== null && lngFin !== null) {
+            setInfo('Ruta cargada desde datos existentes. Puedes ajustar los puntos en el mapa.');
+        } else {
+            setTarget('inicio');
+        }
+
+        [latInicioInput, lngInicioInput].forEach(function (input) {
+            input.addEventListener('change', function () {
+                const lat = toNumber(latInicioInput.value);
+                const lng = toNumber(lngInicioInput.value);
+                if (lat === null || lng === null) return;
+                setPoint('inicio', lat, lng, true);
+            });
+        });
+
+        [latFinInput, lngFinInput].forEach(function (input) {
+            input.addEventListener('change', function () {
+                const lat = toNumber(latFinInput.value);
+                const lng = toNumber(lngFinInput.value);
+                if (lat === null || lng === null) return;
+                setPoint('fin', lat, lng, true);
+            });
+        });
+
+        setTimeout(function () {
+            map.invalidateSize();
+        }, 150);
+
+        return { map: map };
+    }
+
     window.CapiMovilMaps = {
         createPointPicker: createPointPicker,
         createRouteViewer: createRouteViewer,
+        createRouteEditor: createRouteEditor,
         bindImagePreview: bindImagePreview
     };
 })(window);
