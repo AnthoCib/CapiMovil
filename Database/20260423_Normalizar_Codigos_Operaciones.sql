@@ -19,8 +19,7 @@ BEGIN TRY
 
     ;WITH Base AS (
         SELECT r.IdRecorrido, ROW_NUMBER() OVER (ORDER BY r.FechaCreacion, r.IdRecorrido) AS Nro,
-               UPPER(LEFT(REPLACE(REPLACE(ISNULL(ru.Nombre, 'RU'), ' ', ''), '-', ''), 2)) +
-               UPPER(LEFT(REPLACE(REPLACE(ISNULL(ru.Turno, 'MA'), ' ', ''), '-', ''), 2)) AS Fragmento
+               LEFT(UPPER(REPLACE(REPLACE(ISNULL(ru.CodigoRuta, 'RUTA'), ' ', ''), '-', '')) + 'XXXX', 4) AS Fragmento
         FROM dbo.Recorrido r
         INNER JOIN dbo.Ruta ru ON ru.IdRuta = r.IdRuta
         WHERE r.CodigoRecorrido IS NULL OR r.CodigoRecorrido NOT LIKE 'REC-[A-Z][A-Z][A-Z][A-Z][0-9][0-9][0-9][0-9]'

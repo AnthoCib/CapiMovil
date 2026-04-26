@@ -20,18 +20,18 @@ BEGIN
     SET XACT_ABORT ON;
 
     DECLARE @Correlativo INT;
-    DECLARE @RutaNombre VARCHAR(120);
-    DECLARE @Turno VARCHAR(20);
+    DECLARE @CodigoRuta VARCHAR(20);
     DECLARE @Fragmento VARCHAR(4);
     DECLARE @CodigoGenerado VARCHAR(20);
 
-    SELECT @RutaNombre = r.Nombre, @Turno = r.Turno
+    SELECT @CodigoRuta = r.CodigoRuta
     FROM dbo.Ruta r
     WHERE r.IdRuta = @IdRuta;
 
-    SET @Fragmento =
-        UPPER(LEFT(REPLACE(REPLACE(ISNULL(@RutaNombre, 'RU'), ' ', ''), '-', ''), 2)) +
-        UPPER(LEFT(REPLACE(REPLACE(ISNULL(@Turno, 'MA'), ' ', ''), '-', ''), 2));
+    SET @Fragmento = LEFT(
+        UPPER(REPLACE(REPLACE(ISNULL(@CodigoRuta, 'RUTA'), ' ', ''), '-', '')) + 'XXXX',
+        4
+    );
 
     BEGIN TRANSACTION;
     BEGIN TRY
