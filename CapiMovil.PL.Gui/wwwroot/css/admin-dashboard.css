@@ -286,6 +286,21 @@
     padding: 1rem;
 }
 
+.admin-chart-wrap {
+    border: 1px solid #ece8dd;
+    border-radius: .9rem;
+    background: #fff;
+    padding: .75rem;
+    min-height: 220px;
+    height: 100%;
+}
+
+.admin-map {
+    min-height: 420px;
+    border-radius: .9rem;
+    border: 1px solid #ece8dd;
+}
+
 .admin-chart-bars {
     display: flex;
     align-items: end;

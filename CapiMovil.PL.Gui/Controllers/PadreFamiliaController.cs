@@ -18,6 +18,7 @@ namespace CapiMovil.PL.Gui.Controllers
         private readonly RecorridoBC _recorridoBC;
         private readonly ParaderoBC _paraderoBC;
         private readonly IncidenciaBC _incidenciaBC;
+        private readonly UbicacionBusBC _ubicacionBusBC;
 
         public PadreFamiliaController(
             PadreFamiliaBC padreFamiliaBC,
@@ -28,7 +29,8 @@ namespace CapiMovil.PL.Gui.Controllers
             RutaEstudianteBC rutaEstudianteBC,
             RecorridoBC recorridoBC,
             ParaderoBC paraderoBC,
-            IncidenciaBC incidenciaBC)
+            IncidenciaBC incidenciaBC,
+            UbicacionBusBC ubicacionBusBC)
         {
             _padreFamiliaBC = padreFamiliaBC;
             _usuarioBC = usuarioBC;
@@ -39,6 +41,7 @@ namespace CapiMovil.PL.Gui.Controllers
             _recorridoBC = recorridoBC;
             _paraderoBC = paraderoBC;
             _incidenciaBC = incidenciaBC;
+            _ubicacionBusBC = ubicacionBusBC;
         }
 
         public IActionResult Index()
@@ -351,6 +354,46 @@ namespace CapiMovil.PL.Gui.Controllers
                     ? "¡El autobús está cerca!"
                     : "Recorrido programado. Revisa el ETA del abordaje.";
 
+            List<PadreMapaParaderoItemViewModel> paraderosMapa = new();
+            if (asignacion != null)
+            {
+                paraderosMapa = _paraderoBC.Listar()
+                    .Where(p => p.Estado && p.IdRuta == asignacion.IdRuta && p.Latitud.HasValue && p.Longitud.HasValue)
+                    .OrderBy(p => p.OrdenParada)
+                    .Select(p => new PadreMapaParaderoItemViewModel
+                    {
+                        Latitud = p.Latitud!.Value,
+                        Longitud = p.Longitud!.Value,
+                        Nombre = p.Nombre,
+                        Ruta = asignacion.Ruta?.Nombre ?? asignacion.Ruta?.CodigoRuta ?? "Ruta no disponible"
+                    })
+                    .ToList();
+            }
+
+            List<PadreMapaBusItemViewModel> busesMapa = new();
+            if (recorridoActivo != null)
+            {
+                UbicacionBusBE? ubicacion = _ubicacionBusBC.Listar()
+                    .Where(x => x.Estado && x.IdRecorrido == recorridoActivo.IdRecorrido)
+                    .OrderByDescending(x => x.FechaHora)
+                    .FirstOrDefault();
+
+                if (ubicacion != null)
+                {
+                    busesMapa.Add(new PadreMapaBusItemViewModel
+                    {
+                        Latitud = ubicacion.Latitud,
+                        Longitud = ubicacion.Longitud,
+                        FechaHora = ubicacion.FechaHora,
+                        CodigoRecorrido = recorridoActivo.CodigoRecorrido,
+                        Ruta = asignacion?.Ruta?.Nombre ?? asignacion?.Ruta?.CodigoRuta ?? "Ruta no disponible",
+                        Conductor = recorridoActivo.Conductor?.NombreCompleto ?? "Conductor no disponible",
+                        Bus = recorridoActivo.Bus?.Placa ?? "Bus no disponible",
+                        EstadoRecorrido = recorridoActivo.EstadoRecorrido ?? "SIN_ESTADO"
+                    });
+                }
+            }
+
             PadreMapaEnVivoViewModel vm = new()
             {
                 Estudiante = estudianteSeleccionado,
@@ -364,7 +407,9 @@ namespace CapiMovil.PL.Gui.Controllers
                 EstadoSeguridad = ultimoEvento == null ? "Sin eventos recientes" : "Monitoreo activo",
                 ETA = recorridoActivo?.HoraInicioProgramada?.ToString(@"hh\:mm"),
                 MensajeEstado = mensajeEstado,
-                TieneRastreoDisponible = recorridoActivo != null
+                TieneRastreoDisponible = recorridoActivo != null,
+                BusesMapa = busesMapa,
+                ParaderosMapa = paraderosMapa
             };
 
             return View(vm);

@@ -16,6 +16,28 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
         public string EstadoSeguridad { get; set; } = "Sin datos";
         public string MensajeEstado { get; set; } = "No hay rastreo en vivo disponible.";
         public bool TieneRastreoDisponible { get; set; }
+        public List<PadreMapaBusItemViewModel> BusesMapa { get; set; } = new();
+        public List<PadreMapaParaderoItemViewModel> ParaderosMapa { get; set; } = new();
+    }
+
+    public class PadreMapaBusItemViewModel
+    {
+        public decimal Latitud { get; set; }
+        public decimal Longitud { get; set; }
+        public string CodigoRecorrido { get; set; } = string.Empty;
+        public string Ruta { get; set; } = "Ruta no disponible";
+        public string Conductor { get; set; } = "Conductor no disponible";
+        public string Bus { get; set; } = "Bus no disponible";
+        public string EstadoRecorrido { get; set; } = "SIN_ESTADO";
+        public DateTime FechaHora { get; set; }
+    }
+
+    public class PadreMapaParaderoItemViewModel
+    {
+        public decimal Latitud { get; set; }
+        public decimal Longitud { get; set; }
+        public string Nombre { get; set; } = "Paradero";
+        public string Ruta { get; set; } = "Ruta no disponible";
     }
 
     public class PadreHistorialViewModel

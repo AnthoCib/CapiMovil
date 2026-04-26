@@ -2,6 +2,9 @@
 @{
     ViewData["Title"] = "Mapa en Vivo";
 }
+@section Styles {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+}
 
 <div class="pf-dashboard">
     <section class="pf-card p-3 mb-3">
@@ -23,13 +26,7 @@
         <div class="row g-3">
             <div class="col-xl-8">
                 <section class="pf-card p-3 h-100">
-                    <div class="capi-map pf-map-placeholder d-flex align-items-center justify-content-center">
-                        <div class="text-center">
-                            <i class="bi bi-map fs-1"></i>
-                            <p class="mb-0 mt-2">Mapa de tracking en vivo</p>
-                            <small class="text-muted">Mapa integrado con el estilo global de CapiMovil.</small>
-                        </div>
-                    </div>
+                    <div id="padreMapaEnVivoCanvas" class="capi-map"></div>
                 </section>
             </div>
             <div class="col-xl-4">
@@ -50,3 +47,20 @@
         </div>
     }
 </div>
+
+@section Scripts {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="~/js/capimovil-maps.js" asp-append-version="true"></script>
+    @if (Model.TieneRastreoDisponible)
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                CapiMovilMaps.createLiveMonitoringMap({
+                    mapId: 'padreMapaEnVivoCanvas',
+                    buses: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BusesMapa)),
+                    paraderos: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ParaderosMapa))
+                });
+            });
+        </script>
+    }
+}
