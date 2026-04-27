@@ -112,6 +112,62 @@
     margin: .35rem .55rem;
 }
 
+.admin-nav-parent {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    padding: .45rem .55rem;
+    border-radius: .65rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #6b5f4a;
+    font-size: .86rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.admin-nav-parent:hover {
+    background: #f4f1e8;
+    color: #3a3326;
+}
+
+.admin-nav-parent-label {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+}
+
+.admin-nav-caret {
+    transition: transform .2s ease;
+    font-size: .85rem;
+}
+
+.admin-nav-group.open .admin-nav-caret {
+    transform: rotate(180deg);
+}
+
+.admin-submenu {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    margin-top: .2rem;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height .24s ease, opacity .2s ease;
+}
+
+.admin-nav-group.open .admin-submenu {
+    opacity: 1;
+}
+
+.admin-submenu .nav-link {
+    margin-left: .45rem;
+    font-size: .93rem;
+}
+
 .btn-admin-highlight {
     background: #f4bf42;
     border-color: #f4bf42;
@@ -228,6 +284,21 @@
     border: 1px dashed #e6dcc2;
     background: #fffdf6;
     padding: 1rem;
+}
+
+.admin-chart-wrap {
+    border: 1px solid #ece8dd;
+    border-radius: .9rem;
+    background: #fff;
+    padding: .75rem;
+    min-height: 220px;
+    height: 100%;
+}
+
+.admin-map {
+    min-height: 420px;
+    border-radius: .9rem;
+    border: 1px solid #ece8dd;
 }
 
 .admin-chart-bars {

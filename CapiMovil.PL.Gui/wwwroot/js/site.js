@@ -230,6 +230,69 @@ function inicializarSidebarShellById(shellId) {
     const shell = document.getElementById(shellId);
     if (!shell) return;
 
+    const acordeonSubmenus = (shell.dataset.sidebarAccordion || "true").toLowerCase() !== "false";
+    const gruposSubmenu = Array.from(shell.querySelectorAll(".admin-nav-group"));
+
+    const sincronizarAlturasSubmenu = () => {
+        gruposSubmenu.forEach(group => {
+            const panel = group.querySelector(".admin-submenu");
+            if (!panel) return;
+
+            if (group.classList.contains("open")) {
+                panel.style.maxHeight = `${panel.scrollHeight}px`;
+                panel.style.opacity = "1";
+            } else {
+                panel.style.maxHeight = "0px";
+                panel.style.opacity = "0";
+            }
+        });
+    };
+
+    const cambiarEstadoSubmenu = (group, expandir) => {
+        if (!group) return;
+
+        const boton = group.querySelector("[data-sidebar-submenu-toggle]");
+        if (expandir) {
+            group.classList.add("open");
+            if (boton) boton.setAttribute("aria-expanded", "true");
+        } else {
+            group.classList.remove("open");
+            if (boton) boton.setAttribute("aria-expanded", "false");
+        }
+    };
+
+    gruposSubmenu.forEach(group => {
+        const boton = group.querySelector("[data-sidebar-submenu-toggle]");
+        const panel = group.querySelector(".admin-submenu");
+        if (!boton || !panel) return;
+
+        const tieneRutaActiva = panel.querySelector(".nav-link.active") !== null;
+        if (tieneRutaActiva) {
+            group.classList.add("open");
+            boton.setAttribute("aria-expanded", "true");
+        }
+
+        boton.addEventListener("click", () => {
+            const estaAbierto = group.classList.contains("open");
+            if (estaAbierto) {
+                cambiarEstadoSubmenu(group, false);
+                sincronizarAlturasSubmenu();
+                return;
+            }
+
+            if (acordeonSubmenus) {
+                gruposSubmenu
+                    .filter(other => other !== group && other.querySelector(".admin-submenu"))
+                    .forEach(other => cambiarEstadoSubmenu(other, false));
+            }
+
+            cambiarEstadoSubmenu(group, true);
+            sincronizarAlturasSubmenu();
+        });
+    });
+
+    sincronizarAlturasSubmenu();
+
     const toggle = shell.querySelector("[data-sidebar-toggle]");
     const backdrop = shell.querySelector("[data-sidebar-backdrop]");
     const navSelector = shell.dataset.sidebarNav || ".nav-link";
@@ -278,6 +341,8 @@ function inicializarSidebarShellById(shellId) {
     });
 
     window.addEventListener("resize", () => {
+        sincronizarAlturasSubmenu();
+
         if (window.innerWidth >= desktopBreakpoint) {
             closeSidebar();
         } else {

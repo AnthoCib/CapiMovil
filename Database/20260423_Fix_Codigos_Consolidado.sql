@@ -378,42 +378,81 @@ BEGIN
     SET XACT_ABORT ON;
 
     DECLARE @Correlativo INT;
-    DECLARE @RutaNombre VARCHAR(120);
-    DECLARE @Turno VARCHAR(20);
+    DECLARE @CorrelativoActual INT = 0;
+    DECLARE @MaxTabla INT = 0;
+    DECLARE @Intentos INT = 0;
+    DECLARE @CodigoRuta VARCHAR(20);
     DECLARE @Fragmento VARCHAR(4);
     DECLARE @CodigoGenerado VARCHAR(20);
+    DECLARE @TmpCorrelativo TABLE (Valor INT);
 
-    SELECT @RutaNombre = r.Nombre, @Turno = r.Turno
+    SELECT @CodigoRuta = r.CodigoRuta
     FROM dbo.Ruta r
     WHERE r.IdRuta = @IdRuta;
 
-    SET @Fragmento =
-        dbo.fn_Codigo_Fragmento(@RutaNombre, 2, 'RU') +
-        dbo.fn_Codigo_Fragmento(@Turno, 2, 'TU');
+    SET @Fragmento = LEFT(
+        UPPER(REPLACE(REPLACE(ISNULL(@CodigoRuta, 'RUTA'), ' ', ''), '-', '')) + 'XXXX',
+        4
+    );
+
+    SELECT @MaxTabla = ISNULL(MAX(TRY_CAST(RIGHT(CodigoRecorrido, 4) AS INT)), 0)
+    FROM dbo.Recorrido
+    WHERE CodigoRecorrido LIKE 'REC-[A-Z0-9][A-Z0-9][A-Z0-9][A-Z0-9][0-9][0-9][0-9][0-9]';
 
     BEGIN TRANSACTION;
     BEGIN TRY
         IF OBJECT_ID('dbo.CorrelativoDocumento', 'U') IS NOT NULL
         BEGIN
             IF NOT EXISTS (SELECT 1 FROM dbo.CorrelativoDocumento WITH (UPDLOCK, HOLDLOCK) WHERE TipoCodigo = 'REC')
-                INSERT INTO dbo.CorrelativoDocumento (TipoCodigo, UltimoNumero) VALUES ('REC', 0);
+                INSERT INTO dbo.CorrelativoDocumento (TipoCodigo, UltimoNumero) VALUES ('REC', @MaxTabla);
+            ELSE
+            BEGIN
+                SELECT @CorrelativoActual = UltimoNumero
+                FROM dbo.CorrelativoDocumento WITH (UPDLOCK, HOLDLOCK)
+                WHERE TipoCodigo = 'REC';
 
-            UPDATE dbo.CorrelativoDocumento
-               SET UltimoNumero = UltimoNumero + 1
-             WHERE TipoCodigo = 'REC';
-
-            SELECT @Correlativo = UltimoNumero
-            FROM dbo.CorrelativoDocumento WITH (UPDLOCK, HOLDLOCK)
-            WHERE TipoCodigo = 'REC';
+                IF ISNULL(@CorrelativoActual, 0) < @MaxTabla
+                    UPDATE dbo.CorrelativoDocumento
+                       SET UltimoNumero = @MaxTabla
+                     WHERE TipoCodigo = 'REC';
+            END
         END
         ELSE
         BEGIN
-            SELECT @Correlativo = ISNULL(MAX(TRY_CAST(RIGHT(CodigoRecorrido, 4) AS INT)), 0) + 1
-            FROM dbo.Recorrido
-            WHERE CodigoRecorrido LIKE 'REC-%[0-9][0-9][0-9][0-9]';
+            SET @CorrelativoActual = @MaxTabla;
         END
 
-        SET @CodigoGenerado = CONCAT('REC-', @Fragmento, RIGHT(CONCAT('0000', @Correlativo), 4));
+        WHILE (1 = 1)
+        BEGIN
+            IF OBJECT_ID('dbo.CorrelativoDocumento', 'U') IS NOT NULL
+            BEGIN
+                DELETE FROM @TmpCorrelativo;
+                UPDATE dbo.CorrelativoDocumento
+                   SET UltimoNumero = UltimoNumero + 1
+                OUTPUT inserted.UltimoNumero INTO @TmpCorrelativo(Valor)
+                 WHERE TipoCodigo = 'REC';
+
+                SELECT TOP 1 @Correlativo = Valor FROM @TmpCorrelativo;
+            END
+            ELSE
+            BEGIN
+                SET @CorrelativoActual = @CorrelativoActual + 1;
+                SET @Correlativo = @CorrelativoActual;
+            END
+
+            SET @CodigoGenerado = CONCAT('REC-', @Fragmento, RIGHT(CONCAT('0000', @Correlativo), 4));
+
+            IF NOT EXISTS (
+                SELECT 1
+                FROM dbo.Recorrido WITH (UPDLOCK, HOLDLOCK)
+                WHERE CodigoRecorrido = @CodigoGenerado
+            )
+                BREAK;
+
+            SET @Intentos += 1;
+            IF @Intentos >= 50
+                THROW 50001, 'No se pudo generar un CodigoRecorrido único luego de 50 intentos.', 1;
+        END
 
         INSERT INTO dbo.Recorrido
         (

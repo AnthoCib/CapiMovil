@@ -18,6 +18,7 @@ namespace CapiMovil.PL.Gui.Controllers
         private readonly RecorridoBC _recorridoBC;
         private readonly ParaderoBC _paraderoBC;
         private readonly IncidenciaBC _incidenciaBC;
+        private readonly UbicacionBusBC _ubicacionBusBC;
 
         public PadreFamiliaController(
             PadreFamiliaBC padreFamiliaBC,
@@ -28,7 +29,8 @@ namespace CapiMovil.PL.Gui.Controllers
             RutaEstudianteBC rutaEstudianteBC,
             RecorridoBC recorridoBC,
             ParaderoBC paraderoBC,
-            IncidenciaBC incidenciaBC)
+            IncidenciaBC incidenciaBC,
+            UbicacionBusBC ubicacionBusBC)
         {
             _padreFamiliaBC = padreFamiliaBC;
             _usuarioBC = usuarioBC;
@@ -39,6 +41,7 @@ namespace CapiMovil.PL.Gui.Controllers
             _recorridoBC = recorridoBC;
             _paraderoBC = paraderoBC;
             _incidenciaBC = incidenciaBC;
+            _ubicacionBusBC = ubicacionBusBC;
         }
 
         public IActionResult Index()
@@ -351,6 +354,46 @@ namespace CapiMovil.PL.Gui.Controllers
                     ? "¡El autobús está cerca!"
                     : "Recorrido programado. Revisa el ETA del abordaje.";
 
+            List<PadreMapaParaderoItemViewModel> paraderosMapa = new();
+            if (asignacion != null)
+            {
+                paraderosMapa = _paraderoBC.Listar()
+                    .Where(p => p.Estado && p.IdRuta == asignacion.IdRuta && p.Latitud.HasValue && p.Longitud.HasValue)
+                    .OrderBy(p => p.OrdenParada)
+                    .Select(p => new PadreMapaParaderoItemViewModel
+                    {
+                        Latitud = p.Latitud!.Value,
+                        Longitud = p.Longitud!.Value,
+                        Nombre = p.Nombre,
+                        Ruta = asignacion.Ruta?.Nombre ?? asignacion.Ruta?.CodigoRuta ?? "Ruta no disponible"
+                    })
+                    .ToList();
+            }
+
+            List<PadreMapaBusItemViewModel> busesMapa = new();
+            if (recorridoActivo != null)
+            {
+                UbicacionBusBE? ubicacion = _ubicacionBusBC.Listar()
+                    .Where(x => x.Estado && x.IdRecorrido == recorridoActivo.IdRecorrido)
+                    .OrderByDescending(x => x.FechaHora)
+                    .FirstOrDefault();
+
+                if (ubicacion != null)
+                {
+                    busesMapa.Add(new PadreMapaBusItemViewModel
+                    {
+                        Latitud = ubicacion.Latitud,
+                        Longitud = ubicacion.Longitud,
+                        FechaHora = ubicacion.FechaHora,
+                        CodigoRecorrido = recorridoActivo.CodigoRecorrido,
+                        Ruta = asignacion?.Ruta?.Nombre ?? asignacion?.Ruta?.CodigoRuta ?? "Ruta no disponible",
+                        Conductor = recorridoActivo.Conductor?.NombreCompleto ?? "Conductor no disponible",
+                        Bus = recorridoActivo.Bus?.Placa ?? "Bus no disponible",
+                        EstadoRecorrido = recorridoActivo.EstadoRecorrido ?? "SIN_ESTADO"
+                    });
+                }
+            }
+
             PadreMapaEnVivoViewModel vm = new()
             {
                 Estudiante = estudianteSeleccionado,
@@ -364,14 +407,16 @@ namespace CapiMovil.PL.Gui.Controllers
                 EstadoSeguridad = ultimoEvento == null ? "Sin eventos recientes" : "Monitoreo activo",
                 ETA = recorridoActivo?.HoraInicioProgramada?.ToString(@"hh\:mm"),
                 MensajeEstado = mensajeEstado,
-                TieneRastreoDisponible = recorridoActivo != null
+                TieneRastreoDisponible = recorridoActivo != null,
+                BusesMapa = busesMapa,
+                ParaderosMapa = paraderosMapa
             };
 
             return View(vm);
         }
 
         [HttpGet]
-        public IActionResult Historial(DateTime? fechaDesde, DateTime? fechaHasta)
+        public IActionResult Historial(DateTime? fechaInicio, DateTime? fechaFin)
         {
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
             if (acceso != null)
@@ -381,8 +426,15 @@ namespace CapiMovil.PL.Gui.Controllers
             if (padre == null)
                 return View(new PadreHistorialViewModel());
 
-            DateTime inicio = (fechaDesde ?? DateTime.Today.AddDays(-30)).Date;
-            DateTime fin = (fechaHasta ?? DateTime.Today).Date;
+            DateTime inicio = (fechaInicio ?? DateTime.Today.AddDays(-30)).Date;
+            DateTime fin = (fechaFin ?? DateTime.Today).Date;
+
+            if (inicio > fin)
+            {
+                DateTime tmp = inicio;
+                inicio = fin;
+                fin = tmp;
+            }
 
             List<EstudianteBE> hijos = ObtenerHijos(padre.IdPadre);
             HashSet<Guid> idsHijos = hijos.Select(h => h.IdEstudiante).ToHashSet();
@@ -396,16 +448,21 @@ namespace CapiMovil.PL.Gui.Controllers
                 .Where(e => e.FechaHora.Date >= inicio && e.FechaHora.Date <= fin && idsHijos.Contains(e.IdEstudiante))
                 .OrderByDescending(e => e.FechaHora)
                 .ToList();
+            List<IncidenciaBE> incidencias = _incidenciaBC.ListarPorPadre(padre.IdPadre);
 
             List<PadreHistorialViajeItemViewModel> viajes = rutas
                 .Select(r =>
                 {
                     EstudianteBE hijo = hijosDict[r.IdEstudiante];
-                    RecorridoBE? recorrido = recorridos.FirstOrDefault(x => x.IdRuta == r.IdRuta);
+                    RecorridoBE? recorrido = recorridos
+                        .Where(x => x.IdRuta == r.IdRuta)
+                        .OrderByDescending(x => x.Fecha)
+                        .FirstOrDefault();
                     EventoAbordajeBE? ultimoEvento = eventos.FirstOrDefault(x => x.IdEstudiante == r.IdEstudiante);
 
                     return new PadreHistorialViajeItemViewModel
                     {
+                        IdEstudiante = r.IdEstudiante,
                         Estudiante = hijo.NombreCompleto,
                         Fecha = recorrido?.Fecha ?? ultimoEvento?.FechaHora.Date,
                         TipoRecorrido = recorrido?.EstadoRecorrido ?? "Programado",
@@ -413,7 +470,7 @@ namespace CapiMovil.PL.Gui.Controllers
                         Hora = ultimoEvento?.FechaHora.ToString("HH:mm") ?? "--:--",
                         Estado = recorrido?.EstadoRecorrido ?? "Sin estado",
                         Conductor = recorrido?.Conductor?.NombreCompleto ?? "No disponible",
-                        TieneIncidencia = _incidenciaBC.ListarPorPadre(padre.IdPadre)
+                        TieneIncidencia = incidencias
                             .Any(i => string.Equals(i.CodigoRecorrido, recorrido?.CodigoRecorrido, StringComparison.OrdinalIgnoreCase))
                     };
                 })
@@ -422,8 +479,8 @@ namespace CapiMovil.PL.Gui.Controllers
 
             PadreHistorialViewModel vm = new()
             {
-                FechaDesde = inicio,
-                FechaHasta = fin,
+                FechaInicio = inicio,
+                FechaFin = fin,
                 TotalViajes = viajes.Count,
                 ViajesSeguros = viajes.Count(v => !v.TieneIncidencia),
                 Viajes = viajes

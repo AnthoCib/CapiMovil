@@ -28,7 +28,7 @@ SELECT 'Paradero', LEFT(ISNULL(CodigoParadero, ''), 8), COUNT(*) FROM dbo.Parade
 UNION ALL
 SELECT 'Recorrido', LEFT(ISNULL(CodigoRecorrido, ''), 8), COUNT(*) FROM dbo.Recorrido GROUP BY LEFT(ISNULL(CodigoRecorrido, ''), 8)
 UNION ALL
-SELECT 'RutaEstudiante', LEFT(ISNULL(CodigoRutaEstudiante, ''), 8), COUNT(*) FROM dbo.RutaEstudiante GROUP BY LEFT(ISNULL(CodigoRutaEstudiante, ''), 8)
+SELECT 'RutaEstudiante', LEFT(ISNULL(CodigoAsignacion, ''), 8), COUNT(*) FROM dbo.RutaEstudiante GROUP BY LEFT(ISNULL(CodigoAsignacion, ''), 8)
 UNION ALL
 SELECT 'Incidencia', LEFT(ISNULL(CodigoIncidencia, ''), 8), COUNT(*) FROM dbo.Incidencia GROUP BY LEFT(ISNULL(CodigoIncidencia, ''), 8)
 UNION ALL
@@ -53,7 +53,7 @@ BEGIN
                 WHEN 'RUT' THEN (SELECT ISNULL(MAX(TRY_CAST(RIGHT(CodigoRuta, 4) AS INT)), 0) FROM dbo.Ruta)
                 WHEN 'BUS' THEN (SELECT ISNULL(MAX(TRY_CAST(RIGHT(CodigoBus, 4) AS INT)), 0) FROM dbo.Bus)
                 WHEN 'PAR' THEN (SELECT ISNULL(MAX(TRY_CAST(RIGHT(CodigoParadero, 4) AS INT)), 0) FROM dbo.Paradero)
-                WHEN 'RAS' THEN (SELECT ISNULL(MAX(TRY_CAST(RIGHT(CodigoRutaEstudiante, 4) AS INT)), 0) FROM dbo.RutaEstudiante)
+                WHEN 'RAS' THEN (SELECT ISNULL(MAX(TRY_CAST(RIGHT(CodigoAsignacion, 4) AS INT)), 0) FROM dbo.RutaEstudiante)
                 WHEN 'REC' THEN (SELECT ISNULL(MAX(TRY_CAST(RIGHT(CodigoRecorrido, 4) AS INT)), 0) FROM dbo.Recorrido)
                 WHEN 'INC' THEN (SELECT ISNULL(MAX(TRY_CAST(RIGHT(CodigoIncidencia, 4) AS INT)), 0) FROM dbo.Incidencia)
                 WHEN 'PAD' THEN (SELECT ISNULL(MAX(TRY_CAST(RIGHT(CodigoPadre, 4) AS INT)), 0) FROM dbo.PadreFamilia)
@@ -282,10 +282,10 @@ BEGIN TRY
 
         ;WITH RE AS (
             SELECT IdRutaEstudiante, ROW_NUMBER() OVER (ORDER BY FechaCreacion, IdRutaEstudiante) AS Nro,
-                   dbo.fn_CodeFragment(COALESCE(CodigoRutaEstudiante, 'ASIG'), 6, 'ASIG') AS Fr
+                   dbo.fn_CodeFragment(COALESCE(CodigoAsignacion, 'ASIG'), 6, 'ASIG') AS Fr
             FROM dbo.RutaEstudiante
         )
-        UPDATE t SET CodigoRutaEstudiante = CONCAT('RAS-', re.Fr, RIGHT(CONCAT('0000', re.Nro), 4))
+        UPDATE t SET CodigoAsignacion = CONCAT('RAS-', re.Fr, RIGHT(CONCAT('0000', re.Nro), 4))
         FROM dbo.RutaEstudiante t INNER JOIN RE re ON re.IdRutaEstudiante = t.IdRutaEstudiante;
 
         ;WITH RC AS (
@@ -332,7 +332,7 @@ BEGIN
         SELECT 'RUT' AS TipoCodigo, ISNULL(MAX(TRY_CAST(RIGHT(CodigoRuta, 4) AS INT)), 0) AS UltimoNumero FROM dbo.Ruta
         UNION ALL SELECT 'BUS', ISNULL(MAX(TRY_CAST(RIGHT(CodigoBus, 4) AS INT)), 0) FROM dbo.Bus
         UNION ALL SELECT 'PAR', ISNULL(MAX(TRY_CAST(RIGHT(CodigoParadero, 4) AS INT)), 0) FROM dbo.Paradero
-        UNION ALL SELECT 'RAS', ISNULL(MAX(TRY_CAST(RIGHT(CodigoRutaEstudiante, 4) AS INT)), 0) FROM dbo.RutaEstudiante
+        UNION ALL SELECT 'RAS', ISNULL(MAX(TRY_CAST(RIGHT(CodigoAsignacion, 4) AS INT)), 0) FROM dbo.RutaEstudiante
         UNION ALL SELECT 'REC', ISNULL(MAX(TRY_CAST(RIGHT(CodigoRecorrido, 4) AS INT)), 0) FROM dbo.Recorrido
         UNION ALL SELECT 'INC', ISNULL(MAX(TRY_CAST(RIGHT(CodigoIncidencia, 4) AS INT)), 0) FROM dbo.Incidencia
         UNION ALL SELECT 'PAD', ISNULL(MAX(TRY_CAST(RIGHT(CodigoPadre, 4) AS INT)), 0) FROM dbo.PadreFamilia
@@ -359,7 +359,7 @@ SELECT 'Paradero', COUNT(*), SUM(CASE WHEN CodigoParadero LIKE 'PAR-[A-Z0-9][A-Z
 UNION ALL
 SELECT 'Recorrido', COUNT(*), SUM(CASE WHEN CodigoRecorrido LIKE 'REC-[A-Z0-9][A-Z0-9][A-Z0-9][A-Z0-9][0-9][0-9][0-9][0-9]' THEN 0 ELSE 1 END) FROM dbo.Recorrido
 UNION ALL
-SELECT 'RutaEstudiante', COUNT(*), SUM(CASE WHEN CodigoRutaEstudiante LIKE 'RAS-[A-Z0-9][A-Z0-9][A-Z0-9][A-Z0-9][A-Z0-9][A-Z0-9][0-9][0-9][0-9][0-9]' THEN 0 ELSE 1 END) FROM dbo.RutaEstudiante
+SELECT 'RutaEstudiante', COUNT(*), SUM(CASE WHEN CodigoAsignacion LIKE 'RAS-[A-Z0-9][A-Z0-9][A-Z0-9][A-Z0-9][A-Z0-9][A-Z0-9][0-9][0-9][0-9][0-9]' THEN 0 ELSE 1 END) FROM dbo.RutaEstudiante
 UNION ALL
 SELECT 'Incidencia', COUNT(*), SUM(CASE WHEN CodigoIncidencia LIKE 'INC-[A-Z0-9][A-Z0-9][A-Z0-9][A-Z0-9][A-Z0-9][A-Z0-9][0-9][0-9][0-9][0-9]' THEN 0 ELSE 1 END) FROM dbo.Incidencia
 UNION ALL

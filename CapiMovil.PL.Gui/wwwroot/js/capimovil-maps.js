@@ -524,10 +524,84 @@
         return { map: map };
     }
 
+    function createLiveMonitoringMap(options) {
+        const mapElement = document.getElementById(options.mapId);
+        if (!mapElement || typeof L === 'undefined') {
+            return null;
+        }
+
+        const buses = Array.isArray(options.buses) ? options.buses : [];
+        const paraderos = Array.isArray(options.paraderos) ? options.paraderos : [];
+        const defaultCenter = options.defaultCenter || [-12.046374, -77.042793];
+        const defaultZoom = options.defaultZoom || 12;
+
+        const map = L.map(mapElement).setView(defaultCenter, defaultZoom);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        const layers = [];
+
+        paraderos.forEach(function (item) {
+            const lat = toNumber(item.latitud);
+            const lng = toNumber(item.longitud);
+            if (lat === null || lng === null) return;
+
+            const marker = L.circleMarker([lat, lng], {
+                radius: 6,
+                color: '#7c3aed',
+                fillColor: '#a78bfa',
+                fillOpacity: 0.9,
+                weight: 1.5
+            }).addTo(map);
+
+            marker.bindPopup(
+                `<strong>${item.nombre || 'Paradero'}</strong><br/>Ruta: ${item.ruta || 'No disponible'}`
+            );
+            layers.push(marker);
+        });
+
+        buses.forEach(function (item) {
+            const lat = toNumber(item.latitud);
+            const lng = toNumber(item.longitud);
+            if (lat === null || lng === null) return;
+
+            const busIcon = L.divIcon({
+                className: 'capi-bus-icon',
+                html: '<i class="bi bi-bus-front-fill"></i>',
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
+
+            const marker = L.marker([lat, lng], { icon: busIcon }).addTo(map);
+            marker.bindPopup(
+                `<strong>${item.bus || 'Bus'}</strong><br/>` +
+                `Recorrido: ${item.codigoRecorrido || '---'}<br/>` +
+                `Ruta: ${item.ruta || 'No disponible'}<br/>` +
+                `Conductor: ${item.conductor || 'No disponible'}<br/>` +
+                `Estado: ${item.estadoRecorrido || 'SIN_ESTADO'}<br/>` +
+                `Actualizado: ${item.fechaHora || '---'}`
+            );
+            layers.push(marker);
+        });
+
+        if (layers.length > 0) {
+            map.fitBounds(L.featureGroup(layers).getBounds().pad(0.2));
+        }
+
+        setTimeout(function () {
+            map.invalidateSize();
+        }, 150);
+
+        return { map: map };
+    }
+
     window.CapiMovilMaps = {
         createPointPicker: createPointPicker,
         createRouteViewer: createRouteViewer,
         createRouteEditor: createRouteEditor,
+        createLiveMonitoringMap: createLiveMonitoringMap,
         bindImagePreview: bindImagePreview
     };
 })(window);
