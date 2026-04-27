@@ -4,7 +4,7 @@ using System.Data.SqlClient;
 
 namespace CapiMovil.DL.DALC
 {
-    public class EstudianteDALC:ICrudDALC<EstudianteBE>
+    public class EstudianteDALC : ICrudDALC<EstudianteBE>
     {
         private readonly BDConexion _bdConexion;
 
