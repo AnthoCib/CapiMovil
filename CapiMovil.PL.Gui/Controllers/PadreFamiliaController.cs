@@ -452,7 +452,9 @@ namespace CapiMovil.PL.Gui.Controllers
                         Latitud = p.Latitud!.Value,
                         Longitud = p.Longitud!.Value,
                         Nombre = p.Nombre,
-                        Ruta = asignacion.Ruta?.Nombre ?? asignacion.Ruta?.CodigoRuta ?? "Ruta no disponible"
+                        Ruta = asignacion.Ruta?.Nombre ?? asignacion.Ruta?.CodigoRuta ?? "Ruta no disponible",
+                        Direccion = string.IsNullOrWhiteSpace(p.Direccion) ? "Dirección no disponible" : p.Direccion,
+                        OrdenParada = p.OrdenParada
                     })
                     .ToList();
             }
@@ -482,6 +484,10 @@ namespace CapiMovil.PL.Gui.Controllers
             }
 
             bool tieneMapa = busesMapa.Any() || paraderosMapa.Any();
+            if (!busesMapa.Any() && paraderosMapa.Any())
+            {
+                mensajeEstado = "Ruta cargada. Aún no hay ubicación en vivo del bus.";
+            }
 
             PadreMapaEnVivoViewModel vm = new()
             {

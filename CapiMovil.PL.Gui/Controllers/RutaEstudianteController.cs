@@ -41,6 +41,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 Estudiantes = ObtenerEstudiantes(),
                 ParaderosSubida = new List<SelectListItem>(),
                 ParaderosBajada = new List<SelectListItem>(),
+                DireccionFinalRuta = null,
                 FechaInicioVigencia = DateTime.Today,
                 Estado = true,
                 EstadoAsignacion = "ACTIVO"
@@ -65,6 +66,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 vm.Estudiantes = ObtenerEstudiantes();
                 vm.ParaderosSubida = vm.IdRuta != Guid.Empty ? ObtenerParaderos(vm.IdRuta) : new();
                 vm.ParaderosBajada = vm.IdRuta != Guid.Empty ? ObtenerParaderos(vm.IdRuta) : new();
+                vm.DireccionFinalRuta = vm.IdRuta != Guid.Empty ? ObtenerDireccionFinalRuta(vm.IdRuta) : null;
                 return View(vm);
             }
 
@@ -101,6 +103,7 @@ namespace CapiMovil.PL.Gui.Controllers
             vm.Estudiantes = ObtenerEstudiantes();
             vm.ParaderosSubida = vm.IdRuta != Guid.Empty ? ObtenerParaderos(vm.IdRuta) : new();
             vm.ParaderosBajada = vm.IdRuta != Guid.Empty ? ObtenerParaderos(vm.IdRuta) : new();
+            vm.DireccionFinalRuta = vm.IdRuta != Guid.Empty ? ObtenerDireccionFinalRuta(vm.IdRuta) : null;
             return View(vm);
         }
 
@@ -132,6 +135,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 Estudiantes = ObtenerEstudiantes(),
                 ParaderosSubida = ObtenerParaderos(entidad.IdRuta),
                 ParaderosBajada = ObtenerParaderos(entidad.IdRuta),
+                DireccionFinalRuta = ObtenerDireccionFinalRuta(entidad.IdRuta),
             };
 
             return View(vm);
@@ -153,6 +157,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 vm.Estudiantes = ObtenerEstudiantes();
                 vm.ParaderosSubida = vm.IdRuta != Guid.Empty ? ObtenerParaderos(vm.IdRuta) : new();
                 vm.ParaderosBajada = vm.IdRuta != Guid.Empty ? ObtenerParaderos(vm.IdRuta) : new();
+                vm.DireccionFinalRuta = vm.IdRuta != Guid.Empty ? ObtenerDireccionFinalRuta(vm.IdRuta) : null;
                 return View(vm);
             }
 
@@ -190,6 +195,7 @@ namespace CapiMovil.PL.Gui.Controllers
             vm.Estudiantes = ObtenerEstudiantes();
             vm.ParaderosSubida = vm.IdRuta != Guid.Empty ? ObtenerParaderos(vm.IdRuta) : new();
             vm.ParaderosBajada = vm.IdRuta != Guid.Empty ? ObtenerParaderos(vm.IdRuta) : new();
+            vm.DireccionFinalRuta = vm.IdRuta != Guid.Empty ? ObtenerDireccionFinalRuta(vm.IdRuta) : null;
             return View(vm);
         }
 
@@ -235,24 +241,12 @@ namespace CapiMovil.PL.Gui.Controllers
 
         private List<SelectListItem> ObtenerParaderos(Guid idRuta)
         {
-            var items = _paraderoDALC.ListarPorRuta(idRuta)
+            return _paraderoDALC.ListarPorRuta(idRuta)
                 .Select(x => new SelectListItem
                 {
                     Value = x.IdParadero.ToString(),
                     Text = $"{x.OrdenParada} - {x.Nombre}"
                 }).ToList();
-
-            RutaBE? ruta = _rutaDALC.ListarPorId(idRuta);
-            if (!string.IsNullOrWhiteSpace(ruta?.DireccionFin))
-            {
-                items.Insert(0, new SelectListItem
-                {
-                    Value = string.Empty,
-                    Text = $"Punto final de ruta: {ruta.DireccionFin}"
-                });
-            }
-
-            return items;
         }
 
         [HttpGet]
@@ -270,7 +264,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 .ToList();
 
             RutaBE? ruta = _rutaDALC.ListarPorId(idRuta);
-            string direccionFin = string.IsNullOrWhiteSpace(ruta?.DireccionFin) ? "No disponible" : ruta!.DireccionFin!;
+            string direccionFin = ObtenerDireccionFinalRuta(idRuta);
 
             return Json(new
             {
@@ -278,6 +272,12 @@ namespace CapiMovil.PL.Gui.Controllers
                 direccionFin,
                 data = paraderos
             });
+        }
+
+        private string ObtenerDireccionFinalRuta(Guid idRuta)
+        {
+            RutaBE? ruta = _rutaDALC.ListarPorId(idRuta);
+            return string.IsNullOrWhiteSpace(ruta?.DireccionFin) ? "No disponible" : ruta!.DireccionFin!;
         }
 
     }

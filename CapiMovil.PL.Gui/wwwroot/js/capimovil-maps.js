@@ -332,9 +332,22 @@
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        const markerInicio = L.marker(defaultCenter, { draggable: true, opacity: 0 }).addTo(map);
-        const markerFin = L.marker(defaultCenter, { draggable: true, opacity: 0 }).addTo(map);
-        const polyline = L.polyline([], { color: '#0d6efd', weight: 4, opacity: 0.85 }).addTo(map);
+        const inicioIcon = L.divIcon({
+            className: 'capi-route-point capi-route-point-inicio',
+            html: '<i class="bi bi-geo-alt-fill"></i>',
+            iconSize: [28, 28],
+            iconAnchor: [14, 28]
+        });
+        const finIcon = L.divIcon({
+            className: 'capi-route-point capi-route-point-fin',
+            html: '<i class="bi bi-flag-fill"></i>',
+            iconSize: [28, 28],
+            iconAnchor: [14, 28]
+        });
+
+        const markerInicio = L.marker(defaultCenter, { draggable: true, icon: inicioIcon, opacity: 0 }).addTo(map);
+        const markerFin = L.marker(defaultCenter, { draggable: true, icon: finIcon, opacity: 0 }).addTo(map);
+        const polyline = L.polyline([], { color: '#0d6efd', weight: 5, opacity: 0.95 }).addTo(map);
 
         let requestInicio = 0;
         let requestFin = 0;
@@ -557,10 +570,35 @@
             }).addTo(map);
 
             marker.bindPopup(
-                `<strong>${item.nombre || 'Paradero'}</strong><br/>Ruta: ${item.ruta || 'No disponible'}`
+                `<strong>${item.nombre || 'Paradero'}</strong><br/>` +
+                `Ruta: ${item.ruta || 'No disponible'}<br/>` +
+                `Dirección: ${item.direccion || 'No disponible'}`
             );
             layers.push(marker);
         });
+
+        const routeLatLngs = paraderos
+            .map(function (item) {
+                const lat = toNumber(item.latitud);
+                const lng = toNumber(item.longitud);
+                const orden = toNumber(item.ordenParada);
+                return lat === null || lng === null
+                    ? null
+                    : { lat: lat, lng: lng, orden: orden === null ? 9999 : orden };
+            })
+            .filter(function (item) { return item !== null; })
+            .sort(function (a, b) { return a.orden - b.orden; })
+            .map(function (item) { return [item.lat, item.lng]; });
+
+        if (routeLatLngs.length > 1) {
+            const routeLine = L.polyline(routeLatLngs, {
+                color: '#2563eb',
+                weight: 4,
+                opacity: 0.8,
+                dashArray: '8 6'
+            }).addTo(map);
+            layers.push(routeLine);
+        }
 
         buses.forEach(function (item) {
             const lat = toNumber(item.latitud);
