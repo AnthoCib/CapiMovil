@@ -29,7 +29,7 @@ namespace CapiMovil.PL.Gui.Controllers
 
         public IActionResult Listar()
         {
-            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
             if (acceso != null) return acceso;
 
             var lista = _eventoAbordajeBC.Listar();
@@ -39,7 +39,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Crear()
         {
-            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
             if (acceso != null) return acceso;
 
             EventoAbordajeFormViewModel vm = new()
@@ -60,7 +60,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Crear(EventoAbordajeFormViewModel vm)
         {
-            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
             if (acceso != null) return acceso;
 
             if (vm.IdRecorrido == Guid.Empty)
@@ -90,7 +90,7 @@ namespace CapiMovil.PL.Gui.Controllers
                     IdParadero = vm.IdParadero,
                     RegistradoPor = usuarioId,
                     TipoEvento = vm.TipoEvento,
-                    FechaHora = vm.FechaHora,
+                    FechaHora = DateTime.Now,
                     Observacion = vm.Observacion,
                     Estado = vm.Estado
                 };
@@ -119,7 +119,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Editar(Guid id)
         {
-            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
             if (acceso != null) return acceso;
 
             var entidad = _eventoAbordajeBC.ListarPorId(id);
@@ -155,7 +155,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Editar(EventoAbordajeFormViewModel vm)
         {
-            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
             if (acceso != null) return acceso;
 
             if (vm.IdRecorrido == Guid.Empty)
@@ -213,7 +213,7 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Eliminar(Guid id)
         {
-            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
             if (acceso != null) return acceso;
 
             try

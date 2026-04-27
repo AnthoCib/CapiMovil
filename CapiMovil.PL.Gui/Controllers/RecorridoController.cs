@@ -1,6 +1,7 @@
 ﻿using CapiMovil.BL.BC;
 using CapiMovil.BL.BE;
 using CapiMovil.DL.DALC;
+using CapiMovil.PL.Gui.Infrastructure;
 using CapiMovil.PL.Gui.Models.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -227,6 +228,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Iniciar(Guid id)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
+            if (acceso != null) return acceso;
+
             try
             {
                 bool ok = _recorridoBC.Iniciar(id, ObtenerUsuarioIdSesion(), ObtenerUsernameSesion(), ObtenerIpCliente(), ObtenerUserAgent());
@@ -246,6 +250,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Finalizar(Guid id)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
+            if (acceso != null) return acceso;
+
             try
             {
                 bool ok = _recorridoBC.Finalizar(id, ObtenerUsuarioIdSesion(), ObtenerUsernameSesion(), ObtenerIpCliente(), ObtenerUserAgent());

@@ -71,6 +71,18 @@ namespace CapiMovil.BL.BC
 
             if (bus.Anio.HasValue && (bus.Anio < 1900 || bus.Anio > 2100))
                 throw new ArgumentException("El año ingresado no es válido.");
+
+            if (bus.FechaVencimientoSOAT.HasValue)
+            {
+                DateTime fechaSoat = bus.FechaVencimientoSOAT.Value.Date;
+                bool soatVigentePorFecha = fechaSoat >= DateTime.Today;
+
+                if (bus.SeguroVigente && !soatVigentePorFecha)
+                    throw new ArgumentException("SOAT vencido: no se puede marcar el seguro como vigente.");
+
+                if (!bus.SeguroVigente && soatVigentePorFecha)
+                    throw new ArgumentException("SOAT vigente por fecha: marque el seguro como vigente o ajuste la fecha de vencimiento.");
+            }
         }
 
         private static void NormalizarBus(BusBE bus)

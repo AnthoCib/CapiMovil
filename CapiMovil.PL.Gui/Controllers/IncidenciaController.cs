@@ -81,7 +81,7 @@ namespace CapiMovil.PL.Gui.Controllers
                     ReportadoPor = vm.ReportadoPor,
                     TipoIncidencia = vm.TipoIncidencia,
                     Descripcion = vm.Descripcion,
-                    FechaHora = vm.FechaHora,
+                    FechaHora = DateTime.Now,
                     EstadoIncidencia = vm.EstadoIncidencia,
                     Prioridad = vm.Prioridad,
                     Solucion = vm.Solucion

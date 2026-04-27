@@ -235,12 +235,49 @@ namespace CapiMovil.PL.Gui.Controllers
 
         private List<SelectListItem> ObtenerParaderos(Guid idRuta)
         {
-            return _paraderoDALC.ListarPorRuta(idRuta)
+            var items = _paraderoDALC.ListarPorRuta(idRuta)
                 .Select(x => new SelectListItem
                 {
                     Value = x.IdParadero.ToString(),
                     Text = $"{x.OrdenParada} - {x.Nombre}"
                 }).ToList();
+
+            RutaBE? ruta = _rutaDALC.ListarPorId(idRuta);
+            if (!string.IsNullOrWhiteSpace(ruta?.DireccionFin))
+            {
+                items.Insert(0, new SelectListItem
+                {
+                    Value = string.Empty,
+                    Text = $"Punto final de ruta: {ruta.DireccionFin}"
+                });
+            }
+
+            return items;
+        }
+
+        [HttpGet]
+        public JsonResult ObtenerParaderosPorRuta(Guid idRuta)
+        {
+            if (idRuta == Guid.Empty)
+                return Json(new { ok = false, data = Array.Empty<object>() });
+
+            var paraderos = _paraderoDALC.ListarPorRuta(idRuta)
+                .Select(p => new
+                {
+                    value = p.IdParadero.ToString(),
+                    text = $"{p.OrdenParada} - {p.Nombre}"
+                })
+                .ToList();
+
+            RutaBE? ruta = _rutaDALC.ListarPorId(idRuta);
+            string direccionFin = string.IsNullOrWhiteSpace(ruta?.DireccionFin) ? "No disponible" : ruta!.DireccionFin!;
+
+            return Json(new
+            {
+                ok = true,
+                direccionFin,
+                data = paraderos
+            });
         }
 
     }

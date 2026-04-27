@@ -19,6 +19,7 @@ namespace CapiMovil.PL.Gui.Controllers
         private readonly ParaderoBC _paraderoBC;
         private readonly IncidenciaBC _incidenciaBC;
         private readonly UbicacionBusBC _ubicacionBusBC;
+        private readonly CalificacionConductorBC _calificacionConductorBC;
 
         public PadreFamiliaController(
             PadreFamiliaBC padreFamiliaBC,
@@ -30,7 +31,8 @@ namespace CapiMovil.PL.Gui.Controllers
             RecorridoBC recorridoBC,
             ParaderoBC paraderoBC,
             IncidenciaBC incidenciaBC,
-            UbicacionBusBC ubicacionBusBC)
+            UbicacionBusBC ubicacionBusBC,
+            CalificacionConductorBC calificacionConductorBC)
         {
             _padreFamiliaBC = padreFamiliaBC;
             _usuarioBC = usuarioBC;
@@ -42,6 +44,7 @@ namespace CapiMovil.PL.Gui.Controllers
             _paraderoBC = paraderoBC;
             _incidenciaBC = incidenciaBC;
             _ubicacionBusBC = ubicacionBusBC;
+            _calificacionConductorBC = calificacionConductorBC;
         }
 
         public IActionResult Index()
@@ -191,6 +194,90 @@ namespace CapiMovil.PL.Gui.Controllers
             };
 
             return View(vm);
+        }
+
+        [HttpGet]
+        public IActionResult CalificarConductor(Guid idEstudiante)
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            if (padre == null)
+                return RedirectToAction(nameof(MisHijos));
+
+            EstudianteBE? estudiante = _estudianteBC.Listar()
+                .FirstOrDefault(e => e.IdEstudiante == idEstudiante && e.IdPadre == padre.IdPadre);
+            if (estudiante == null)
+                return RedirectToAction(nameof(MisHijos));
+
+            RutaEstudianteBE? asignacion = _rutaEstudianteBC.Listar()
+                .Where(r => r.Estado && r.IdEstudiante == idEstudiante)
+                .OrderByDescending(r => r.FechaInicioVigencia)
+                .FirstOrDefault();
+            if (asignacion == null)
+            {
+                TempData["error"] = "El estudiante no tiene ruta asignada.";
+                return RedirectToAction(nameof(DetalleHijo), new { idEstudiante });
+            }
+
+            RecorridoBE? recorrido = _recorridoBC.Listar()
+                .Where(r => r.IdRuta == asignacion.IdRuta && r.Estado)
+                .OrderByDescending(r => r.Fecha)
+                .FirstOrDefault();
+            if (recorrido == null || recorrido.IdConductor == Guid.Empty)
+            {
+                TempData["error"] = "No se encontró conductor asociado al recorrido.";
+                return RedirectToAction(nameof(DetalleHijo), new { idEstudiante });
+            }
+
+            CalificacionConductorViewModel vm = new()
+            {
+                IdEstudiante = idEstudiante,
+                IdConductor = recorrido.IdConductor,
+                NombreConductor = recorrido.Conductor?.NombreCompleto ?? "Conductor",
+                NombreEstudiante = estudiante.NombreCompleto
+            };
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CalificarConductor(CalificacionConductorViewModel vm)
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Padres);
+            if (acceso != null)
+                return acceso;
+
+            PadreFamiliaBE? padre = ObtenerPadreAutenticado();
+            if (padre == null)
+                return RedirectToAction(nameof(MisHijos));
+
+            if (!ModelState.IsValid)
+                return View(vm);
+
+            try
+            {
+                bool ok = _calificacionConductorBC.Registrar(new CalificacionConductorBE
+                {
+                    IdPadre = padre.IdPadre,
+                    IdConductor = vm.IdConductor,
+                    IdEstudiante = vm.IdEstudiante,
+                    Puntaje = vm.Puntaje,
+                    Comentario = vm.Comentario
+                });
+
+                TempData[ok ? "ok" : "error"] = ok
+                    ? "Gracias. Tu calificación fue registrada."
+                    : "No se pudo registrar la calificación.";
+                return RedirectToAction(nameof(DetalleHijo), new { idEstudiante = vm.IdEstudiante });
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(vm);
+            }
         }
 
         [HttpGet]
@@ -394,6 +481,8 @@ namespace CapiMovil.PL.Gui.Controllers
                 }
             }
 
+            bool tieneMapa = busesMapa.Any() || paraderosMapa.Any();
+
             PadreMapaEnVivoViewModel vm = new()
             {
                 Estudiante = estudianteSeleccionado,
@@ -407,7 +496,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 EstadoSeguridad = ultimoEvento == null ? "Sin eventos recientes" : "Monitoreo activo",
                 ETA = recorridoActivo?.HoraInicioProgramada?.ToString(@"hh\:mm"),
                 MensajeEstado = mensajeEstado,
-                TieneRastreoDisponible = recorridoActivo != null,
+                TieneRastreoDisponible = tieneMapa,
                 BusesMapa = busesMapa,
                 ParaderosMapa = paraderosMapa
             };

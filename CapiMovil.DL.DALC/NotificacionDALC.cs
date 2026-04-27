@@ -185,7 +185,8 @@ namespace CapiMovil.DL.DALC
                 FechaActualizacion = dr["FechaActualizacion"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaActualizacion"]),
                 FechaEliminacion = dr["FechaEliminacion"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaEliminacion"]),
                 NombrePadre = ExisteColumna(dr, "NombrePadre") && dr["NombrePadre"] != DBNull.Value ? dr["NombrePadre"].ToString() : null,
-                NombreEstudiante = ExisteColumna(dr, "NombreEstudiante") && dr["NombreEstudiante"] != DBNull.Value ? dr["NombreEstudiante"].ToString() : null
+                NombreEstudiante = ExisteColumna(dr, "NombreEstudiante") && dr["NombreEstudiante"] != DBNull.Value ? dr["NombreEstudiante"].ToString() : null,
+                CodigoEstudiante = ExisteColumna(dr, "CodigoEstudiante") && dr["CodigoEstudiante"] != DBNull.Value ? dr["CodigoEstudiante"].ToString() : null
             };
         }
 
