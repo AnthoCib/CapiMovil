@@ -254,6 +254,32 @@ namespace CapiMovil.PL.Gui.Controllers
             if (padre == null)
                 return RedirectToAction(nameof(MisHijos));
 
+            EstudianteBE? estudiante = _estudianteBC.Listar()
+                .FirstOrDefault(e => e.IdEstudiante == vm.IdEstudiante && e.IdPadre == padre.IdPadre);
+            if (estudiante == null)
+            {
+                TempData["error"] = "No tiene permiso para calificar usando el estudiante indicado.";
+                return RedirectToAction(nameof(MisHijos));
+            }
+
+            RutaEstudianteBE? asignacion = _rutaEstudianteBC.Listar()
+                .Where(r => r.Estado && r.IdEstudiante == vm.IdEstudiante)
+                .OrderByDescending(r => r.FechaInicioVigencia)
+                .FirstOrDefault();
+            RecorridoBE? recorrido = asignacion == null
+                ? null
+                : _recorridoBC.Listar()
+                    .Where(r => r.Estado && r.IdRuta == asignacion.IdRuta)
+                    .OrderByDescending(r => r.Fecha)
+                    .FirstOrDefault();
+
+            if (recorrido == null || recorrido.IdConductor == Guid.Empty)
+                ModelState.AddModelError(string.Empty, "No existe un conductor asociado para calificar.");
+
+            vm.IdConductor = recorrido?.IdConductor ?? Guid.Empty;
+            vm.NombreConductor = recorrido?.Conductor?.NombreCompleto ?? vm.NombreConductor;
+            vm.NombreEstudiante = estudiante.NombreCompleto;
+
             if (!ModelState.IsValid)
                 return View(vm);
 
@@ -313,6 +339,17 @@ namespace CapiMovil.PL.Gui.Controllers
             {
                 TempData["error"] = "No tiene acceso a la notificación solicitada.";
                 return RedirectToAction(nameof(Notificaciones));
+            }
+
+            if (notificacion.IdEstudiante.HasValue &&
+                (string.IsNullOrWhiteSpace(notificacion.NombreEstudiante) || string.IsNullOrWhiteSpace(notificacion.CodigoEstudiante)))
+            {
+                EstudianteBE? estudiante = _estudianteBC.ListarPorId(notificacion.IdEstudiante.Value);
+                if (estudiante != null)
+                {
+                    notificacion.NombreEstudiante ??= estudiante.NombreCompleto;
+                    notificacion.CodigoEstudiante ??= estudiante.CodigoEstudiante;
+                }
             }
 
             return View(notificacion);

@@ -71,6 +71,12 @@ namespace CapiMovil.DL.DALC
 
             if (RegistroResultadoDALC.EsRegistroExitoso(dr, out int filas, out string codigoGenerado, out string? mensaje))
             {
+                if (!string.IsNullOrWhiteSpace(codigoGenerado) &&
+                    !System.Text.RegularExpressions.Regex.IsMatch(codigoGenerado, @"^AUD-\d{4}-\d{6}$"))
+                {
+                    throw new InvalidOperationException($"Formato de código de auditoría inválido: {codigoGenerado}");
+                }
+
                 entidad.CodigoAuditoria = codigoGenerado;
                     return true;
             }

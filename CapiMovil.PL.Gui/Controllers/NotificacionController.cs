@@ -191,6 +191,17 @@ namespace CapiMovil.PL.Gui.Controllers
                 return RedirectToAction(nameof(Listar));
             }
 
+            if (entidad.IdEstudiante.HasValue &&
+                (string.IsNullOrWhiteSpace(entidad.NombreEstudiante) || string.IsNullOrWhiteSpace(entidad.CodigoEstudiante)))
+            {
+                var estudiante = _estudianteBC.ListarPorId(entidad.IdEstudiante.Value);
+                if (estudiante != null)
+                {
+                    entidad.NombreEstudiante ??= estudiante.NombreCompleto;
+                    entidad.CodigoEstudiante ??= estudiante.CodigoEstudiante;
+                }
+            }
+
             return View(entidad);
         }
 
