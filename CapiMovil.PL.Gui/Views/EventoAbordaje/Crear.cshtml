@@ -1,89 +1,142 @@
-﻿@model CapiMovil.PL.Gui.Models.ViewModels.EventoAbordajeFormViewModel
+@model CapiMovil.PL.Gui.Models.ViewModels.ConductorAbordajeOperacionViewModel
 
 @{
-    ViewData["Title"] = "Registrar Evento";
+    ViewData["Title"] = "Operación de Abordajes";
 }
 
-<div class="row g-4">
-    <div class="col-lg-8">
-        <div class="card card-soft h-100">
-            <div class="card-body">
-                <h2 class="page-title mb-4">Registrar Evento de Abordaje</h2>
-
-                <form asp-action="Crear" method="post">
-                    @Html.AntiForgeryToken()
-
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label asp-for="IdRecorrido" class="form-label"></label>
-                            <select asp-for="IdRecorrido" asp-items="Model.Recorridos" class="form-select">
-                                <option value="">Seleccione un recorrido</option>
-                            </select>
-                            <span asp-validation-for="IdRecorrido" class="text-danger"></span>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label asp-for="IdEstudiante" class="form-label"></label>
-                            <select asp-for="IdEstudiante" asp-items="Model.Estudiantes" class="form-select">
-                                <option value="">Seleccione un estudiante</option>
-                            </select>
-                            <span asp-validation-for="IdEstudiante" class="text-danger"></span>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label asp-for="IdParadero" class="form-label"></label>
-                            <select asp-for="IdParadero" asp-items="Model.Paraderos" class="form-select">
-                                <option value="">Seleccione un paradero</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label asp-for="TipoEvento" class="form-label"></label>
-                            <select asp-for="TipoEvento" asp-items="Model.TiposEvento" class="form-select"></select>
-                            <span asp-validation-for="TipoEvento" class="text-danger"></span>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label asp-for="FechaHora" class="form-label"></label>
-                            <input asp-for="FechaHora" class="form-control" readonly />
-                            <small class="text-muted">Se registra automáticamente al guardar.</small>
-                        </div>
-
-                        <div class="col-12">
-                            <label asp-for="Observacion" class="form-label"></label>
-                            <textarea asp-for="Observacion" class="form-control"></textarea>
-                        </div>
-
-                        <div class="col-12">
-                            <div class="form-check form-switch mb-0">
-                                <input asp-for="Estado" class="form-check-input" />
-                                <label asp-for="Estado" class="form-check-label"></label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">Guardar</button>
-                        <a asp-action="Listar" class="btn btn-secondary">Cancelar</a>
-                    </div>
+<div class="abordaje-operacion-page">
+    <section class="card card-soft mb-3">
+        <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                <div>
+                    <h2 class="page-title mb-1">Centro de Abordajes</h2>
+                    <p class="text-muted mb-0">Registro rápido por alumno con estado operativo en tiempo real.</p>
+                </div>
+                <form asp-action="Crear" method="get" class="d-flex flex-wrap gap-2">
+                    <select name="idRecorrido" class="form-select form-select-sm abordaje-filter-control" onchange="this.form.submit()">
+                        <option value="">Seleccione recorrido</option>
+                        @foreach (var item in Model.Recorridos)
+                        {
+                            <option value="@item.Value" selected="@item.Selected">@item.Text</option>
+                        }
+                    </select>
+                    <select name="idParadero" class="form-select form-select-sm abordaje-filter-control" onchange="this.form.submit()">
+                        @foreach (var item in Model.ParaderosFiltro)
+                        {
+                            <option value="@item.Value" selected="@item.Selected">@item.Text</option>
+                        }
+                    </select>
+                    <select name="estado" class="form-select form-select-sm abordaje-filter-control" onchange="this.form.submit()">
+                        @foreach (var item in Model.EstadosFiltro)
+                        {
+                            <option value="@item.Value" selected="@item.Selected">@item.Text</option>
+                        }
+                    </select>
                 </form>
             </div>
-        </div>
-    </div>
-    <div class="col-lg-4">
-        <div class="card card-soft h-100">
-            <div class="card-body">
-                <h3 class="h6">Reglas operativas</h3>
-                <ul class="small text-muted ps-3 mb-0">
-                    <li>Solo conductores autorizados pueden registrar eventos.</li>
-                    <li>La fecha/hora se genera automáticamente al enviar.</li>
-                    <li>Use SUBIDA/BAJADA según el flujo real del recorrido.</li>
-                </ul>
+
+            <div class="abordaje-head-grid mt-3">
+                <div><small>Recorrido</small><strong>@Model.CodigoRecorrido</strong></div>
+                <div><small>Ruta</small><strong>@Model.Ruta</strong></div>
+                <div><small>Bus</small><strong>@Model.Bus</strong></div>
+                <div><small>Conductor</small><strong>@Model.Conductor</strong></div>
+                <div><small>Fecha</small><strong>@Model.FechaOperacion.ToString("dd/MM/yyyy")</strong></div>
+                <div><small>Estado recorrido</small><strong><span class="badge bg-info text-dark">@Model.EstadoRecorrido</span></strong></div>
+                <div><small>Paradero actual</small><strong>@(string.IsNullOrWhiteSpace(Model.ParaderoActual) ? "No determinado" : Model.ParaderoActual)</strong></div>
             </div>
         </div>
-    </div>
+    </section>
+
+    <section class="row g-2 mb-3">
+        <div class="col-6 col-md-4 col-xl-2"><div class="abordaje-kpi"><small>Total</small><strong>@Model.TotalAlumnos</strong></div></div>
+        <div class="col-6 col-md-4 col-xl-2"><div class="abordaje-kpi subio"><small>Subieron</small><strong>@Model.TotalSubieron</strong></div></div>
+        <div class="col-6 col-md-4 col-xl-2"><div class="abordaje-kpi bajo"><small>Bajaron</small><strong>@Model.TotalBajaron</strong></div></div>
+        <div class="col-6 col-md-4 col-xl-2"><div class="abordaje-kpi pendiente"><small>Pendientes</small><strong>@Model.TotalPendientes</strong></div></div>
+        <div class="col-6 col-md-4 col-xl-2"><div class="abordaje-kpi ausente"><small>Ausentes</small><strong>@Model.TotalAusentes</strong></div></div>
+        <div class="col-6 col-md-4 col-xl-2"><div class="abordaje-kpi noabordo"><small>No abordó</small><strong>@Model.TotalNoAbordo</strong></div></div>
+    </section>
+
+    <section class="card card-soft">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="h5 mb-0">Alumnos asignados</h3>
+                <span class="text-muted small">Registros con fecha/hora automática del servidor.</span>
+            </div>
+
+            @if (!Model.Alumnos.Any())
+            {
+                <div class="alert alert-warning mb-0">No hay alumnos para el filtro seleccionado.</div>
+            }
+            else
+            {
+                <div class="abordaje-students-list">
+                    @foreach (var alumno in Model.Alumnos)
+                    {
+                        <article class="abordaje-student-card">
+                            <header>
+                                <div>
+                                    <h4>@alumno.NombreCompleto</h4>
+                                    <p class="mb-0 text-muted">@alumno.CodigoEstudiante · @alumno.GradoSeccion</p>
+                                </div>
+                                <span class="badge @alumno.EstadoBadgeClass">@alumno.EstadoActual</span>
+                            </header>
+
+                            <div class="abordaje-student-meta">
+                                <span><i class="bi bi-geo-alt"></i> #@alumno.OrdenParaderoSubida @alumno.ParaderoSubida</span>
+                                <span><i class="bi bi-clock-history"></i> @(alumno.UltimoEventoFechaHora.HasValue ? alumno.UltimoEventoFechaHora.Value.ToString("dd/MM HH:mm:ss") : "Sin eventos")</span>
+                            </div>
+
+                            <div class="abordaje-actions-grid">
+                                <form asp-action="RegistrarRapido" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="idRecorrido" value="@Model.IdRecorridoSeleccionado" />
+                                    <input type="hidden" name="idEstudiante" value="@alumno.IdEstudiante" />
+                                    <input type="hidden" name="idParadero" value="@alumno.IdParaderoSubida" />
+                                    <input type="hidden" name="tipoEvento" value="SUBIDA" />
+                                    <input type="hidden" name="idParaderoFiltro" value="@Model.IdParaderoFiltro" />
+                                    <input type="hidden" name="estadoFiltro" value="@Model.EstadoFiltro" />
+                                    <button class="btn btn-success abordaje-action-btn" type="submit" disabled="@(!alumno.PermiteSubida)">SUBIDA</button>
+                                </form>
+
+                                <form asp-action="RegistrarRapido" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="idRecorrido" value="@Model.IdRecorridoSeleccionado" />
+                                    <input type="hidden" name="idEstudiante" value="@alumno.IdEstudiante" />
+                                    <input type="hidden" name="idParadero" value="@alumno.IdParaderoSubida" />
+                                    <input type="hidden" name="tipoEvento" value="BAJADA" />
+                                    <input type="hidden" name="idParaderoFiltro" value="@Model.IdParaderoFiltro" />
+                                    <input type="hidden" name="estadoFiltro" value="@Model.EstadoFiltro" />
+                                    <button class="btn btn-primary abordaje-action-btn" type="submit" disabled="@(!alumno.PermiteBajada)">BAJADA</button>
+                                </form>
+
+                                <form asp-action="RegistrarRapido" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="idRecorrido" value="@Model.IdRecorridoSeleccionado" />
+                                    <input type="hidden" name="idEstudiante" value="@alumno.IdEstudiante" />
+                                    <input type="hidden" name="idParadero" value="@alumno.IdParaderoSubida" />
+                                    <input type="hidden" name="tipoEvento" value="AUSENTE" />
+                                    <input type="hidden" name="idParaderoFiltro" value="@Model.IdParaderoFiltro" />
+                                    <input type="hidden" name="estadoFiltro" value="@Model.EstadoFiltro" />
+                                    <button class="btn btn-danger abordaje-action-btn" type="submit" disabled="@(!alumno.PermiteAusente)">AUSENTE</button>
+                                </form>
+
+                                <form asp-action="RegistrarRapido" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="idRecorrido" value="@Model.IdRecorridoSeleccionado" />
+                                    <input type="hidden" name="idEstudiante" value="@alumno.IdEstudiante" />
+                                    <input type="hidden" name="idParadero" value="@alumno.IdParaderoSubida" />
+                                    <input type="hidden" name="tipoEvento" value="NO_ABORDO" />
+                                    <input type="hidden" name="idParaderoFiltro" value="@Model.IdParaderoFiltro" />
+                                    <input type="hidden" name="estadoFiltro" value="@Model.EstadoFiltro" />
+                                    <button class="btn btn-dark abordaje-action-btn" type="submit" disabled="@(!alumno.PermiteNoAbordo)">NO ABORDÓ</button>
+                                </form>
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+        </div>
+    </section>
 </div>
 
 @section Scripts {
