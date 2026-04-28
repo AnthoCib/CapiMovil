@@ -174,7 +174,11 @@ function inicializarPanelNotificaciones(config) {
 }
 
 function inicializarConfirmacionesGlobales() {
-    document.querySelectorAll("form[data-confirm]").forEach(form => {
+    document.querySelectorAll("form[data-confirm], form.form-eliminar").forEach(form => {
+        if (!form.dataset.confirm && form.classList.contains("form-eliminar")) {
+            form.dataset.confirm = "true";
+        }
+
         form.addEventListener("submit", function (e) {
             if (form.dataset.confirmed === "1") {
                 form.dataset.confirmed = "0";
@@ -184,11 +188,11 @@ function inicializarConfirmacionesGlobales() {
             e.preventDefault();
 
             Swal.fire({
-                title: form.dataset.confirmTitle || "¿Confirmar acción?",
-                text: form.dataset.confirmText || "Esta acción requiere confirmación.",
-                icon: form.dataset.confirmIcon || "question",
+                title: form.dataset.confirmTitle || "¿Estás seguro?",
+                text: form.dataset.confirmText || "Esta acción eliminará el registro seleccionado y no se puede deshacer.",
+                icon: form.dataset.confirmIcon || "warning",
                 showCancelButton: true,
-                confirmButtonText: form.dataset.confirmConfirmText || "Confirmar",
+                confirmButtonText: form.dataset.confirmConfirmText || "Sí, eliminar",
                 cancelButtonText: form.dataset.confirmCancelText || "Cancelar",
                 reverseButtons: true
             }).then((result) => {
