@@ -44,6 +44,10 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
         public DateTime? HoraInicioReal { get; set; }
         public DateTime? HoraFinReal { get; set; }
         public string EstadoRecorrido { get; set; } = string.Empty;
+        public decimal? LatitudInicioRuta { get; set; }
+        public decimal? LongitudInicioRuta { get; set; }
+        public decimal? LatitudFinRuta { get; set; }
+        public decimal? LongitudFinRuta { get; set; }
     }
 
     public class AdminAbordajeParaderoViewModel

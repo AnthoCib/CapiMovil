@@ -153,7 +153,11 @@ namespace CapiMovil.PL.Gui.Controllers
                     HoraInicioProgramada = recorridoSeleccionado.HoraInicioProgramada,
                     HoraInicioReal = recorridoSeleccionado.HoraInicioReal,
                     HoraFinReal = recorridoSeleccionado.HoraFinReal,
-                    EstadoRecorrido = recorridoSeleccionado.EstadoRecorrido ?? "SIN_ESTADO"
+                    EstadoRecorrido = recorridoSeleccionado.EstadoRecorrido ?? "SIN_ESTADO",
+                    LatitudInicioRuta = _rutaDALC.ListarPorId(recorridoSeleccionado.IdRuta)?.LatitudInicio,
+                    LongitudInicioRuta = _rutaDALC.ListarPorId(recorridoSeleccionado.IdRuta)?.LongitudInicio,
+                    LatitudFinRuta = _rutaDALC.ListarPorId(recorridoSeleccionado.IdRuta)?.LatitudFin,
+                    LongitudFinRuta = _rutaDALC.ListarPorId(recorridoSeleccionado.IdRuta)?.LongitudFin
                 };
             }
 
