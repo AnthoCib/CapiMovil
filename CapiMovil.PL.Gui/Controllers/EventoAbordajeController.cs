@@ -683,17 +683,17 @@ namespace CapiMovil.PL.Gui.Controllers
                 });
             }
 
-            alumnos = alumnos
+            List<ConductorAbordajeAlumnoItemViewModel> alumnosBase = alumnos
                 .OrderBy(x => x.EstadoActual == "PENDIENTE" ? 0 : 1)
                 .ThenBy(x => x.OrdenParaderoSubida)
                 .ThenBy(x => x.NombreCompleto)
                 .ToList();
 
-            int totalSubieron = alumnos.Count(x => x.EstadoActual == "SUBIDA");
-            int totalBajaron = alumnos.Count(x => x.EstadoActual == "BAJADA");
-            int totalPendientes = alumnos.Count(x => x.EstadoActual == "PENDIENTE");
-            int totalAusentes = alumnos.Count(x => x.EstadoActual == "AUSENTE");
-            int totalNoAbordo = alumnos.Count(x => x.EstadoActual == "NO_ABORDO");
+            int totalSubieron = alumnosBase.Count(x => x.EstadoActual == "SUBIDA");
+            int totalBajaron = alumnosBase.Count(x => x.EstadoActual == "BAJADA");
+            int totalPendientes = alumnosBase.Count(x => x.EstadoActual == "PENDIENTE");
+            int totalAusentes = alumnosBase.Count(x => x.EstadoActual == "AUSENTE");
+            int totalNoAbordo = alumnosBase.Count(x => x.EstadoActual == "NO_ABORDO");
 
             List<SelectListItem> paraderosFiltro = new()
             {
@@ -706,18 +706,47 @@ namespace CapiMovil.PL.Gui.Controllers
                 Selected = idParadero.HasValue && idParadero.Value == p.IdParadero
             }));
 
-            if (idParadero.HasValue)
-                alumnos = alumnos.Where(x => x.IdParaderoSubida == idParadero.Value).ToList();
-
-            if (!string.Equals(estadoFiltro, "TODOS", StringComparison.OrdinalIgnoreCase))
-                alumnos = alumnos.Where(x => string.Equals(x.EstadoActual, estadoFiltro, StringComparison.OrdinalIgnoreCase)).ToList();
-
             string? paraderoActual = paraderosRuta
-                .Select(p => new { p.Nombre, Pendientes = alumnos.Count(a => a.IdParaderoSubida == p.IdParadero && a.EstadoActual == "PENDIENTE") })
+                .Select(p => new { p.Nombre, Pendientes = alumnosBase.Count(a => a.IdParaderoSubida == p.IdParadero && a.EstadoActual == "PENDIENTE") })
                 .Where(x => x.Pendientes > 0)
                 .OrderByDescending(x => x.Pendientes)
                 .Select(x => x.Nombre)
                 .FirstOrDefault();
+
+            IEnumerable<ConductorAbordajeAlumnoItemViewModel> alumnosFiltrados = alumnosBase;
+            if (idParadero.HasValue)
+                alumnosFiltrados = alumnosFiltrados.Where(x => x.IdParaderoSubida == idParadero.Value);
+
+            if (!string.Equals(estadoFiltro, "TODOS", StringComparison.OrdinalIgnoreCase))
+                alumnosFiltrados = alumnosFiltrados.Where(x => string.Equals(x.EstadoActual, estadoFiltro, StringComparison.OrdinalIgnoreCase));
+
+            List<ConductorAbordajeParaderoCardViewModel> paraderosCards = paraderosRuta
+                .Select(p =>
+                {
+                    List<ConductorAbordajeAlumnoItemViewModel> alumnosParadero = alumnosFiltrados
+                        .Where(a => a.IdParaderoSubida == p.IdParadero)
+                        .ToList();
+
+                    return new ConductorAbordajeParaderoCardViewModel
+                    {
+                        IdParadero = p.IdParadero,
+                        OrdenParada = p.OrdenParada,
+                        Nombre = p.Nombre,
+                        Direccion = p.Direccion,
+                        HoraEstimada = p.HoraEstimada,
+                        EsParaderoActual = !string.IsNullOrWhiteSpace(paraderoActual) && string.Equals(p.Nombre, paraderoActual, StringComparison.OrdinalIgnoreCase),
+                        TotalAlumnos = alumnosParadero.Count,
+                        TotalSubieron = alumnosParadero.Count(x => x.EstadoActual == "SUBIDA"),
+                        TotalBajaron = alumnosParadero.Count(x => x.EstadoActual == "BAJADA"),
+                        TotalPendientes = alumnosParadero.Count(x => x.EstadoActual == "PENDIENTE"),
+                        TotalAusentes = alumnosParadero.Count(x => x.EstadoActual == "AUSENTE"),
+                        TotalNoAbordo = alumnosParadero.Count(x => x.EstadoActual == "NO_ABORDO"),
+                        Alumnos = alumnosParadero
+                    };
+                })
+                .Where(p => p.TotalAlumnos > 0 || !idParadero.HasValue)
+                .OrderBy(p => p.OrdenParada)
+                .ToList();
 
             return new ConductorAbordajeOperacionViewModel
             {
@@ -740,7 +769,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 Recorridos = recorridosItems,
                 ParaderosFiltro = paraderosFiltro,
                 EstadosFiltro = ConstruirFiltroEstado(estadoFiltro),
-                Alumnos = alumnos
+                Paraderos = paraderosCards
             };
         }
 

@@ -333,6 +333,36 @@
 .abordaje-kpi.ausente { border-left: 4px solid #dc3545; }
 .abordaje-kpi.noabordo { border-left: 4px solid #6c757d; }
 
+.abordaje-paraderos-list {
+    display: grid;
+    gap: .95rem;
+}
+
+.abordaje-paradero-card {
+    border: 1px solid #dbe4ff;
+    border-radius: 1rem;
+    background: #f8fbff;
+    padding: .95rem;
+}
+
+.abordaje-paradero-card.es-actual {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .15);
+}
+
+.abordaje-paradero-header {
+    display: flex;
+    justify-content: space-between;
+    gap: .75rem;
+    align-items: start;
+}
+
+.abordaje-paradero-resumen {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+}
+
 .abordaje-students-list {
     display: grid;
     gap: .9rem;
@@ -353,6 +383,11 @@
 }
 
 .abordaje-student-card h4 {
+    font-size: 1rem;
+    margin-bottom: .1rem;
+}
+
+.abordaje-student-card h5 {
     font-size: 1rem;
     margin-bottom: .1rem;
 }
@@ -387,5 +422,9 @@
 
     .abordaje-actions-grid {
         grid-template-columns: 1fr;
+    }
+
+    .abordaje-paradero-header {
+        flex-direction: column;
     }
 }

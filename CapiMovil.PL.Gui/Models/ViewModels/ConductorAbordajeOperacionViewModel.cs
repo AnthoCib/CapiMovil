@@ -26,6 +26,25 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
         public List<SelectListItem> Recorridos { get; set; } = new();
         public List<SelectListItem> ParaderosFiltro { get; set; } = new();
         public List<SelectListItem> EstadosFiltro { get; set; } = new();
+        public List<ConductorAbordajeParaderoCardViewModel> Paraderos { get; set; } = new();
+    }
+
+    public class ConductorAbordajeParaderoCardViewModel
+    {
+        public Guid IdParadero { get; set; }
+        public int OrdenParada { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public string Direccion { get; set; } = "Sin dirección";
+        public TimeSpan? HoraEstimada { get; set; }
+        public bool EsParaderoActual { get; set; }
+
+        public int TotalAlumnos { get; set; }
+        public int TotalSubieron { get; set; }
+        public int TotalBajaron { get; set; }
+        public int TotalPendientes { get; set; }
+        public int TotalAusentes { get; set; }
+        public int TotalNoAbordo { get; set; }
+
         public List<ConductorAbordajeAlumnoItemViewModel> Alumnos { get; set; } = new();
     }
 

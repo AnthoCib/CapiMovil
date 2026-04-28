@@ -59,77 +59,106 @@
     <section class="card card-soft">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="h5 mb-0">Alumnos asignados</h3>
-                <span class="text-muted small">Registros con fecha/hora automática del servidor.</span>
+                <h3 class="h5 mb-0">Paraderos operativos</h3>
+                <span class="text-muted small">Cada tarjeta agrupa alumnos por paradero y acciones rápidas.</span>
             </div>
 
-            @if (!Model.Alumnos.Any())
+            @if (!Model.Paraderos.Any())
             {
-                <div class="alert alert-warning mb-0">No hay alumnos para el filtro seleccionado.</div>
+                <div class="alert alert-warning mb-0">No hay paraderos/alumnos para el filtro seleccionado.</div>
             }
             else
             {
-                <div class="abordaje-students-list">
-                    @foreach (var alumno in Model.Alumnos)
+                <div class="abordaje-paraderos-list">
+                    @foreach (var paradero in Model.Paraderos)
                     {
-                        <article class="abordaje-student-card">
-                            <header>
+                        <article class="abordaje-paradero-card @(paradero.EsParaderoActual ? "es-actual" : "")">
+                            <header class="abordaje-paradero-header">
                                 <div>
-                                    <h4>@alumno.NombreCompleto</h4>
-                                    <p class="mb-0 text-muted">@alumno.CodigoEstudiante · @alumno.GradoSeccion</p>
+                                    <h4 class="mb-1">#@paradero.OrdenParada · @paradero.Nombre</h4>
+                                    <p class="mb-0 text-muted"><i class="bi bi-geo-alt"></i> @paradero.Direccion</p>
                                 </div>
-                                <span class="badge @alumno.EstadoBadgeClass">@alumno.EstadoActual</span>
+                                <div class="text-end">
+                                    @if (paradero.EsParaderoActual)
+                                    {
+                                        <span class="badge bg-info text-dark mb-1">PARADERO ACTUAL</span>
+                                    }
+                                    <div class="small text-muted">Hora estimada: @(paradero.HoraEstimada.HasValue ? paradero.HoraEstimada.Value.ToString(@"hh\:mm") : "--:--")</div>
+                                    <div class="small text-muted">Alumnos: @paradero.TotalAlumnos</div>
+                                </div>
                             </header>
 
-                            <div class="abordaje-student-meta">
-                                <span><i class="bi bi-geo-alt"></i> #@alumno.OrdenParaderoSubida @alumno.ParaderoSubida</span>
-                                <span><i class="bi bi-clock-history"></i> @(alumno.UltimoEventoFechaHora.HasValue ? alumno.UltimoEventoFechaHora.Value.ToString("dd/MM HH:mm:ss") : "Sin eventos")</span>
+                            <div class="abordaje-paradero-resumen mb-2">
+                                <span class="badge text-bg-light">Subieron: @paradero.TotalSubieron</span>
+                                <span class="badge text-bg-light">Bajaron: @paradero.TotalBajaron</span>
+                                <span class="badge text-bg-light">Pendientes: @paradero.TotalPendientes</span>
+                                <span class="badge text-bg-light">Ausentes: @paradero.TotalAusentes</span>
+                                <span class="badge text-bg-light">No abordó: @paradero.TotalNoAbordo</span>
                             </div>
 
-                            <div class="abordaje-actions-grid">
-                                <form asp-action="RegistrarRapido" method="post">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="idRecorrido" value="@Model.IdRecorridoSeleccionado" />
-                                    <input type="hidden" name="idEstudiante" value="@alumno.IdEstudiante" />
-                                    <input type="hidden" name="idParadero" value="@alumno.IdParaderoSubida" />
-                                    <input type="hidden" name="tipoEvento" value="SUBIDA" />
-                                    <input type="hidden" name="idParaderoFiltro" value="@Model.IdParaderoFiltro" />
-                                    <input type="hidden" name="estadoFiltro" value="@Model.EstadoFiltro" />
-                                    <button class="btn btn-success abordaje-action-btn" type="submit" disabled="@(!alumno.PermiteSubida)">SUBIDA</button>
-                                </form>
+                            <div class="abordaje-students-list">
+                                @foreach (var alumno in paradero.Alumnos)
+                                {
+                                    <article class="abordaje-student-card">
+                                        <header>
+                                            <div>
+                                                <h5>@alumno.NombreCompleto</h5>
+                                                <p class="mb-0 text-muted">@alumno.CodigoEstudiante · @alumno.GradoSeccion</p>
+                                            </div>
+                                            <span class="badge @alumno.EstadoBadgeClass">@alumno.EstadoActual</span>
+                                        </header>
 
-                                <form asp-action="RegistrarRapido" method="post">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="idRecorrido" value="@Model.IdRecorridoSeleccionado" />
-                                    <input type="hidden" name="idEstudiante" value="@alumno.IdEstudiante" />
-                                    <input type="hidden" name="idParadero" value="@alumno.IdParaderoSubida" />
-                                    <input type="hidden" name="tipoEvento" value="BAJADA" />
-                                    <input type="hidden" name="idParaderoFiltro" value="@Model.IdParaderoFiltro" />
-                                    <input type="hidden" name="estadoFiltro" value="@Model.EstadoFiltro" />
-                                    <button class="btn btn-primary abordaje-action-btn" type="submit" disabled="@(!alumno.PermiteBajada)">BAJADA</button>
-                                </form>
+                                        <div class="abordaje-student-meta">
+                                            <span><i class="bi bi-clock-history"></i> @(alumno.UltimoEventoFechaHora.HasValue ? alumno.UltimoEventoFechaHora.Value.ToString("dd/MM HH:mm:ss") : "Sin eventos")</span>
+                                        </div>
 
-                                <form asp-action="RegistrarRapido" method="post">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="idRecorrido" value="@Model.IdRecorridoSeleccionado" />
-                                    <input type="hidden" name="idEstudiante" value="@alumno.IdEstudiante" />
-                                    <input type="hidden" name="idParadero" value="@alumno.IdParaderoSubida" />
-                                    <input type="hidden" name="tipoEvento" value="AUSENTE" />
-                                    <input type="hidden" name="idParaderoFiltro" value="@Model.IdParaderoFiltro" />
-                                    <input type="hidden" name="estadoFiltro" value="@Model.EstadoFiltro" />
-                                    <button class="btn btn-danger abordaje-action-btn" type="submit" disabled="@(!alumno.PermiteAusente)">AUSENTE</button>
-                                </form>
+                                        <div class="abordaje-actions-grid">
+                                            <form asp-action="RegistrarRapido" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="idRecorrido" value="@Model.IdRecorridoSeleccionado" />
+                                                <input type="hidden" name="idEstudiante" value="@alumno.IdEstudiante" />
+                                                <input type="hidden" name="idParadero" value="@alumno.IdParaderoSubida" />
+                                                <input type="hidden" name="tipoEvento" value="SUBIDA" />
+                                                <input type="hidden" name="idParaderoFiltro" value="@Model.IdParaderoFiltro" />
+                                                <input type="hidden" name="estadoFiltro" value="@Model.EstadoFiltro" />
+                                                <button class="btn btn-success abordaje-action-btn" type="submit" disabled="@(!alumno.PermiteSubida)">SUBIDA</button>
+                                            </form>
 
-                                <form asp-action="RegistrarRapido" method="post">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="idRecorrido" value="@Model.IdRecorridoSeleccionado" />
-                                    <input type="hidden" name="idEstudiante" value="@alumno.IdEstudiante" />
-                                    <input type="hidden" name="idParadero" value="@alumno.IdParaderoSubida" />
-                                    <input type="hidden" name="tipoEvento" value="NO_ABORDO" />
-                                    <input type="hidden" name="idParaderoFiltro" value="@Model.IdParaderoFiltro" />
-                                    <input type="hidden" name="estadoFiltro" value="@Model.EstadoFiltro" />
-                                    <button class="btn btn-dark abordaje-action-btn" type="submit" disabled="@(!alumno.PermiteNoAbordo)">NO ABORDÓ</button>
-                                </form>
+                                            <form asp-action="RegistrarRapido" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="idRecorrido" value="@Model.IdRecorridoSeleccionado" />
+                                                <input type="hidden" name="idEstudiante" value="@alumno.IdEstudiante" />
+                                                <input type="hidden" name="idParadero" value="@alumno.IdParaderoSubida" />
+                                                <input type="hidden" name="tipoEvento" value="BAJADA" />
+                                                <input type="hidden" name="idParaderoFiltro" value="@Model.IdParaderoFiltro" />
+                                                <input type="hidden" name="estadoFiltro" value="@Model.EstadoFiltro" />
+                                                <button class="btn btn-primary abordaje-action-btn" type="submit" disabled="@(!alumno.PermiteBajada)">BAJADA</button>
+                                            </form>
+
+                                            <form asp-action="RegistrarRapido" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="idRecorrido" value="@Model.IdRecorridoSeleccionado" />
+                                                <input type="hidden" name="idEstudiante" value="@alumno.IdEstudiante" />
+                                                <input type="hidden" name="idParadero" value="@alumno.IdParaderoSubida" />
+                                                <input type="hidden" name="tipoEvento" value="AUSENTE" />
+                                                <input type="hidden" name="idParaderoFiltro" value="@Model.IdParaderoFiltro" />
+                                                <input type="hidden" name="estadoFiltro" value="@Model.EstadoFiltro" />
+                                                <button class="btn btn-danger abordaje-action-btn" type="submit" disabled="@(!alumno.PermiteAusente)">AUSENTE</button>
+                                            </form>
+
+                                            <form asp-action="RegistrarRapido" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="idRecorrido" value="@Model.IdRecorridoSeleccionado" />
+                                                <input type="hidden" name="idEstudiante" value="@alumno.IdEstudiante" />
+                                                <input type="hidden" name="idParadero" value="@alumno.IdParaderoSubida" />
+                                                <input type="hidden" name="tipoEvento" value="NO_ABORDO" />
+                                                <input type="hidden" name="idParaderoFiltro" value="@Model.IdParaderoFiltro" />
+                                                <input type="hidden" name="estadoFiltro" value="@Model.EstadoFiltro" />
+                                                <button class="btn btn-dark abordaje-action-btn" type="submit" disabled="@(!alumno.PermiteNoAbordo)">NO ABORDÓ</button>
+                                            </form>
+                                        </div>
+                                    </article>
+                                }
                             </div>
                         </article>
                     }
