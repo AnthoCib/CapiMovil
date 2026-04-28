@@ -1,0 +1,73 @@
+@model CapiMovil.PL.Gui.Models.ViewModels.CalificacionConductorViewModel
+@{
+    ViewData["Title"] = "Calificar Conductor";
+}
+
+<div class="pf-page">
+    <section class="pf-card p-3">
+        <h2 class="h5 mb-2">Calificar conductor</h2>
+        <p class="text-muted mb-3">Estudiante: <strong>@Model.NombreEstudiante</strong> · Conductor: <strong>@Model.NombreConductor</strong></p>
+
+        <form asp-action="CalificarConductor" method="post">
+            @Html.AntiForgeryToken()
+            <input asp-for="IdEstudiante" type="hidden" />
+            <input asp-for="IdConductor" type="hidden" />
+            <input asp-for="NombreConductor" type="hidden" />
+            <input asp-for="NombreEstudiante" type="hidden" />
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="mb-3">
+                <label class="form-label">Calificación (estrellas)</label>
+                <div class="d-flex gap-1 fs-4">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <button type="button" class="btn btn-link p-0 text-warning star-btn" data-value="@i">
+                            <i class="bi bi-star-fill"></i>
+                        </button>
+                    }
+                </div>
+                <input asp-for="Puntaje" type="number" min="1" max="5" class="form-control mt-2" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Comentario" class="form-label"></label>
+                <textarea asp-for="Comentario" class="form-control" rows="3" placeholder="Comentario opcional"></textarea>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Guardar calificación</button>
+                <a asp-action="DetalleHijo" asp-route-idEstudiante="@Model.IdEstudiante" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const puntajeInput = document.getElementById('Puntaje');
+            const stars = Array.from(document.querySelectorAll('.star-btn'));
+
+            function paint() {
+                const current = Number(puntajeInput.value || 0);
+                stars.forEach((btn, index) => {
+                    const filled = (index + 1) <= current;
+                    btn.classList.toggle('text-warning', filled);
+                    btn.classList.toggle('text-secondary', !filled);
+                });
+            }
+
+            stars.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    puntajeInput.value = this.dataset.value;
+                    paint();
+                });
+            });
+
+            puntajeInput.addEventListener('change', paint);
+            paint();
+        });
+    </script>
+}

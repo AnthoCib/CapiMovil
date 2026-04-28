@@ -85,6 +85,7 @@
 
                 <div id="mapParadero" class="capi-map capi-map-sm"></div>
                 <span id="infoCoordsParadero" class="badge text-bg-light border capi-coords-badge align-self-start">Latitud: -- | Longitud: --</span>
+                <small id="infoDireccionParadero" class="text-muted">Puedes ajustar coordenadas y la dirección quedará editable.</small>
 
                 <div class="row g-2">
                     <div class="col-6">
@@ -112,6 +113,8 @@
                 mapId: 'mapParadero',
                 latInputId: 'Latitud',
                 lngInputId: 'Longitud',
+                addressInputId: 'Direccion',
+                addressInfoId: 'infoDireccionParadero',
                 geolocateButtonId: 'btnGeolocalizarParadero',
                 coordinatesInfoId: 'infoCoordsParadero',
                 defaultCenter: [-12.046374, -77.042793]

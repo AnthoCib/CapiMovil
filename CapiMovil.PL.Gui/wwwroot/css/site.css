@@ -52,6 +52,24 @@
     box-shadow: 0 2px 6px rgba(0,0,0,.2);
 }
 
+.capi-route-point {
+    background: transparent;
+    border: 0;
+    text-align: center;
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.capi-route-point-inicio {
+    color: #16a34a;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, .35);
+}
+
+.capi-route-point-fin {
+    color: #dc2626;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, .35);
+}
+
 /* Conductor UI */
 .conductor-shell {
     --conductor-border: #e9eef5;
@@ -270,5 +288,143 @@
 @media (max-width: 768px) {
     .list-meta-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+/* Operación de abordajes para conductor */
+.abordaje-filter-control {
+    min-width: 220px;
+}
+
+.abordaje-head-grid {
+    display: grid;
+    gap: .8rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.abordaje-head-grid small {
+    display: block;
+    color: #6c757d;
+}
+
+.abordaje-head-grid strong {
+    font-size: .95rem;
+}
+
+.abordaje-kpi {
+    border: 1px solid #dee2e6;
+    border-radius: .75rem;
+    padding: .6rem .75rem;
+    background: #fff;
+}
+
+.abordaje-kpi small {
+    display: block;
+    color: #6c757d;
+}
+
+.abordaje-kpi strong {
+    font-size: 1.2rem;
+}
+
+.abordaje-kpi.subio { border-left: 4px solid #198754; }
+.abordaje-kpi.bajo { border-left: 4px solid #0d6efd; }
+.abordaje-kpi.pendiente { border-left: 4px solid #ffc107; }
+.abordaje-kpi.ausente { border-left: 4px solid #dc3545; }
+.abordaje-kpi.noabordo { border-left: 4px solid #6c757d; }
+
+.abordaje-paraderos-list {
+    display: grid;
+    gap: .95rem;
+}
+
+.abordaje-paradero-card {
+    border: 1px solid #dbe4ff;
+    border-radius: 1rem;
+    background: #f8fbff;
+    padding: .95rem;
+}
+
+.abordaje-paradero-card.es-actual {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .15);
+}
+
+.abordaje-paradero-header {
+    display: flex;
+    justify-content: space-between;
+    gap: .75rem;
+    align-items: start;
+}
+
+.abordaje-paradero-resumen {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+}
+
+.abordaje-students-list {
+    display: grid;
+    gap: .9rem;
+}
+
+.abordaje-student-card {
+    border: 1px solid #e9ecef;
+    border-radius: .9rem;
+    padding: .9rem;
+    background: #fff;
+}
+
+.abordaje-student-card header {
+    display: flex;
+    justify-content: space-between;
+    gap: .75rem;
+    align-items: start;
+}
+
+.abordaje-student-card h4 {
+    font-size: 1rem;
+    margin-bottom: .1rem;
+}
+
+.abordaje-student-card h5 {
+    font-size: 1rem;
+    margin-bottom: .1rem;
+}
+
+.abordaje-student-meta {
+    margin-top: .45rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .9rem;
+    color: #6c757d;
+    font-size: .9rem;
+}
+
+.abordaje-actions-grid {
+    margin-top: .75rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(140px, 1fr));
+    gap: .5rem;
+}
+
+.abordaje-action-btn {
+    width: 100%;
+    font-weight: 700;
+    letter-spacing: .02em;
+    min-height: 42px;
+}
+
+@media (max-width: 576px) {
+    .abordaje-filter-control {
+        min-width: 100%;
+    }
+
+    .abordaje-actions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .abordaje-paradero-header {
+        flex-direction: column;
     }
 }

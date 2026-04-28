@@ -44,6 +44,10 @@
                                 <option value="">Seleccione un paradero</option>
                             </select>
                         </div>
+                        <div class="col-12">
+                            <label class="form-label">Dirección de Paradero de Bajada (Punto final de ruta)</label>
+                            <input id="txtDireccionFinRuta" class="form-control" readonly value="@Model.DireccionFinalRuta" placeholder="Seleccione una ruta para ver la dirección final." />
+                        </div>
 
                         <div class="col-md-4">
                             <label asp-for="FechaInicioVigencia" class="form-label"></label>
@@ -83,4 +87,35 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const rutaSelect = document.getElementById('IdRuta');
+            const subidaSelect = document.getElementById('IdParaderoSubida');
+            const bajadaSelect = document.getElementById('IdParaderoBajada');
+            const direccionFinInput = document.getElementById('txtDireccionFinRuta');
+
+            async function cargarParaderos() {
+                const idRuta = rutaSelect.value;
+                subidaSelect.innerHTML = '<option value="">Seleccione un paradero</option>';
+                bajadaSelect.innerHTML = '<option value="">Seleccione un paradero</option>';
+                direccionFinInput.value = '';
+
+                if (!idRuta) return;
+
+                const response = await fetch(`/RutaEstudiante/ObtenerParaderosPorRuta?idRuta=${idRuta}`);
+                const payload = await response.json();
+                if (!payload.ok) return;
+
+                payload.data.forEach(function (item) {
+                    subidaSelect.insertAdjacentHTML('beforeend', `<option value="${item.value}">${item.text}</option>`);
+                    bajadaSelect.insertAdjacentHTML('beforeend', `<option value="${item.value}">${item.text}</option>`);
+                });
+
+                direccionFinInput.value = payload.direccionFin || 'No disponible';
+            }
+
+            rutaSelect.addEventListener('change', cargarParaderos);
+            if (rutaSelect.value) cargarParaderos();
+        });
+    </script>
 }

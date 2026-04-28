@@ -39,6 +39,7 @@ namespace CapiMovil.BL.BC
 
         public bool Registrar(EventoAbordajeBE entidad)
         {
+            entidad.FechaHora = DateTime.Now;
             ValidarRegistro(entidad);
 
             bool ok = _eventoAbordajeDALC.Registrar(entidad);

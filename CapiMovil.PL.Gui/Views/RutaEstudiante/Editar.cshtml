@@ -61,6 +61,10 @@
                                 <option value="">Seleccione un paradero</option>
                             </select>
                         </div>
+                        <div class="col-12">
+                            <label class="form-label">Dirección de Paradero de Bajada (Punto final de ruta)</label>
+                            <input id="txtDireccionFinRuta" class="form-control" readonly value="@Model.DireccionFinalRuta" />
+                        </div>
 
                         <div class="col-12">
                             <label asp-for="Observaciones" class="form-label"></label>
@@ -90,4 +94,38 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const rutaSelect = document.getElementById('IdRuta');
+            const subidaSelect = document.getElementById('IdParaderoSubida');
+            const bajadaSelect = document.getElementById('IdParaderoBajada');
+            const direccionFinInput = document.getElementById('txtDireccionFinRuta');
+            const subidaActual = '@Model.IdParaderoSubida';
+            const bajadaActual = '@Model.IdParaderoBajada';
+
+            async function cargarParaderos() {
+                const idRuta = rutaSelect.value;
+                subidaSelect.innerHTML = '<option value="">Seleccione un paradero</option>';
+                bajadaSelect.innerHTML = '<option value="">Seleccione un paradero</option>';
+                direccionFinInput.value = '';
+                if (!idRuta) return;
+
+                const response = await fetch(`/RutaEstudiante/ObtenerParaderosPorRuta?idRuta=${idRuta}`);
+                const payload = await response.json();
+                if (!payload.ok) return;
+
+                payload.data.forEach(function (item) {
+                    const selectedSubida = item.value === subidaActual ? 'selected' : '';
+                    const selectedBajada = item.value === bajadaActual ? 'selected' : '';
+                    subidaSelect.insertAdjacentHTML('beforeend', `<option value="${item.value}" ${selectedSubida}>${item.text}</option>`);
+                    bajadaSelect.insertAdjacentHTML('beforeend', `<option value="${item.value}" ${selectedBajada}>${item.text}</option>`);
+                });
+
+                direccionFinInput.value = payload.direccionFin || 'No disponible';
+            }
+
+            rutaSelect.addEventListener('change', cargarParaderos);
+            if (rutaSelect.value) cargarParaderos();
+        });
+    </script>
 }

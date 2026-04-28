@@ -39,6 +39,9 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
         [Display(Name = "Observaciones")]
         public string? Observaciones { get; set; }
 
+        [Display(Name = "Dirección final de ruta")]
+        public string? DireccionFinalRuta { get; set; }
+
         [Display(Name = "Estado")]
         public bool Estado { get; set; } = true;
 

@@ -1,4 +1,6 @@
 ﻿@model List<CapiMovil.BL.BE.RecorridoBE>
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
 
 @{
     ViewData["Title"] = "Lista de Recorridos";
@@ -8,6 +10,8 @@
     var enCurso = Model?.Count(x => x.EstadoRecorrido == "EN_CURSO") ?? 0;
     var finalizados = Model?.Count(x => x.EstadoRecorrido == "FINALIZADO") ?? 0;
     var cancelados = Model?.Count(x => x.EstadoRecorrido == "CANCELADO") ?? 0;
+    string rol = (HttpContextAccessor.HttpContext?.Session.GetString("RolNombre") ?? string.Empty).Trim().ToUpperInvariant();
+    bool esConductor = rol == "CONDUCTOR";
 }
 
 <div class="list-shell">
@@ -65,10 +69,13 @@
                             {
                                 <a asp-action="Editar" asp-route-id="@item.IdRecorrido" class="btn btn-outline-warning btn-sm"><i class="bi bi-pencil-square me-1"></i>Editar</a>
 
-                                <form asp-action="Iniciar" asp-route-id="@item.IdRecorrido" method="post" class="d-inline" data-disable-on-submit data-confirm data-confirm-title="¿Iniciar recorrido?" data-confirm-text="El recorrido pasará a estado EN CURSO." data-confirm-icon="question" data-confirm-confirm-text="Sí, iniciar" data-confirm-cancel-text="Cancelar">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-outline-success btn-sm" data-loading-text="Iniciando..."><i class="bi bi-play-fill me-1"></i>Iniciar</button>
-                                </form>
+                                @if (esConductor)
+                                {
+                                    <form asp-action="Iniciar" asp-route-id="@item.IdRecorrido" method="post" class="d-inline" data-disable-on-submit data-confirm data-confirm-title="¿Iniciar recorrido?" data-confirm-text="El recorrido pasará a estado EN CURSO." data-confirm-icon="question" data-confirm-confirm-text="Sí, iniciar" data-confirm-cancel-text="Cancelar">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-success btn-sm" data-loading-text="Iniciando..."><i class="bi bi-play-fill me-1"></i>Iniciar</button>
+                                    </form>
+                                }
 
                                 <form asp-action="Cancelar" asp-route-id="@item.IdRecorrido" method="post" class="d-inline" data-disable-on-submit data-confirm data-confirm-title="¿Cancelar recorrido?" data-confirm-text="El recorrido cambiará a estado CANCELADO." data-confirm-icon="warning" data-confirm-confirm-text="Sí, cancelar" data-confirm-cancel-text="Volver">
                                     @Html.AntiForgeryToken()
@@ -82,10 +89,13 @@
                             }
                             else if (estado == "EN_CURSO")
                             {
-                                <form asp-action="Finalizar" asp-route-id="@item.IdRecorrido" method="post" class="d-inline" data-disable-on-submit data-confirm data-confirm-title="¿Finalizar recorrido?" data-confirm-text="El recorrido pasará a estado FINALIZADO." data-confirm-icon="warning" data-confirm-confirm-text="Sí, finalizar" data-confirm-cancel-text="Cancelar">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-outline-primary btn-sm" data-loading-text="Finalizando..."><i class="bi bi-check2-circle me-1"></i>Finalizar</button>
-                                </form>
+                                @if (esConductor)
+                                {
+                                    <form asp-action="Finalizar" asp-route-id="@item.IdRecorrido" method="post" class="d-inline" data-disable-on-submit data-confirm data-confirm-title="¿Finalizar recorrido?" data-confirm-text="El recorrido pasará a estado FINALIZADO." data-confirm-icon="warning" data-confirm-confirm-text="Sí, finalizar" data-confirm-cancel-text="Cancelar">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-primary btn-sm" data-loading-text="Finalizando..."><i class="bi bi-check2-circle me-1"></i>Finalizar</button>
+                                    </form>
+                                }
 
                                 <form asp-action="Cancelar" asp-route-id="@item.IdRecorrido" method="post" class="d-inline" data-disable-on-submit data-confirm data-confirm-title="¿Cancelar recorrido?" data-confirm-text="El recorrido cambiará a estado CANCELADO." data-confirm-icon="warning" data-confirm-confirm-text="Sí, cancelar" data-confirm-cancel-text="Volver">
                                     @Html.AntiForgeryToken()

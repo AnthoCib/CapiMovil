@@ -68,6 +68,7 @@
                         <div class="col-md-6 mb-3">
                             <label asp-for="FechaVencimientoSOAT" class="form-label"></label>
                             <input asp-for="FechaVencimientoSOAT" class="form-control" />
+                            <small id="soatEstadoInfo" class="text-muted"></small>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label asp-for="FechaRevisionTecnica" class="form-label"></label>
@@ -92,4 +93,32 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const fechaInput = document.getElementById('FechaVencimientoSOAT');
+            const vigenteSwitch = document.getElementById('SeguroVigente');
+            const info = document.getElementById('soatEstadoInfo');
+
+            function actualizarEstadoSoat() {
+                if (!fechaInput.value) {
+                    info.textContent = 'Ingrese fecha de vencimiento para validar vigencia.';
+                    info.className = 'text-muted';
+                    return;
+                }
+
+                const hoy = new Date();
+                hoy.setHours(0, 0, 0, 0);
+                const fecha = new Date(fechaInput.value + 'T00:00:00');
+                const vigentePorFecha = fecha >= hoy;
+                const coherente = vigenteSwitch.checked === vigentePorFecha;
+
+                info.textContent = vigentePorFecha ? 'SOAT vigente por fecha.' : 'SOAT vencido por fecha.';
+                info.className = coherente ? 'text-success' : 'text-danger';
+            }
+
+            fechaInput.addEventListener('change', actualizarEstadoSoat);
+            vigenteSwitch.addEventListener('change', actualizarEstadoSoat);
+            actualizarEstadoSoat();
+        });
+    </script>
 }

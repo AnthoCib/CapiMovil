@@ -13,6 +13,14 @@
         return Number.isFinite(value) ? value.toFixed(6) : '--';
     }
 
+    function getProp(obj, name) {
+        if (!obj) return null;
+        if (Object.prototype.hasOwnProperty.call(obj, name)) return obj[name];
+        const pascal = name.charAt(0).toUpperCase() + name.slice(1);
+        if (Object.prototype.hasOwnProperty.call(obj, pascal)) return obj[pascal];
+        return null;
+    }
+
     function resolveAddress(lat, lng) {
         const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&zoom=18&addressdetails=1`;
 
@@ -253,14 +261,14 @@
             const latLngs = [];
 
             points.forEach(function (point) {
-                const lat = toNumber(point.latitud);
-                const lng = toNumber(point.longitud);
+                const lat = toNumber(getProp(point, 'latitud'));
+                const lng = toNumber(getProp(point, 'longitud'));
                 if (lat === null || lng === null) return;
 
                 const marker = L.marker([lat, lng]).addTo(map)
-                    .bindPopup(`<strong>${point.nombre || 'Paradero'}</strong><br/>${point.direccion || ''}`);
+                    .bindPopup(`<strong>${getProp(point, 'nombre') || 'Paradero'}</strong><br/>${getProp(point, 'direccion') || ''}`);
 
-                marker.bindTooltip(`#${point.ordenParada || '-'}`, { permanent: false, direction: 'top' });
+                marker.bindTooltip(`#${getProp(point, 'ordenParada') || '-'}`, { permanent: false, direction: 'top' });
                 latLngs.push([lat, lng]);
                 layers.push(marker);
             });
@@ -275,9 +283,9 @@
             }
         }
 
-        if (busLocation && toNumber(busLocation.latitud) !== null && toNumber(busLocation.longitud) !== null) {
-            const lat = toNumber(busLocation.latitud);
-            const lng = toNumber(busLocation.longitud);
+        if (busLocation && toNumber(getProp(busLocation, 'latitud')) !== null && toNumber(getProp(busLocation, 'longitud')) !== null) {
+            const lat = toNumber(getProp(busLocation, 'latitud'));
+            const lng = toNumber(getProp(busLocation, 'longitud'));
 
             const busIcon = L.divIcon({
                 className: 'capi-bus-icon',
@@ -287,7 +295,7 @@
             });
 
             const marker = L.marker([lat, lng], { icon: busIcon }).addTo(map)
-                .bindPopup(`<strong>Última ubicación del bus</strong><br/>${busLocation.fechaHora || ''}`);
+                .bindPopup(`<strong>Última ubicación del bus</strong><br/>${getProp(busLocation, 'fechaHora') || ''}`);
             layers.push(marker);
         }
 
@@ -332,9 +340,22 @@
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        const markerInicio = L.marker(defaultCenter, { draggable: true, opacity: 0 }).addTo(map);
-        const markerFin = L.marker(defaultCenter, { draggable: true, opacity: 0 }).addTo(map);
-        const polyline = L.polyline([], { color: '#0d6efd', weight: 4, opacity: 0.85 }).addTo(map);
+        const inicioIcon = L.divIcon({
+            className: 'capi-route-point capi-route-point-inicio',
+            html: '<i class="bi bi-geo-alt-fill"></i>',
+            iconSize: [28, 28],
+            iconAnchor: [14, 28]
+        });
+        const finIcon = L.divIcon({
+            className: 'capi-route-point capi-route-point-fin',
+            html: '<i class="bi bi-flag-fill"></i>',
+            iconSize: [28, 28],
+            iconAnchor: [14, 28]
+        });
+
+        const markerInicio = L.marker(defaultCenter, { draggable: true, icon: inicioIcon, opacity: 0 }).addTo(map);
+        const markerFin = L.marker(defaultCenter, { draggable: true, icon: finIcon, opacity: 0 }).addTo(map);
+        const polyline = L.polyline([], { color: '#0d6efd', weight: 5, opacity: 0.95 }).addTo(map);
 
         let requestInicio = 0;
         let requestFin = 0;
@@ -544,8 +565,8 @@
         const layers = [];
 
         paraderos.forEach(function (item) {
-            const lat = toNumber(item.latitud);
-            const lng = toNumber(item.longitud);
+            const lat = toNumber(getProp(item, 'latitud'));
+            const lng = toNumber(getProp(item, 'longitud'));
             if (lat === null || lng === null) return;
 
             const marker = L.circleMarker([lat, lng], {
@@ -557,14 +578,39 @@
             }).addTo(map);
 
             marker.bindPopup(
-                `<strong>${item.nombre || 'Paradero'}</strong><br/>Ruta: ${item.ruta || 'No disponible'}`
+                `<strong>${getProp(item, 'nombre') || 'Paradero'}</strong><br/>` +
+                `Ruta: ${getProp(item, 'ruta') || 'No disponible'}<br/>` +
+                `Dirección: ${getProp(item, 'direccion') || 'No disponible'}`
             );
             layers.push(marker);
         });
 
+        const routeLatLngs = paraderos
+            .map(function (item) {
+                const lat = toNumber(getProp(item, 'latitud'));
+                const lng = toNumber(getProp(item, 'longitud'));
+                const orden = toNumber(getProp(item, 'ordenParada'));
+                return lat === null || lng === null
+                    ? null
+                    : { lat: lat, lng: lng, orden: orden === null ? 9999 : orden };
+            })
+            .filter(function (item) { return item !== null; })
+            .sort(function (a, b) { return a.orden - b.orden; })
+            .map(function (item) { return [item.lat, item.lng]; });
+
+        if (routeLatLngs.length > 1) {
+            const routeLine = L.polyline(routeLatLngs, {
+                color: '#2563eb',
+                weight: 4,
+                opacity: 0.8,
+                dashArray: '8 6'
+            }).addTo(map);
+            layers.push(routeLine);
+        }
+
         buses.forEach(function (item) {
-            const lat = toNumber(item.latitud);
-            const lng = toNumber(item.longitud);
+            const lat = toNumber(getProp(item, 'latitud'));
+            const lng = toNumber(getProp(item, 'longitud'));
             if (lat === null || lng === null) return;
 
             const busIcon = L.divIcon({
@@ -576,12 +622,12 @@
 
             const marker = L.marker([lat, lng], { icon: busIcon }).addTo(map);
             marker.bindPopup(
-                `<strong>${item.bus || 'Bus'}</strong><br/>` +
-                `Recorrido: ${item.codigoRecorrido || '---'}<br/>` +
-                `Ruta: ${item.ruta || 'No disponible'}<br/>` +
-                `Conductor: ${item.conductor || 'No disponible'}<br/>` +
-                `Estado: ${item.estadoRecorrido || 'SIN_ESTADO'}<br/>` +
-                `Actualizado: ${item.fechaHora || '---'}`
+                `<strong>${getProp(item, 'bus') || 'Bus'}</strong><br/>` +
+                `Recorrido: ${getProp(item, 'codigoRecorrido') || '---'}<br/>` +
+                `Ruta: ${getProp(item, 'ruta') || 'No disponible'}<br/>` +
+                `Conductor: ${getProp(item, 'conductor') || 'No disponible'}<br/>` +
+                `Estado: ${getProp(item, 'estadoRecorrido') || 'SIN_ESTADO'}<br/>` +
+                `Actualizado: ${getProp(item, 'fechaHora') || '---'}`
             );
             layers.push(marker);
         });

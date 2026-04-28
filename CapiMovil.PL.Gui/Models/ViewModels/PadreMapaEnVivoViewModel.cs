@@ -38,6 +38,8 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
         public decimal Longitud { get; set; }
         public string Nombre { get; set; } = "Paradero";
         public string Ruta { get; set; } = "Ruta no disponible";
+        public string Direccion { get; set; } = "Dirección no disponible";
+        public int OrdenParada { get; set; }
     }
 
     public class PadreHistorialViewModel

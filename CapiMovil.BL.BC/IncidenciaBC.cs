@@ -55,6 +55,7 @@ namespace CapiMovil.BL.BC
 
         public bool Registrar(IncidenciaBE entidad)
         {
+            entidad.FechaHora = DateTime.Now;
             ValidarEntidad(entidad, esNuevo: true);
 
             if (string.IsNullOrWhiteSpace(entidad.EstadoIncidencia))

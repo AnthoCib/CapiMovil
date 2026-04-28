@@ -46,6 +46,10 @@
                 <div class="fw-semibold">@(!string.IsNullOrWhiteSpace(Model.NombreEstudiante) ? Model.NombreEstudiante : "-")</div>
             </div>
             <div class="col-md-6">
+                <div class="text-muted small">Código de estudiante</div>
+                <div class="fw-semibold">@(!string.IsNullOrWhiteSpace(Model.CodigoEstudiante) ? Model.CodigoEstudiante : "-")</div>
+            </div>
+            <div class="col-md-6">
                 <div class="text-muted small">Estado de lectura</div>
                 <div>
                     @if (Model.Leido)

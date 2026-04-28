@@ -54,6 +54,8 @@ builder.Services.AddScoped<NotificacionBC>();
 
 builder.Services.AddScoped<AuditoriaDALC>();
 builder.Services.AddScoped<AuditoriaBC>();
+builder.Services.AddScoped<CalificacionConductorDALC>();
+builder.Services.AddScoped<CalificacionConductorBC>();
 
 builder.Services.AddDistributedMemoryCache();
 
