@@ -219,10 +219,6 @@ function inicializarFeedbackEnvioFormularios() {
             const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
             submitButtons.forEach(btn => {
                 if (btn.disabled) return;
-                if (btn.dataset.loadingText) {
-                    btn.dataset.originalHtml = btn.innerHTML;
-                    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>${btn.dataset.loadingText}`;
-                }
                 btn.disabled = true;
                 btn.classList.add("disabled");
             });
