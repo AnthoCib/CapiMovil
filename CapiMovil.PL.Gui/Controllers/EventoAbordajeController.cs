@@ -14,26 +14,211 @@ namespace CapiMovil.PL.Gui.Controllers
         private readonly RecorridoDALC _recorridoDALC;
         private readonly EstudianteDALC _estudianteDALC;
         private readonly ParaderoDALC _paraderoDALC;
+        private readonly RutaDALC _rutaDALC;
+        private readonly RutaEstudianteBC _rutaEstudianteBC;
+        private readonly UbicacionBusBC _ubicacionBusBC;
+        private readonly IncidenciaBC _incidenciaBC;
 
         public EventoAbordajeController(
             EventoAbordajeBC eventoAbordajeBC,
             RecorridoDALC recorridoDALC,
             EstudianteDALC estudianteDALC,
-            ParaderoDALC paraderoDALC)
+            ParaderoDALC paraderoDALC,
+            RutaDALC rutaDALC,
+            RutaEstudianteBC rutaEstudianteBC,
+            UbicacionBusBC ubicacionBusBC,
+            IncidenciaBC incidenciaBC)
         {
             _eventoAbordajeBC = eventoAbordajeBC;
             _recorridoDALC = recorridoDALC;
             _estudianteDALC = estudianteDALC;
             _paraderoDALC = paraderoDALC;
+            _rutaDALC = rutaDALC;
+            _rutaEstudianteBC = rutaEstudianteBC;
+            _ubicacionBusBC = ubicacionBusBC;
+            _incidenciaBC = incidenciaBC;
         }
 
-        public IActionResult Listar()
+        public IActionResult Listar(DateTime? fecha, Guid? idRuta, Guid? idRecorrido, Guid? idConductor, string? estadoRecorrido, string? estadoAbordaje)
         {
-            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
             if (acceso != null) return acceso;
 
-            var lista = _eventoAbordajeBC.Listar();
-            return View(lista);
+            DateTime fechaFiltro = (fecha ?? DateTime.Today).Date;
+            string? estadoRecorridoFiltro = string.IsNullOrWhiteSpace(estadoRecorrido) ? null : estadoRecorrido.Trim().ToUpperInvariant();
+            string? estadoAbordajeFiltro = string.IsNullOrWhiteSpace(estadoAbordaje) ? null : estadoAbordaje.Trim().ToUpperInvariant();
+
+            List<RecorridoBE> recorridos = _recorridoDALC.Listar();
+            List<EventoAbordajeBE> eventos = _eventoAbordajeBC.Listar();
+
+            List<RecorridoBE> recorridosDia = recorridos
+                .Where(r => r.Estado && r.Fecha.Date == fechaFiltro)
+                .ToList();
+
+            if (idRuta.HasValue && idRuta.Value != Guid.Empty)
+                recorridosDia = recorridosDia.Where(r => r.IdRuta == idRuta.Value).ToList();
+
+            if (idConductor.HasValue && idConductor.Value != Guid.Empty)
+                recorridosDia = recorridosDia.Where(r => r.IdConductor == idConductor.Value).ToList();
+
+            if (!string.IsNullOrWhiteSpace(estadoRecorridoFiltro))
+                recorridosDia = recorridosDia.Where(r => string.Equals(r.EstadoRecorrido, estadoRecorridoFiltro, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            if (idRecorrido.HasValue && idRecorrido.Value != Guid.Empty)
+                recorridosDia = recorridosDia.Where(r => r.IdRecorrido == idRecorrido.Value).ToList();
+
+            HashSet<Guid> idsRecorridosDia = recorridosDia.Select(r => r.IdRecorrido).ToHashSet();
+            List<EventoAbordajeBE> eventosDia = eventos
+                .Where(e => idsRecorridosDia.Contains(e.IdRecorrido))
+                .ToList();
+
+            if (!string.IsNullOrWhiteSpace(estadoAbordajeFiltro))
+                eventosDia = eventosDia.Where(e => string.Equals(e.TipoEvento, estadoAbordajeFiltro, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            RecorridoBE? recorridoSeleccionado = recorridosDia
+                .OrderByDescending(r => r.Fecha)
+                .ThenByDescending(r => r.FechaCreacion)
+                .FirstOrDefault();
+
+            if (idRecorrido.HasValue && idRecorrido.Value != Guid.Empty)
+                recorridoSeleccionado = recorridosDia.FirstOrDefault(r => r.IdRecorrido == idRecorrido.Value);
+
+            List<AdminAbordajeParaderoViewModel> paraderosVm = new();
+            List<AdminAbordajeBusMapaItemViewModel> busesMapa = new();
+            AdminAbordajeRecorridoDetalleViewModel? detalle = null;
+
+            if (recorridoSeleccionado != null)
+            {
+                List<ParaderoBE> paraderos = _paraderoDALC.ListarPorRuta(recorridoSeleccionado.IdRuta)
+                    .OrderBy(x => x.OrdenParada)
+                    .ToList();
+
+                List<RutaEstudianteBE> asignacionesRuta = _rutaEstudianteBC.Listar()
+                    .Where(x => x.Estado && x.IdRuta == recorridoSeleccionado.IdRuta)
+                    .ToList();
+
+                foreach (ParaderoBE p in paraderos)
+                {
+                    int totalParadero = asignacionesRuta.Count(a => a.IdParaderoSubida == p.IdParadero);
+                    int subidas = eventosDia.Count(e => e.IdRecorrido == recorridoSeleccionado.IdRecorrido && e.IdParadero == p.IdParadero && e.TipoEvento == "SUBIDA");
+                    int bajadas = eventosDia.Count(e => e.IdRecorrido == recorridoSeleccionado.IdRecorrido && e.IdParadero == p.IdParadero && e.TipoEvento == "BAJADA");
+                    int ausentes = eventosDia.Count(e => e.IdRecorrido == recorridoSeleccionado.IdRecorrido && e.IdParadero == p.IdParadero && e.TipoEvento == "AUSENTE");
+                    int noAbordo = eventosDia.Count(e => e.IdRecorrido == recorridoSeleccionado.IdRecorrido && e.IdParadero == p.IdParadero && e.TipoEvento == "NO_ABORDO");
+                    int pendientes = Math.Max(totalParadero - (subidas + ausentes + noAbordo), 0);
+
+                    paraderosVm.Add(new AdminAbordajeParaderoViewModel
+                    {
+                        IdParadero = p.IdParadero,
+                        Nombre = p.Nombre,
+                        Direccion = p.Direccion ?? "Sin dirección",
+                        OrdenParada = p.OrdenParada,
+                        HoraEstimada = p.HoraEstimada,
+                        Latitud = p.Latitud,
+                        Longitud = p.Longitud,
+                        TotalEstudiantes = totalParadero,
+                        Subidas = subidas,
+                        Bajadas = bajadas,
+                        Ausentes = ausentes,
+                        Pendientes = pendientes,
+                        NoAbordo = noAbordo
+                    });
+                }
+
+                UbicacionBusBE? ubicacion = _ubicacionBusBC.Listar()
+                    .Where(x => x.Estado && x.IdRecorrido == recorridoSeleccionado.IdRecorrido)
+                    .OrderByDescending(x => x.FechaHora)
+                    .FirstOrDefault();
+
+                if (ubicacion != null)
+                {
+                    busesMapa.Add(new AdminAbordajeBusMapaItemViewModel
+                    {
+                        Latitud = ubicacion.Latitud,
+                        Longitud = ubicacion.Longitud,
+                        Bus = recorridoSeleccionado.Bus?.Placa ?? "Bus",
+                        Conductor = recorridoSeleccionado.Conductor?.NombreCompleto ?? "Conductor",
+                        Recorrido = recorridoSeleccionado.CodigoRecorrido,
+                        FechaHora = ubicacion.FechaHora
+                    });
+                }
+
+                detalle = new AdminAbordajeRecorridoDetalleViewModel
+                {
+                    IdRecorrido = recorridoSeleccionado.IdRecorrido,
+                    CodigoRecorrido = recorridoSeleccionado.CodigoRecorrido,
+                    Ruta = $"{recorridoSeleccionado.Ruta?.CodigoRuta} - {recorridoSeleccionado.Ruta?.Nombre}",
+                    Bus = recorridoSeleccionado.Bus?.Placa ?? "No asignado",
+                    Conductor = recorridoSeleccionado.Conductor?.NombreCompleto ?? "No asignado",
+                    Fecha = recorridoSeleccionado.Fecha,
+                    HoraInicioProgramada = recorridoSeleccionado.HoraInicioProgramada,
+                    HoraInicioReal = recorridoSeleccionado.HoraInicioReal,
+                    HoraFinReal = recorridoSeleccionado.HoraFinReal,
+                    EstadoRecorrido = recorridoSeleccionado.EstadoRecorrido ?? "SIN_ESTADO"
+                };
+            }
+
+            List<AdminAbordajeTimelineItemViewModel> timeline = eventosDia
+                .OrderByDescending(e => e.FechaHora)
+                .Take(120)
+                .Select(e => new AdminAbordajeTimelineItemViewModel
+                {
+                    FechaHora = e.FechaHora,
+                    Alumno = $"{e.Estudiante?.CodigoEstudiante} - {e.Estudiante?.Nombres} {e.Estudiante?.ApellidoPaterno}".Trim(),
+                    TipoEvento = e.TipoEvento,
+                    Paradero = e.Paradero?.Nombre ?? "Sin paradero",
+                    Recorrido = e.Recorrido?.CodigoRecorrido ?? "Sin recorrido"
+                }).ToList();
+
+            HashSet<Guid> idsRuta = recorridosDia.Select(r => r.IdRuta).ToHashSet();
+            int totalEstudiantesAsignados = _rutaEstudianteBC.Listar()
+                .Count(x => x.Estado && idsRuta.Contains(x.IdRuta));
+
+            int totalIncidencias = _incidenciaBC.Listar()
+                .Count(i => idsRecorridosDia.Contains(i.IdRecorrido));
+
+            AdminAbordajeDashboardViewModel vm = new()
+            {
+                Fecha = fechaFiltro,
+                IdRuta = idRuta,
+                IdRecorrido = recorridoSeleccionado?.IdRecorrido ?? idRecorrido,
+                IdConductor = idConductor,
+                EstadoRecorrido = estadoRecorridoFiltro,
+                EstadoAbordaje = estadoAbordajeFiltro,
+
+                TotalRecorridosDia = recorridosDia.Count,
+                TotalEstudiantesAsignados = totalEstudiantesAsignados,
+                TotalAbordajesRegistrados = eventosDia.Count,
+                TotalSubidas = eventosDia.Count(e => e.TipoEvento == "SUBIDA"),
+                TotalBajadas = eventosDia.Count(e => e.TipoEvento == "BAJADA"),
+                TotalAusentes = eventosDia.Count(e => e.TipoEvento == "AUSENTE"),
+                TotalNoAbordo = eventosDia.Count(e => e.TipoEvento == "NO_ABORDO"),
+                TotalIncidenciasRelacionadas = totalIncidencias,
+
+                RecorridoSeleccionado = detalle,
+                Paraderos = paraderosVm,
+                Timeline = timeline,
+                BusesMapa = busesMapa,
+
+                Rutas = _rutaDALC.ListarActivas().Select(x => new SelectListItem(x.CodigoRuta + " - " + x.Nombre, x.IdRuta.ToString(), x.IdRuta == idRuta)).ToList(),
+                Recorridos = recorridosDia.Select(x => new SelectListItem(x.CodigoRecorrido, x.IdRecorrido.ToString(), recorridoSeleccionado != null && x.IdRecorrido == recorridoSeleccionado.IdRecorrido)).ToList(),
+                Conductores = recorridos.Select(x => x.Conductor).Where(c => c != null).GroupBy(c => c!.IdConductor).Select(g => g.First()!).Select(c => new SelectListItem($"{c.CodigoConductor} - {c.NombreCompleto}", c.IdConductor.ToString(), c.IdConductor == idConductor)).ToList(),
+                EstadosRecorrido = new List<SelectListItem>
+                {
+                    new("PROGRAMADO","PROGRAMADO", estadoRecorridoFiltro == "PROGRAMADO"),
+                    new("EN_CURSO","EN_CURSO", estadoRecorridoFiltro == "EN_CURSO"),
+                    new("FINALIZADO","FINALIZADO", estadoRecorridoFiltro == "FINALIZADO"),
+                    new("CANCELADO","CANCELADO", estadoRecorridoFiltro == "CANCELADO")
+                },
+                EstadosAbordaje = new List<SelectListItem>
+                {
+                    new("SUBIDA","SUBIDA", estadoAbordajeFiltro == "SUBIDA"),
+                    new("BAJADA","BAJADA", estadoAbordajeFiltro == "BAJADA"),
+                    new("AUSENTE","AUSENTE", estadoAbordajeFiltro == "AUSENTE"),
+                    new("NO_ABORDO","NO_ABORDO", estadoAbordajeFiltro == "NO_ABORDO")
+                }
+            };
+
+            return View(vm);
         }
 
         [HttpGet]
