@@ -101,7 +101,6 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.AddWithValue("@Direccion", entidad.Direccion);
             cmd.Parameters.AddWithValue("@Latitud", (object?)entidad.Latitud ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Longitud", (object?)entidad.Longitud ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@OrdenParada", entidad.OrdenParada);
             cmd.Parameters.AddWithValue("@HoraEstimada", (object?)entidad.HoraEstimada ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Estado", entidad.Estado);
 
@@ -111,7 +110,9 @@ namespace CapiMovil.DL.DALC
             if (RegistroResultadoDALC.EsRegistroExitoso(dr, out int filas, out string codigoGenerado, out string? mensaje))
             {
                 entidad.CodigoParadero = codigoGenerado;
-                    return true;
+                if (ExisteColumna(dr, "OrdenParadaGenerado") && dr["OrdenParadaGenerado"] != DBNull.Value)
+                    entidad.OrdenParada = Convert.ToInt32(dr["OrdenParadaGenerado"]);
+                return true;
             }
 
             if (!string.IsNullOrWhiteSpace(mensaje))

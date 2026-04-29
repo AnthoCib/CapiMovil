@@ -74,8 +74,6 @@ namespace CapiMovil.BL.BC
             if (entidad.Longitud.HasValue && (entidad.Longitud < -180m || entidad.Longitud > 180m))
                 throw new ArgumentException("La longitud del paradero debe estar entre -180 y 180.");
 
-            if (entidad.OrdenParada <= 0)
-                throw new ArgumentException("El orden de parada debe ser mayor a 0.");
         }
     }
 }
