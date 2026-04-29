@@ -6,6 +6,7 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
     public class ConductorAbordajeViewModel
     {
         public Guid IdEstudiante { get; set; }
+        public List<Guid> IdEstudiantesSeleccionados { get; set; } = new();
         public Guid? IdParadero { get; set; }
         public string TipoEvento { get; set; } = "SUBIDA";
         public DateTime FechaHora { get; set; } = DateTime.Now;

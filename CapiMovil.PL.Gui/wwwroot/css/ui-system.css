@@ -335,3 +335,42 @@ body {
 .app-fallback-navbar .navbar-toggler-icon {
     filter: invert(27%) sepia(8%) saturate(884%) hue-rotate(179deg) brightness(89%) contrast(84%);
 }
+
+/* Admin listados estilo cards (aplica a vistas existentes con tablas) */
+.list-table-card .table-responsive,
+.card-soft .table-responsive {
+    overflow: visible;
+}
+
+.list-table-card table,
+.card-soft table {
+    border-collapse: separate;
+    border-spacing: 0 .75rem;
+}
+
+.list-table-card tbody tr,
+.card-soft tbody tr {
+    background: var(--cm-surface);
+    border: 1px solid var(--cm-border);
+    box-shadow: var(--cm-shadow);
+}
+
+.list-table-card tbody td,
+.card-soft tbody td {
+    background: transparent;
+    border-top: 0;
+    border-bottom: 0;
+    vertical-align: middle;
+}
+
+.list-table-card tbody td:first-child,
+.card-soft tbody td:first-child {
+    border-radius: .9rem 0 0 .9rem;
+    padding-left: 1rem;
+}
+
+.list-table-card tbody td:last-child,
+.card-soft tbody td:last-child {
+    border-radius: 0 .9rem .9rem 0;
+    padding-right: 1rem;
+}

@@ -36,30 +36,25 @@
                 <form asp-action="RegistrarAbordaje" method="post" class="row g-3">
                     @Html.AntiForgeryToken()
 
-                    <div class="col-12 col-lg-5">
-                        <label class="form-label fw-semibold">Alumno</label>
-                        <select asp-for="IdEstudiante" asp-items="Model.Estudiantes" class="form-select form-select-lg">
-                            <option value="">-- Seleccione alumno --</option>
-                        </select>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Checklist de alumnos</label>
+                        <div class="border rounded-3 p-3 bg-light-subtle" style="max-height:260px; overflow:auto;">
+                            @for (int i = 0; i < Model.Estudiantes.Count; i++)
+                            {
+                                var estudiante = Model.Estudiantes[i];
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="IdEstudiantesSeleccionados" value="@estudiante.Value" id="alumno_@i" />
+                                    <label class="form-check-label" for="alumno_@i">@estudiante.Text</label>
+                                </div>
+                            }
+                        </div>
+                        <div class="form-text">Selecciona uno o varios alumnos para registrar abordaje masivo.</div>
                     </div>
 
-                    <div class="col-6 col-lg-2">
-                        <label class="form-label fw-semibold">Tipo</label>
-                        <input type="hidden" asp-for="TipoEvento" id="tipoEventoInput" />
-                        <div class="d-grid gap-2">
-                            <button type="button" class="btn btn-outline-success btn-lg conductor-event-btn active" data-event-type="SUBIDA">
-                                <i class="bi bi-arrow-up-circle me-1"></i>SUBIDA
-                            </button>
-                            <button type="button" class="btn btn-outline-primary btn-lg conductor-event-btn" data-event-type="BAJADA">
-                                <i class="bi bi-arrow-down-circle me-1"></i>BAJADA
-                            </button>
-                            <button type="button" class="btn btn-outline-warning btn-lg conductor-event-btn" data-event-type="AUSENTE">
-                                <i class="bi bi-person-x me-1"></i>AUSENTE
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary btn-lg conductor-event-btn" data-event-type="NO_ABORDO">
-                                <i class="bi bi-slash-circle me-1"></i>NO_ABORDO
-                            </button>
-                        </div>
+                    <div class="col-12 col-lg-3">
+                        <label class="form-label fw-semibold">Tipo permitido</label>
+                        <input type="hidden" asp-for="TipoEvento" id="tipoEventoInput" value="SUBIDA" />
+                        <div class="alert alert-success py-2 mb-0"><i class="bi bi-arrow-up-circle me-1"></i>Este recorrido solo permite registrar <strong>SUBIDA</strong>.</div>
                     </div>
 
                     <div class="col-6 col-lg-3">
@@ -205,9 +200,6 @@
                                     </td>
                                     <td class="small">
                                         <span class="badge @(estado.PermiteSubida ? "text-bg-success" : "text-bg-secondary") me-1">SUBIDA</span>
-                                        <span class="badge @(estado.PermiteBajada ? "text-bg-primary" : "text-bg-secondary") me-1">BAJADA</span>
-                                        <span class="badge @(estado.PermiteAusente ? "text-bg-warning" : "text-bg-secondary") me-1">AUSENTE</span>
-                                        <span class="badge @(estado.PermiteNoAbordo ? "text-bg-dark" : "text-bg-secondary")">NO_ABORDO</span>
                                     </td>
                                     <td>
                                         <div class="d-flex flex-wrap gap-1">
@@ -217,27 +209,6 @@
                                                 <input type="hidden" name="TipoEvento" value="SUBIDA" />
                                                 <input type="hidden" name="FechaHora" value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss")" />
                                                 <button type="submit" class="btn btn-sm btn-success conductor-quick-action" disabled="@(!estado.PermiteSubida)">SUBIDA</button>
-                                            </form>
-                                            <form asp-action="RegistrarAbordaje" method="post" class="m-0">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="IdEstudiante" value="@estado.IdEstudiante" />
-                                                <input type="hidden" name="TipoEvento" value="BAJADA" />
-                                                <input type="hidden" name="FechaHora" value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss")" />
-                                                <button type="submit" class="btn btn-sm btn-primary conductor-quick-action" disabled="@(!estado.PermiteBajada)">BAJADA</button>
-                                            </form>
-                                            <form asp-action="RegistrarAbordaje" method="post" class="m-0">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="IdEstudiante" value="@estado.IdEstudiante" />
-                                                <input type="hidden" name="TipoEvento" value="AUSENTE" />
-                                                <input type="hidden" name="FechaHora" value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss")" />
-                                                <button type="submit" class="btn btn-sm btn-warning conductor-quick-action" disabled="@(!estado.PermiteAusente)">AUSENTE</button>
-                                            </form>
-                                            <form asp-action="RegistrarAbordaje" method="post" class="m-0">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="IdEstudiante" value="@estado.IdEstudiante" />
-                                                <input type="hidden" name="TipoEvento" value="NO_ABORDO" />
-                                                <input type="hidden" name="FechaHora" value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss")" />
-                                                <button type="submit" class="btn btn-sm btn-dark conductor-quick-action" disabled="@(!estado.PermiteNoAbordo)">NO_ABORDO</button>
                                             </form>
                                         </div>
                                     </td>
@@ -255,22 +226,7 @@
     <script>
         (function () {
             const tipoInput = document.getElementById("tipoEventoInput");
-            const botones = Array.from(document.querySelectorAll(".conductor-event-btn"));
-            if (!tipoInput || botones.length === 0) return;
-
-            const activarTipo = (tipo) => {
-                tipoInput.value = tipo;
-                botones.forEach(btn => {
-                    const activo = btn.dataset.eventType === tipo;
-                    btn.classList.toggle("active", activo);
-                });
-            };
-
-            botones.forEach(btn => {
-                btn.addEventListener("click", () => activarTipo(btn.dataset.eventType || "SUBIDA"));
-            });
-
-            activarTipo(tipoInput.value || "SUBIDA");
+            if (tipoInput) tipoInput.value = "SUBIDA";
         })();
     </script>
 }

@@ -332,20 +332,18 @@ namespace CapiMovil.PL.Gui.Controllers
                 return RedirectToAction(nameof(Abordaje));
             }
 
-            if (vm.IdEstudiante == Guid.Empty)
+            List<Guid> estudiantesObjetivo = vm.IdEstudiantesSeleccionados?.Where(x => x != Guid.Empty).Distinct().ToList() ?? new List<Guid>();
+            if (estudiantesObjetivo.Count == 0 && vm.IdEstudiante != Guid.Empty)
+                estudiantesObjetivo.Add(vm.IdEstudiante);
+
+            if (estudiantesObjetivo.Count == 0)
             {
-                TempData["error"] = "Debe seleccionar un estudiante.";
+                TempData["error"] = "Debe seleccionar al menos un estudiante.";
                 return RedirectToAction(nameof(Abordaje));
             }
 
             string tipoEvento = (vm.TipoEvento ?? string.Empty).Trim().ToUpperInvariant();
-            HashSet<string> tiposPermitidos = new(StringComparer.OrdinalIgnoreCase)
-            {
-                "SUBIDA",
-                "BAJADA",
-                "AUSENTE",
-                "NO_ABORDO"
-            };
+            HashSet<string> tiposPermitidos = new(StringComparer.OrdinalIgnoreCase) { "SUBIDA" };
 
             if (!tiposPermitidos.Contains(tipoEvento))
             {
@@ -358,9 +356,9 @@ namespace CapiMovil.PL.Gui.Controllers
                 .Select(re => re.IdEstudiante)
                 .ToHashSet();
 
-            if (!estudiantesPermitidos.Contains(vm.IdEstudiante))
+            if (estudiantesObjetivo.Any(id => !estudiantesPermitidos.Contains(id)))
             {
-                TempData["error"] = "El alumno no pertenece al recorrido activo.";
+                TempData["error"] = "Uno o más alumnos no pertenecen al recorrido activo.";
                 return RedirectToAction(nameof(Abordaje));
             }
 
@@ -369,23 +367,30 @@ namespace CapiMovil.PL.Gui.Controllers
                 string? usuarioIdSession = HttpContext.Session.GetString("UsuarioId");
                 Guid? usuarioId = string.IsNullOrWhiteSpace(usuarioIdSession) ? null : Guid.Parse(usuarioIdSession);
 
-                EventoAbordajeBE entidad = new()
+                DateTime fechaEvento = vm.FechaHora == default ? DateTime.Now : vm.FechaHora;
+                int registrados = 0;
+                foreach (Guid idEstudiante in estudiantesObjetivo)
                 {
-                    IdRecorrido = recorridoActivo.IdRecorrido,
-                    IdEstudiante = vm.IdEstudiante,
-                    IdParadero = vm.IdParadero,
-                    RegistradoPor = usuarioId,
-                    TipoEvento = tipoEvento,
-                    FechaHora = vm.FechaHora == default ? DateTime.Now : vm.FechaHora,
-                    Observacion = vm.Observacion,
-                    Estado = true
-                };
+                    EventoAbordajeBE entidad = new()
+                    {
+                        IdRecorrido = recorridoActivo.IdRecorrido,
+                        IdEstudiante = idEstudiante,
+                        IdParadero = vm.IdParadero,
+                        RegistradoPor = usuarioId,
+                        TipoEvento = tipoEvento,
+                        FechaHora = fechaEvento,
+                        Observacion = vm.Observacion,
+                        Estado = true
+                    };
 
-                _eventoAbordajeBC.ValidarRegistro(entidad);
-                bool ok = _eventoAbordajeBC.Registrar(entidad);
-                TempData[ok ? "ok" : "error"] = ok
-                    ? $"Evento registrado correctamente. Código: {entidad.CodigoEvento}"
-                    : "No se pudo registrar el evento de abordaje.";
+                    _eventoAbordajeBC.ValidarRegistro(entidad);
+                    bool okItem = _eventoAbordajeBC.Registrar(entidad);
+                    if (okItem) registrados++;
+                }
+
+                TempData[registrados > 0 ? "ok" : "error"] = registrados > 0
+                    ? $"Se registraron {registrados} abordajes de SUBIDA correctamente."
+                    : "No se pudo registrar el abordaje.";
             }
             catch (Exception ex)
             {
