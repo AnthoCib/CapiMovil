@@ -25,7 +25,7 @@
 
     @if (!string.IsNullOrEmpty(username))
     {
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+        <nav class="navbar navbar-expand-md navbar-light capi-navbar shadow-sm">
             <div class="container">
                 <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">
                     <i class="bi bi-bus-front-fill me-2"></i>CapiMovil
@@ -107,33 +107,33 @@
                                     <i class="bi bi-house-door me-1"></i>Inicio
                                 </a>
                             </li>
+
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Bus" asp-action="MiBus">
+                                <a class="nav-link" asp-controller="Conductor" asp-action="MiBus">
                                     <i class="bi bi-bus-front me-1"></i>Mi Bus
                                 </a>
                             </li>
+
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Ruta" asp-action="MiRuta">
+                                <a class="nav-link" asp-controller="Conductor" asp-action="MiRuta">
                                     <i class="bi bi-signpost-2 me-1"></i>Mi Ruta
                                 </a>
                             </li>
+
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Estudiante" asp-action="MisEstudiantes">
+                                <a class="nav-link" asp-controller="Conductor" asp-action="Estudiantes">
                                     <i class="bi bi-people me-1"></i>Estudiantes
                                 </a>
                             </li>
+
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Recorrido" asp-action="Index">
+                                <a class="nav-link" asp-controller="Conductor" asp-action="Recorrido">
                                     <i class="bi bi-geo-alt me-1"></i>Recorrido
                                 </a>
                             </li>
+
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="EventoAbordaje" asp-action="Index">
-                                    <i class="bi bi-check2-square me-1"></i>Abordaje
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Incidencia" asp-action="Index">
+                                <a class="nav-link" asp-controller="Conductor" asp-action="Incidencias">
                                     <i class="bi bi-exclamation-triangle me-1"></i>Incidencias
                                 </a>
                             </li>

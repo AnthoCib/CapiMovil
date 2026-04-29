@@ -1,0 +1,106 @@
+﻿@model CapiMovil.PL.Gui.Models.ViewModels.ConductorDashboardViewModel
+
+@{
+    ViewData["Title"] = "Mi Ruta";
+}
+
+<div class="dashboard-conductor">
+    <div class="dashboard-saludo mb-4">
+        <h1>Mi Ruta</h1>
+        <p>Consulta tus recorridos y paraderos asignados para hoy.</p>
+    </div>
+
+    @if (Model.RecorridosHoy == null || !Model.RecorridosHoy.Any())
+    {
+        <div class="card-conductor p-4">
+            <h2 class="titulo-card">Sin rutas asignadas</h2>
+            <p class="text-muted mb-0">No tienes recorridos programados para hoy.</p>
+        </div>
+    }
+    else
+    {
+        <div class="card-conductor p-4 mb-4">
+            <h2 class="titulo-card mb-3">Recorridos de Hoy</h2>
+
+            @foreach (var recorrido in Model.RecorridosHoy)
+            {
+                <div class="ruta-etapa-card mb-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5>@recorrido.NombreRuta</h5>
+                            <small>@recorrido.TurnoTexto</small>
+                        </div>
+
+                        <span class="badge bg-warning text-dark">@recorrido.EstadoRecorrido</span>
+                    </div>
+
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-3">
+                            <small>Código recorrido</small>
+                            <strong class="d-block">@recorrido.CodigoRecorrido</strong>
+                        </div>
+
+                        <div class="col-md-3">
+                            <small>Bus</small>
+                            <strong class="d-block">@recorrido.CodigoBus</strong>
+                        </div>
+
+                        <div class="col-md-3">
+                            <small>Hora inicio</small>
+                            <strong class="d-block">@recorrido.HoraInicioProgramada</strong>
+                        </div>
+
+                        <div class="col-md-3">
+                            <small>Hora fin</small>
+                            <strong class="d-block">@recorrido.HoraFinProgramada</strong>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="card-conductor p-4">
+            <h2 class="titulo-card mb-3">Detalle de Paraderos</h2>
+
+            <h5 class="fw-bold text-warning">Paraderos de Recojo</h5>
+
+            @foreach (var paradero in Model.ParaderosRecojo)
+            {
+                <div class="paradero-item">
+                    <span class="numero-paradero">@paradero.OrdenParada</span>
+
+                    <div class="flex-fill">
+                        <strong>@paradero.Nombre</strong>
+                        <small>@paradero.Direccion</small>
+                        <small class="d-block text-muted">
+                            Hora estimada: @(paradero.HoraEstimada?.ToString() ?? "-")
+                        </small>
+                    </div>
+
+                    <span class="pill-total">@paradero.TotalAlumnos alumnos</span>
+                </div>
+            }
+
+            <hr />
+
+            <h5 class="fw-bold text-warning">Paraderos de Entrega</h5>
+
+            @foreach (var paradero in Model.ParaderosEntrega)
+            {
+                <div class="paradero-item">
+                    <span class="numero-paradero">@paradero.OrdenParada</span>
+
+                    <div class="flex-fill">
+                        <strong>@paradero.Nombre</strong>
+                        <small>@paradero.Direccion</small>
+                        <small class="d-block text-muted">
+                            Hora estimada: @(paradero.HoraEstimada?.ToString() ?? "-")
+                        </small>
+                    </div>
+
+                    <span class="pill-total">@paradero.TotalAlumnos alumnos</span>
+                </div>
+            }
+        </div>
+    }
+</div>

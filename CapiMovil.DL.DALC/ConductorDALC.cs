@@ -224,5 +224,44 @@ namespace CapiMovil.DL.DALC
 
             return lista;
         }
+
+        public ConductorBE? ObtenerPorIdUsuario(Guid idUsuario)
+        {
+            ConductorBE? entidad = null;
+
+            using SqlConnection cn = _bdConexion.ObtenerConexion();
+            using SqlCommand cmd = new SqlCommand("sp_Conductor_ObtenerPorIdUsuario", cn);
+
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@IdUsuario", idUsuario);
+
+            cn.Open();
+
+            using SqlDataReader dr = cmd.ExecuteReader();
+
+            if (dr.Read())
+            {
+                entidad = new ConductorBE
+                {
+                    IdConductor = dr.GetGuid(dr.GetOrdinal("IdConductor")),
+                    IdUsuario = dr.GetGuid(dr.GetOrdinal("IdUsuario")),
+                    CodigoConductor = dr["CodigoConductor"]?.ToString() ?? string.Empty,
+                    Nombres = dr["Nombres"]?.ToString() ?? string.Empty,
+                    ApellidoPaterno = dr["ApellidoPaterno"]?.ToString() ?? string.Empty,
+                    ApellidoMaterno = dr["ApellidoMaterno"]?.ToString() ?? string.Empty,
+                    DNI = dr["DNI"] == DBNull.Value ? null : dr["DNI"].ToString(),
+                    Licencia = dr["Licencia"]?.ToString() ?? string.Empty,
+                    CategoriaLicencia = dr["CategoriaLicencia"] == DBNull.Value ? null : dr["CategoriaLicencia"].ToString(),
+                    Telefono = dr["Telefono"] == DBNull.Value ? null : dr["Telefono"].ToString(),
+                    Direccion = dr["Direccion"] == DBNull.Value ? null : dr["Direccion"].ToString(),
+                    Estado = Convert.ToBoolean(dr["Estado"]),
+                    FechaCreacion = Convert.ToDateTime(dr["FechaCreacion"]),
+                    FechaActualizacion = dr["FechaActualizacion"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaActualizacion"]),
+                    FechaEliminacion = dr["FechaEliminacion"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaEliminacion"])
+                };
+            }
+
+            return entidad;
+        }
     }
 }

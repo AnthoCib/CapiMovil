@@ -53,7 +53,7 @@ namespace CapiMovil.BL.BC
             return _dalc.Actualizar(entidad);
         }
 
-        public bool Eliminar(Guid id)
+        public bool Eliminar(Guid id) 
         {
             if (id == Guid.Empty)
                 throw new ArgumentException("Id inválido.");
@@ -61,9 +61,13 @@ namespace CapiMovil.BL.BC
             return _dalc.Eliminar(id);
         }
 
-     
+        public ConductorBE? ObtenerPorIdUsuario(Guid idUsuario)
+        {
+            if (idUsuario == Guid.Empty)
+                throw new ArgumentException("Id de usuario inválido.");
 
+            return _dalc.ObtenerPorIdUsuario(idUsuario);
+        }
 
-      
     }
 }

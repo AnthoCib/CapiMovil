@@ -20,3 +20,385 @@
 .btn-action {
     min-width: 90px;
 }
+
+
+
+
+/* ====================== DASHBOARD CONDUCTOR ====================== */
+
+.dashboard-conductor {
+    color: #2b2523;
+}
+
+.dashboard-saludo h1 {
+    font-weight: 800;
+    margin-bottom: .25rem;
+    color: #2b2523;
+}
+
+.dashboard-saludo p {
+    color: #7c6f68;
+    margin-bottom: 0;
+}
+
+.card-conductor,
+.card-alertas {
+    background: #fff;
+    border: 1px solid #f3e2d5;
+    border-radius: 18px;
+    box-shadow: 0 10px 24px rgba(78, 51, 31, .08);
+}
+
+.titulo-card {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #2b2523;
+}
+
+.badge-conductor {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: .35rem .75rem;
+    font-size: .8rem;
+    font-weight: 700;
+}
+
+.estado-programado {
+    background: #fff2d9;
+    color: #a86700;
+}
+
+.estado-curso {
+    background: #dff5ff;
+    color: #0b6f91;
+}
+
+.estado-finalizado {
+    background: #dcf8e8;
+    color: #16804a;
+}
+
+.estado-cancelado {
+    background: #fde2e2;
+    color: #b91c1c;
+}
+
+.bus-resumen {
+    min-width: 64px;
+    background: #fff2df;
+    border-radius: 14px;
+    padding: .65rem .75rem;
+    color: #f19a15;
+}
+
+    .bus-resumen strong {
+        display: block;
+        font-size: 1.35rem;
+        line-height: 1;
+    }
+
+    .bus-resumen span {
+        display: block;
+        font-size: .75rem;
+        color: #7c6f68;
+        margin-top: .15rem;
+    }
+
+.recorrido-datos small {
+    display: block;
+    color: #897a70;
+    font-size: .78rem;
+    margin-bottom: .2rem;
+}
+
+.recorrido-datos strong {
+    display: block;
+    color: #2b2523;
+}
+
+.ruta-etapa-card {
+    background: #fff0e2;
+    border-radius: 14px;
+    padding: 1.15rem;
+    border: 1px solid #f6dbc2;
+}
+
+    .ruta-etapa-card h5 {
+        font-weight: 800;
+        color: #40332d;
+    }
+
+    .ruta-etapa-card small {
+        color: #7c6f68;
+        font-weight: 600;
+    }
+
+.icono-etapa {
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+}
+
+.icono-manana {
+    background: #ffe4ae;
+    color: #d28200;
+}
+
+.icono-tarde {
+    background: #dff7ff;
+    color: #08718d;
+}
+
+.detalle-etapa {
+    background: #fffaf5;
+    border: 1px dashed #f3c891;
+    border-radius: 14px;
+    padding: 1rem;
+}
+
+    .detalle-etapa h6 {
+        color: #f19a15;
+        font-weight: 800;
+        margin-bottom: .8rem;
+    }
+
+.paradero-item,
+.estudiante-item {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: .8rem 0;
+    border-bottom: 1px solid #f1e8df;
+}
+
+    .paradero-item:last-child,
+    .estudiante-item:last-child {
+        border-bottom: 0;
+    }
+
+.numero-paradero {
+    width: 30px;
+    height: 30px;
+    background: #ffb23d;
+    color: #fff;
+    border-radius: 999px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .85rem;
+}
+
+.paradero-item strong,
+.estudiante-item strong {
+    display: block;
+    color: #372d28;
+}
+
+.paradero-item small,
+.estudiante-item small {
+    display: block;
+    color: #82756e;
+    font-size: .8rem;
+}
+
+.pill-total {
+    background: #fff0c4;
+    color: #9a6500;
+    border-radius: 999px;
+    padding: .35rem .65rem;
+    font-weight: 800;
+    font-size: .78rem;
+    white-space: nowrap;
+}
+
+.avatar-estudiante {
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    background: #e2f8e8;
+    color: #239555;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+}
+
+.badge-estado {
+    border-radius: 999px;
+    padding: .3rem .65rem;
+    font-weight: 800;
+    font-size: .78rem;
+}
+
+.estado-pendiente {
+    background: #fff2c9;
+    color: #a26700;
+}
+
+.btn-naranja {
+    background: #ffa51f;
+    border-color: #ffa51f;
+    color: #fff;
+    font-weight: 800;
+    border-radius: 10px;
+}
+
+    .btn-naranja:hover {
+        background: #ed9410;
+        border-color: #ed9410;
+        color: #fff;
+    }
+
+.btn-ver-todos {
+    background: #fff0e2;
+    color: #875112;
+    border: 1px solid #ffd29b;
+    font-weight: 700;
+    border-radius: 10px;
+}
+
+.acciones-recorrido {
+    display: flex;
+    justify-content: center;
+    padding-top: .5rem;
+}
+
+.card-alertas {
+    background: #fff7f4;
+    border-color: #ffd1ca;
+}
+
+    .card-alertas h3 {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #cc2525;
+        margin-bottom: 1rem;
+    }
+
+.alerta-item {
+    background: #fff;
+    border-left: 4px solid #e23a3a;
+    border-radius: 10px;
+    padding: .75rem .85rem;
+    margin-bottom: .75rem;
+}
+
+    .alerta-item strong {
+        display: block;
+        color: #b91c1c;
+        font-size: .9rem;
+    }
+
+    .alerta-item small {
+        color: #6d5c55;
+        display: block;
+        margin-top: .15rem;
+    }
+
+.sin-alertas {
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #9a8d86;
+    gap: .35rem;
+}
+
+    .sin-alertas i {
+        font-size: 2rem;
+        color: #e8c7b9;
+    }
+
+    .sin-alertas span {
+        font-size: .85rem;
+    }
+
+
+/* ====================== PALETA GENERAL CAPIMOVIL ====================== */
+
+body {
+    background: #fff8e8;
+    color: #2b2523;
+}
+
+.capi-navbar {
+    background: #fff3d8;
+    border-bottom: 1px solid #f4d9ae;
+}
+
+    .capi-navbar .navbar-brand {
+        color: #f5a623 !important;
+        font-weight: 800;
+    }
+
+        .capi-navbar .navbar-brand i {
+            color: #f5a623;
+        }
+
+    .capi-navbar .nav-link {
+        color: #6b5747 !important;
+        font-weight: 600;
+    }
+
+        .capi-navbar .nav-link:hover,
+        .capi-navbar .nav-link:focus {
+            color: #f5a623 !important;
+        }
+
+    .capi-navbar .navbar-toggler {
+        border-color: #f5c26b;
+    }
+
+    .capi-navbar .dropdown-menu {
+        border: 1px solid #f3d7b8;
+        border-radius: 14px;
+        box-shadow: 0 10px 24px rgba(78, 51, 31, .10);
+    }
+
+    .capi-navbar .dropdown-item:hover {
+        background: #fff0d4;
+        color: #d98400;
+    }
+
+main.container {
+    max-width: 1180px;
+}
+
+footer {
+    background: #fff3d8 !important;
+    border-color: #f4d9ae !important;
+}
+
+.ruta-datos-mini {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .65rem;
+}
+
+    .ruta-datos-mini div {
+        background: #fffaf5;
+        border: 1px solid #f3dfc8;
+        border-radius: 10px;
+        padding: .55rem;
+    }
+
+    .ruta-datos-mini small {
+        display: block;
+        color: #88756a;
+        font-size: .72rem;
+        margin-bottom: .15rem;
+    }
+
+    .ruta-datos-mini strong {
+        display: block;
+        color: #2b2523;
+        font-size: .85rem;
+    }
