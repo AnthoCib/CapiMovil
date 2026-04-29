@@ -67,7 +67,13 @@
 
                                         <form asp-action="Eliminar"
                                               method="post"
-                                              class="d-inline form-eliminar">
+                                              class="d-inline form-eliminar"
+                                              data-confirm
+                                              data-confirm-title="¿Estás seguro?"
+                                              data-confirm-text="Esta acción eliminará el rol seleccionado."
+                                              data-confirm-icon="warning"
+                                              data-confirm-confirm-text="Sí, eliminar"
+                                              data-confirm-cancel-text="Cancelar">
 
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@item.IdRol" />

@@ -38,13 +38,13 @@
                                 <td>@item.Ruta?.Nombre</td>
                                 <td>@item.Nombre</td>
                                 <td>@item.Direccion</td>
-                                <td>@item.OrdenParada</td>
+                                <td><span class="badge text-bg-primary">Parada N.º @item.OrdenParada</span></td>
                                 <td>@(item.HoraEstimada?.ToString(@"hh\:mm") ?? "-")</td>
                                 <td><span class="badge @(item.Estado ? "text-bg-success" : "text-bg-secondary")">@(item.Estado ? "Activo" : "Inactivo")</span></td>
                                 <td class="text-end">
                                     <div class="d-inline-flex gap-1">
                                         <a asp-action="Editar" asp-route-id="@item.IdParadero" class="btn btn-outline-warning btn-sm"><i class="bi bi-pencil-square"></i></a>
-                                        <form asp-action="Eliminar" asp-route-id="@item.IdParadero" method="post" class="d-inline form-eliminar" onsubmit="return confirm('¿Desea eliminar este paradero?');">
+                                        <form asp-action="Eliminar" asp-route-id="@item.IdParadero" method="post" class="d-inline form-eliminar" data-confirm data-confirm-title="¿Estás seguro?" data-confirm-text="Esta acción eliminará el paradero seleccionado." data-confirm-icon="warning" data-confirm-confirm-text="Sí, eliminar" data-confirm-cancel-text="Cancelar">
                                             @Html.AntiForgeryToken()
                                             <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
                                         </form>
