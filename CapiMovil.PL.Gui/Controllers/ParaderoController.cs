@@ -20,7 +20,11 @@ namespace CapiMovil.PL.Gui.Controllers
 
         public IActionResult Listar()
         {
-            var lista = _paraderoBC.Listar();
+            var lista = _paraderoBC.Listar()
+                .OrderBy(x => x.Ruta?.Nombre)
+                .ThenBy(x => x.OrdenParada)
+                .ThenBy(x => x.Nombre)
+                .ToList();
             return View(lista);
         }
 
@@ -58,7 +62,6 @@ namespace CapiMovil.PL.Gui.Controllers
                     Direccion = vm.Direccion,
                     Latitud = vm.Latitud,
                     Longitud = vm.Longitud,
-                    OrdenParada = vm.OrdenParada,
                     HoraEstimada = vm.HoraEstimada,
                     Estado = vm.Estado
                 };
@@ -66,7 +69,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 bool ok = _paraderoBC.Registrar(entidad);
 
                 TempData[ok ? "ok" : "error"] = ok
-                    ? $"Paradero registrado correctamente. Código generado: {entidad.CodigoParadero}"
+                    ? $"Paradero registrado correctamente como parada N.º {entidad.OrdenParada}. Código generado: {entidad.CodigoParadero}"
                     : "No se pudo registrar el paradero.";
 
                 if (ok)
@@ -133,7 +136,7 @@ namespace CapiMovil.PL.Gui.Controllers
                     Direccion = vm.Direccion,
                     Latitud = vm.Latitud,
                     Longitud = vm.Longitud,
-                    OrdenParada = vm.OrdenParada,
+                    OrdenParada = vm.OrdenParada.GetValueOrDefault(),
                     HoraEstimada = vm.HoraEstimada,
                     Estado = vm.Estado
                 };

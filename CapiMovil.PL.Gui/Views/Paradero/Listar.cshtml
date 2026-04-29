@@ -38,7 +38,7 @@
                                 <td>@item.Ruta?.Nombre</td>
                                 <td>@item.Nombre</td>
                                 <td>@item.Direccion</td>
-                                <td>@item.OrdenParada</td>
+                                <td><span class="badge text-bg-primary">Parada N.º @item.OrdenParada</span></td>
                                 <td>@(item.HoraEstimada?.ToString(@"hh\:mm") ?? "-")</td>
                                 <td><span class="badge @(item.Estado ? "text-bg-success" : "text-bg-secondary")">@(item.Estado ? "Activo" : "Inactivo")</span></td>
                                 <td class="text-end">

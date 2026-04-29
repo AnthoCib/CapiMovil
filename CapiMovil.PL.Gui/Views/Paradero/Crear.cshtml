@@ -15,7 +15,7 @@
         <div class="card shadow-sm border-0 h-100">
             <div class="card-header bg-white border-0 pt-4 pb-0">
                 <h2 class="h4 fw-bold mb-1"><i class="bi bi-signpost-split-fill text-primary me-2"></i>Registrar paradero</h2>
-                <p class="text-muted mb-0">Define los datos del paradero y su orden en la ruta.</p>
+                <p class="text-muted mb-0">Define los datos del paradero. El orden de parada se asigna automáticamente por ruta.</p>
             </div>
             <div class="card-body">
                 <form asp-action="Crear" method="post">
@@ -37,9 +37,11 @@
                             <span asp-validation-for="Nombre" class="text-danger"></span>
                         </div>
                         <div class="col-md-6">
-                            <label asp-for="OrdenParada" class="form-label"></label>
-                            <input asp-for="OrdenParada" class="form-control" />
-                            <span asp-validation-for="OrdenParada" class="text-danger"></span>
+                            <label class="form-label">Orden de Parada</label>
+                            <div class="alert alert-info d-flex align-items-center gap-2 py-2 px-3 mb-0">
+                                <i class="bi bi-info-circle-fill"></i>
+                                <span>Se asignará automáticamente según la ruta seleccionada.</span>
+                            </div>
                         </div>
                         <div class="col-12">
                             <label asp-for="Direccion" class="form-label"></label>

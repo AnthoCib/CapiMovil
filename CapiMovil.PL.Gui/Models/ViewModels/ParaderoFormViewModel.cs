@@ -30,10 +30,8 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
         [Range(-180d, 180d, ErrorMessage = "La longitud debe estar entre -180 y 180.")]
         public decimal? Longitud { get; set; }
 
-        [Required(ErrorMessage = "El orden de parada es obligatorio.")]
-        [Range(1, 999, ErrorMessage = "El orden de parada debe ser mayor a 0.")]
         [Display(Name = "Orden de Parada")]
-        public int OrdenParada { get; set; }
+        public int? OrdenParada { get; set; }
 
         [Display(Name = "Hora Estimada")]
         [DataType(DataType.Time)]
