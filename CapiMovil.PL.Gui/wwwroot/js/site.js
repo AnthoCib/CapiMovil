@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
      */
     [
         { toggleId: "adminNotificationToggle", panelId: "adminNotificationPanel", listId: "adminNotificationList", dataNodeId: "admin-notification-data" },
-        { toggleId: "conductorNotificationToggle", panelId: "conductorNotificationPanel", listId: "conductor-notification-data" },
+        { toggleId: "conductorNotificationToggle", panelId: "conductorNotificationPanel", listId: "conductorNotificationList", dataNodeId: "conductor-notification-data" },
         { toggleId: "padreNotificationToggle", panelId: "padreNotificationPanel", listId: "padreNotificationList", dataNodeId: "padre-notification-data" }
     ].forEach(inicializarPanelNotificaciones);
 
@@ -272,6 +272,16 @@ function inicializarConfirmacionesGlobales() {
             }
 
             e.preventDefault();
+
+            if (typeof Swal === "undefined" || typeof Swal.fire !== "function") {
+                const texto = form.dataset.confirmText || "Esta acción eliminará el registro seleccionado y no se puede deshacer.";
+                const confirmar = window.confirm(texto);
+                if (confirmar) {
+                    form.dataset.confirmed = "1";
+                    form.submit();
+                }
+                return;
+            }
 
             Swal.fire({
                 title: form.dataset.confirmTitle || "¿Estás seguro?",
