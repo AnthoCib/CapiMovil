@@ -1,5 +1,7 @@
 ﻿using CapiMovil.BL.BE;
 using CapiMovil.DL.DALC;
+using System.Data;
+using System.Data.SqlClient;
 
 namespace CapiMovil.BL.BC
 {
@@ -231,6 +233,97 @@ namespace CapiMovil.BL.BC
             return ok;
         }
 
+        public List<EstudianteBE> ListarDestinatariosPorRecorrido(Guid idRecorrido)
+        {
+            if (idRecorrido == Guid.Empty)
+                throw new ArgumentException("El id del recorrido es inválido.");
+
+            return _recorridoDALC.ListarDestinatariosPorRecorrido(idRecorrido);
+        }
+
+        public List<EstudianteBE> ListarEstudiantesPorRecorrido(Guid idRecorrido)
+        {
+            if (idRecorrido == Guid.Empty)
+                throw new ArgumentException("El id del recorrido es inválido.");
+
+            return _recorridoDALC.ListarEstudiantesPorRecorrido(idRecorrido);
+        }
+
+        public bool RegistrarEventoAbordaje(Guid idRecorrido, Guid idEstudiante, string tipoEvento, string? observacion)
+        {
+            if (idRecorrido == Guid.Empty || idEstudiante == Guid.Empty)
+                throw new ArgumentException("Id de recorrido o estudiante inválido.");
+
+            string tipo = (tipoEvento ?? "").Trim().ToUpperInvariant();
+
+            if (tipo != "SUBIDA" &&
+                tipo != "BAJADA" &&
+                tipo != "AUSENTE" &&
+                tipo != "NO_ABORDO")
+            {
+                throw new ArgumentException("Tipo de evento no válido.");
+            }
+
+            bool ok = _recorridoDALC.RegistrarEventoAbordaje(idRecorrido, idEstudiante, tipo, observacion);
+
+            if (ok)
+            {
+                RegistrarAuditoria(
+                    "INSERT",
+                    null,
+                    null,
+                    new
+                    {
+                        IdRecorrido = idRecorrido,
+                        IdEstudiante = idEstudiante,
+                        TipoEvento = tipo,
+                        Observacion = observacion
+                    },
+                    "Se registró evento de abordaje");
+            }
+
+            return ok;
+        }
+
+        // ====================== MÉTODOS PARA DASHBOARD DEL CONDUCTOR ======================
+
+        public List<RecorridoBE> ListarHoyPorConductor(Guid idConductor, DateTime fecha)
+        {
+            if (idConductor == Guid.Empty)
+                throw new ArgumentException("Id de conductor inválido.");
+
+            return _recorridoDALC.ListarHoyPorConductor(idConductor, fecha);
+        }
+
+        public List<EstudianteRutaEstadoBE> ListarEstudiantesPorRecorridoConductor(Guid idRecorrido)
+        {
+            if (idRecorrido == Guid.Empty)
+                throw new ArgumentException("Id de recorrido inválido.");
+
+            return _recorridoDALC.ListarEstudiantesPorRecorridoConductor(idRecorrido);
+        }
+
+        public List<ParaderoConductorBE> ListarParaderosPorRecorrido(Guid idRecorrido, string tipoParadero)
+        {
+            if (idRecorrido == Guid.Empty)
+                throw new ArgumentException("Id de recorrido inválido.");
+
+            string tipo = (tipoParadero ?? "").Trim().ToUpperInvariant();
+
+            if (tipo != "SUBIDA" && tipo != "BAJADA")
+                throw new ArgumentException("Tipo de paradero no válido.");
+
+            return _recorridoDALC.ListarParaderosPorRecorrido(idRecorrido, tipo);
+        }
+
+        public List<IncidenciaBE> ListarIncidenciasPendientesConductor(Guid idRecorrido)
+        {
+            if (idRecorrido == Guid.Empty)
+                throw new ArgumentException("Id de recorrido inválido.");
+
+            return _recorridoDALC.ListarIncidenciasPendientesConductor(idRecorrido);
+        }
+
         private static void Validar(RecorridoBE entidad)
         {
             if (entidad == null)
@@ -246,6 +339,7 @@ namespace CapiMovil.BL.BC
                 throw new ArgumentException("Debe seleccionar un conductor.");
 
             string estado = (entidad.EstadoRecorrido ?? "").Trim().ToUpperInvariant();
+
             if (estado != "PROGRAMADO" &&
                 estado != "EN_CURSO" &&
                 estado != "FINALIZADO" &&
@@ -295,7 +389,8 @@ namespace CapiMovil.BL.BC
 
         private object CrearSnapshotRecorrido(RecorridoBE? r)
         {
-            if (r == null) return new { };
+            if (r == null)
+                return new { };
 
             return new
             {
@@ -313,6 +408,89 @@ namespace CapiMovil.BL.BC
                 r.Observaciones,
                 r.Estado
             };
+        }
+        public bool PuedeIniciarSegunOrden(Guid idRecorrido)
+        {
+            if (idRecorrido == Guid.Empty)
+                throw new ArgumentException("Id de recorrido inválido.");
+
+            return _recorridoDALC.PuedeIniciarSegunOrden(idRecorrido);
+        }
+        public List<EstudianteBE> ListarEstudiantesPorParaderoConductor(Guid idRecorrido, Guid idParadero, string tipoParadero)
+        {
+            if (idRecorrido == Guid.Empty)
+                throw new ArgumentException("Id de recorrido inválido.");
+
+            if (idParadero == Guid.Empty)
+                throw new ArgumentException("Id de paradero inválido.");
+
+            string tipo = (tipoParadero ?? "").Trim().ToUpperInvariant();
+
+            if (tipo != "SUBIDA" && tipo != "BAJADA")
+                throw new ArgumentException("Tipo de paradero no válido.");
+
+            return _recorridoDALC.ListarEstudiantesPorParaderoConductor(idRecorrido, idParadero, tipo);
+        }
+
+        public bool RegistrarEventoAbordajeConductor(
+            Guid idRecorrido,
+            Guid idEstudiante,
+            Guid idParadero,
+            Guid registradoPor,
+            string tipoEvento,
+            string? observacion)
+        {
+            if (idRecorrido == Guid.Empty)
+                throw new ArgumentException("Id de recorrido inválido.");
+
+            if (idEstudiante == Guid.Empty)
+                throw new ArgumentException("Id de estudiante inválido.");
+
+            if (idParadero == Guid.Empty)
+                throw new ArgumentException("Id de paradero inválido.");
+
+            if (registradoPor == Guid.Empty)
+                throw new ArgumentException("Id de usuario inválido.");
+
+            string tipo = (tipoEvento ?? "").Trim().ToUpperInvariant();
+
+            if (tipo != "SUBIDA" &&
+                tipo != "BAJADA" &&
+                tipo != "AUSENTE" &&
+                tipo != "NO_ABORDO")
+            {
+                throw new ArgumentException("Tipo de evento no válido.");
+            }
+
+            bool ok = _recorridoDALC.RegistrarEventoAbordajeConductor(
+                idRecorrido,
+                idEstudiante,
+                idParadero,
+                registradoPor,
+                tipo,
+                observacion
+            );
+
+            if (ok)
+            {
+                RegistrarAuditoria(
+                    "INSERT",
+                    null,
+                    null,
+                    new
+                    {
+                        IdRecorrido = idRecorrido,
+                        IdEstudiante = idEstudiante,
+                        IdParadero = idParadero,
+                        RegistradoPor = registradoPor,
+                        TipoEvento = tipo,
+                        Observacion = observacion
+                    },
+                    "Se registró evento de abordaje del conductor"
+                );
+            }
+
+            return ok;
         }
     }
 }

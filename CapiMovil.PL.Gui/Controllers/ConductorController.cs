@@ -2,6 +2,7 @@
 using CapiMovil.BL.BE;
 using CapiMovil.PL.Gui.Infrastructure;
 using CapiMovil.PL.Gui.Models.ViewModels;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -47,7 +48,8 @@ namespace CapiMovil.PL.Gui.Controllers
             _ubicacionBusBC = ubicacionBusBC;
         }
 
-        public IActionResult Index()
+        [HttpGet]
+        public IActionResult Index(Guid? idRecorridoOperacion, Guid? idParaderoActual, string? tipoParadero)
         {
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
             if (acceso != null)
@@ -924,6 +926,210 @@ namespace CapiMovil.PL.Gui.Controllers
                     Selected = u.IdUsuario == idUsuarioActual
                 })
                 .ToList();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult RegistrarIncidenciaConductor(
+    Guid idRecorrido,
+    string tipoIncidencia,
+    string prioridad,
+    string descripcion)
+        {
+            try
+            {
+                string? usuarioId = HttpContext.Session.GetString("UsuarioId");
+
+                if (string.IsNullOrEmpty(usuarioId))
+                    return RedirectToAction("Login", "Auth");
+
+                Guid idUsuario = Guid.Parse(usuarioId);
+
+                ConductorBE? conductor = _conductorBC.ObtenerPorIdUsuario(idUsuario);
+
+                if (conductor == null)
+                {
+                    TempData["error"] = "No se encontró el conductor asociado al usuario.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                if (idRecorrido == Guid.Empty)
+                {
+                    TempData["error"] = "No hay recorrido seleccionado para registrar la incidencia.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                string tipo = (tipoIncidencia ?? "").Trim().ToUpperInvariant();
+                string nivelPrioridad = (prioridad ?? "").Trim().ToUpperInvariant();
+                string detalle = (descripcion ?? "").Trim();
+
+                if (string.IsNullOrWhiteSpace(tipo))
+                {
+                    TempData["error"] = "Debe seleccionar el tipo de incidencia.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                if (string.IsNullOrWhiteSpace(detalle))
+                {
+                    TempData["error"] = "Debe ingresar una descripción.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                if (string.IsNullOrWhiteSpace(nivelPrioridad))
+                    nivelPrioridad = "MEDIA";
+
+                IncidenciaBE incidencia = new IncidenciaBE
+                {
+                    IdRecorrido = idRecorrido,
+                    IdConductor = conductor.IdConductor,
+                    ReportadoPor = idUsuario,
+                    TipoIncidencia = tipo,
+                    Descripcion = detalle,
+                    FechaHora = DateTime.Now,
+                    EstadoIncidencia = "PENDIENTE",
+                    Prioridad = nivelPrioridad,
+                    Solucion = null
+                };
+
+                bool ok = _incidenciaBC.Registrar(incidencia);
+
+                TempData[ok ? "ok" : "error"] = ok
+                    ? "Incidencia registrada correctamente. Se notificará a los padres del recorrido."
+                    : "No se pudo registrar la incidencia.";
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+        [HttpGet]
+        public IActionResult MiBus()
+        {
+            IActionResult? acceso = ValidarAccesoConductor();
+
+            if (acceso != null)
+                return acceso;
+
+            ConductorDashboardViewModel vm = ConstruirDashboardConductor();
+            return View(vm);
+        }
+
+        [HttpGet]
+        public IActionResult MiRuta()
+        {
+            IActionResult? acceso = ValidarAccesoConductor();
+
+            if (acceso != null)
+                return acceso;
+
+            ConductorDashboardViewModel vm = ConstruirDashboardConductor();
+            return View(vm);
+        }
+
+        [HttpGet]
+        public IActionResult Estudiantes()
+        {
+            IActionResult? acceso = ValidarAccesoConductor();
+
+            if (acceso != null)
+                return acceso;
+
+            ConductorDashboardViewModel vm = ConstruirDashboardConductor();
+            return View(vm);
+        }
+
+        [HttpGet]
+        public IActionResult Recorrido()
+        {
+            IActionResult? acceso = ValidarAccesoConductor();
+
+            if (acceso != null)
+                return acceso;
+
+            ConductorDashboardViewModel vm = ConstruirDashboardConductor();
+            return View(vm);
+        }
+
+        [HttpGet]
+        public IActionResult Incidencias()
+        {
+            IActionResult? acceso = ValidarAccesoConductor();
+
+            if (acceso != null)
+                return acceso;
+
+            ConductorDashboardViewModel vm = ConstruirDashboardConductor();
+
+            if (vm.RecorridoActual != null)
+            {
+                vm.IncidenciasPendientes = _incidenciaBC.Listar()
+                    .Where(i => i.IdRecorrido == vm.RecorridoActual.IdRecorrido)
+                    .OrderByDescending(i => i.FechaHora)
+                    .Select(i => new IncidenciaResumenConductorViewModel
+                    {
+                        TipoIncidencia = i.TipoIncidencia,
+                        Descripcion = i.Descripcion,
+                        Prioridad = i.Prioridad,
+                        FechaHora = i.FechaHora
+                    })
+                    .ToList();
+            }
+
+            return View(vm);
+        }
+        private IActionResult? ValidarAccesoConductor()
+        {
+            string? usuarioId = HttpContext.Session.GetString("UsuarioId");
+            string? rol = HttpContext.Session.GetString("RolNombre");
+
+            if (string.IsNullOrEmpty(usuarioId))
+                return RedirectToAction("Login", "Auth");
+
+            if ((rol ?? "").Trim().ToUpperInvariant() != "CONDUCTOR")
+                return RedirectToAction("AccesoDenegado", "Auth");
+
+            return null;
+        }
+
+        private ConductorDashboardViewModel ConstruirDashboardConductor()
+        {
+            ConductorDashboardViewModel vm = new ConductorDashboardViewModel
+            {
+                NombreConductor = HttpContext.Session.GetString("Username") ?? "Conductor"
+            };
+
+            string? usuarioId = HttpContext.Session.GetString("UsuarioId");
+
+            if (string.IsNullOrEmpty(usuarioId))
+                return vm;
+
+            Guid idUsuario = Guid.Parse(usuarioId);
+
+            ConductorBE? conductor = _conductorBC.ObtenerPorIdUsuario(idUsuario);
+
+            if (conductor == null)
+                return vm;
+
+            vm.NombreConductor = conductor.NombreCompleto;
+
+            List<RecorridoBE> recorridosHoy = _recorridoBC.ListarHoyPorConductor(
+                conductor.IdConductor,
+                DateTime.Today
+            );
+
+            vm.RecorridoActual = recorridosHoy.FirstOrDefault();
+
+            vm.RecorridosHoy = recorridosHoy
+                .Select(r => CrearResumenRecorrido(r))
+                .ToList();
+
+            if (vm.RecorridoActual != null)
+            {
+                CargarDatosRecorrido(vm, vm.RecorridoActual.IdRecorrido);
+            }
+
+            return vm;
         }
     }
 }

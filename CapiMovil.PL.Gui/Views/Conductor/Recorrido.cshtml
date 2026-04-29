@@ -1,115 +1,21 @@
-@model List<CapiMovil.BL.BE.RecorridoBE>
+@model CapiMovil.PL.Gui.Models.ViewModels.ConductorDashboardViewModel
+
 @{
-    ViewData["Title"] = "Recorrido en curso";
+    ViewData["Title"] = "Recorrido";
 }
 
-<div class="conductor-shell">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
-        <div>
-            <h1 class="h3 fw-bold mb-1"><i class="bi bi-geo-alt-fill me-2 text-primary"></i>Recorrido en curso</h1>
-            <p class="text-muted mb-0">Controla el estado operativo de cada recorrido asignado.</p>
-        </div>
+<div class="dashboard-conductor">
+    <div class="dashboard-saludo mb-4">
+        <h1>Recorrido</h1>
+        <p>Esta sección queda reservada para el mapa del recorrido.</p>
     </div>
 
-    @if (!Model.Any())
-    {
-        <div class="alert alert-info border-0 shadow-sm">
-            <i class="bi bi-info-circle me-2"></i>No hay recorridos asignados al conductor.
-        </div>
-    }
-    else
-    {
-        <div class="row g-3">
-            @foreach (var r in Model)
-            {
-                var estado = (r.EstadoRecorrido ?? string.Empty).Trim().ToUpperInvariant();
-                var badge = estado switch
-                {
-                    "EN_CURSO" => "bg-success-subtle text-success",
-                    "PROGRAMADO" => "bg-warning-subtle text-warning-emphasis",
-                    "FINALIZADO" => "bg-secondary-subtle text-secondary",
-                    _ => "bg-light text-dark"
-                };
-
-                var progreso = estado switch
-                {
-                    "PROGRAMADO" => 25,
-                    "EN_CURSO" => 65,
-                    "FINALIZADO" => 100,
-                    _ => 10
-                };
-
-                <div class="col-12">
-                    <div class="card border-0 shadow-sm conductor-trip-card">
-                        <div class="card-body p-4">
-                            <div class="d-flex flex-column flex-xl-row justify-content-between gap-3">
-                                <div class="flex-grow-1">
-                                    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-                                        <span class="badge rounded-pill @badge px-3 py-2">@estado.Replace("_", " ")</span>
-                                        <span class="badge text-bg-light text-primary px-3 py-2">@r.CodigoRecorrido</span>
-                                    </div>
-
-                                    <div class="row g-3">
-                                        <div class="col-sm-6 col-lg-3">
-                                            <span class="text-muted small d-block">Fecha</span>
-                                            <strong>@r.Fecha.ToString("dd/MM/yyyy")</strong>
-                                        </div>
-                                        <div class="col-sm-6 col-lg-3">
-                                            <span class="text-muted small d-block">Ruta</span>
-                                            <strong>@(r.Ruta?.Nombre ?? "-")</strong>
-                                        </div>
-                                        <div class="col-sm-6 col-lg-3">
-                                            <span class="text-muted small d-block">Bus</span>
-                                            <strong>@(r.Bus?.Placa ?? "-")</strong>
-                                        </div>
-                                        <div class="col-sm-6 col-lg-3">
-                                            <span class="text-muted small d-block">Detalle de etapa</span>
-                                            <strong>@(estado == "EN_CURSO" ? "En operación" : estado == "PROGRAMADO" ? "Pendiente de iniciar" : "Completado")</strong>
-                                        </div>
-                                    </div>
-
-                                    <div class="mt-3">
-                                        <div class="d-flex justify-content-between small text-muted mb-1">
-                                            <span>Progreso de etapa</span>
-                                            <span>@progreso%</span>
-                                        </div>
-                                        <div class="progress" style="height: 10px;">
-                                            <div class="progress-bar bg-primary" role="progressbar" style="width: @progreso%;"></div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="d-grid gap-2 conductor-action-stack">
-                                    @if (estado == "PROGRAMADO")
-                                    {
-                                        <form asp-action="IniciarRecorrido" method="post">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="idRecorrido" value="@r.IdRecorrido" />
-                                            <button type="submit" class="btn btn-success btn-lg conductor-btn-lg w-100">
-                                                <i class="bi bi-play-fill me-2"></i>Iniciar etapa
-                                            </button>
-                                        </form>
-                                    }
-                                    @if (estado == "EN_CURSO")
-                                    {
-                                        <form asp-action="FinalizarRecorrido" method="post">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="idRecorrido" value="@r.IdRecorrido" />
-                                            <button type="submit" class="btn btn-primary btn-lg conductor-btn-lg w-100">
-                                                <i class="bi bi-flag-fill me-2"></i>Finalizar etapa
-                                            </button>
-                                        </form>
-                                    }
-
-                                    <a asp-action="Abordaje" class="btn btn-outline-primary btn-lg conductor-btn-lg w-100">
-                                        <i class="bi bi-check2-square me-2"></i>Detalle de parada
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
+    <div class="card-conductor p-4 text-center">
+        <i class="bi bi-map fs-1 text-warning"></i>
+        <h2 class="titulo-card mt-3">Mapa pendiente</h2>
+        <p class="text-muted mb-0">
+            Aquí se podrá integrar el mapa o seguimiento del recorrido.
+        </p>
+    </div>
     }
 </div>

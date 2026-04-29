@@ -78,7 +78,7 @@ namespace CapiMovil.BL.BC
             return _dalc.Actualizar(entidad);
         }
 
-        public bool Eliminar(Guid id)
+        public bool Eliminar(Guid id) 
         {
             if (id == Guid.Empty)
                 throw new ArgumentException("Id inválido.");
