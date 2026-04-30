@@ -28,7 +28,7 @@
                     <i class="bi bi-envelope"></i>
                     <input asp-for="UsuarioOCorreo"
                            class="form-control"
-                           placeholder="Correo electrónico"
+                           placeholder="Correo electrónico" aria-label="Usuario o correo"
                            autocomplete="username" />
                 </div>
                 <span asp-validation-for="UsuarioOCorreo" class="text-danger small d-block mb-2"></span>
@@ -38,7 +38,7 @@
                     <input asp-for="Password"
                            id="passwordInput"
                            class="form-control"
-                           placeholder="Contraseña"
+                           placeholder="Contraseña" aria-label="Contraseña"
                            autocomplete="current-password" />
 
                     <button type="button"

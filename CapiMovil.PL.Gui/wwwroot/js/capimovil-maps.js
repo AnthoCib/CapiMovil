@@ -643,11 +643,66 @@
         return { map: map };
     }
 
+
+    function createRecorridoTrackingMap(options) {
+        const mapElement = document.getElementById(options.mapId);
+        if (!mapElement || typeof L === 'undefined') return null;
+
+        const estadoElement = options.estadoElementId ? document.getElementById(options.estadoElementId) : null;
+        const updatedElement = options.updatedElementId ? document.getElementById(options.updatedElementId) : null;
+        const emptyElement = options.emptyElementId ? document.getElementById(options.emptyElementId) : null;
+
+        const map = L.map(mapElement).setView(options.defaultCenter || [-12.046374, -77.042793], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+        const markers = L.layerGroup().addTo(map);
+        let busMarker = null;
+
+        function validLatLng(lat, lng) { return Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180; }
+        function toLatLng(item) { const lat = toNumber(getProp(item, 'latitud')); const lng = toNumber(getProp(item, 'longitud')); return validLatLng(lat, lng) ? [lat, lng] : null; }
+
+        function paint(data) {
+            markers.clearLayers();
+            const bounds = [];
+            const paraderos = Array.isArray(getProp(data, 'paraderos')) ? getProp(data, 'paraderos') : [];
+            const ruta = getProp(data, 'ruta');
+            const estado = getProp(data, 'estadoRecorrido') || 'SIN_ESTADO';
+            if (estadoElement) estadoElement.textContent = estado;
+
+            const routePoints = [];
+            if (ruta) {
+                const ini = [toNumber(getProp(ruta, 'latitudInicio')), toNumber(getProp(ruta, 'longitudInicio'))];
+                const fin = [toNumber(getProp(ruta, 'latitudFin')), toNumber(getProp(ruta, 'longitudFin'))];
+                if (validLatLng(ini[0], ini[1])) { routePoints.push(ini); bounds.push(ini); L.marker(ini).bindTooltip('Inicio').addTo(markers); }
+                if (validLatLng(fin[0], fin[1])) { routePoints.push(fin); bounds.push(fin); L.marker(fin).bindTooltip('Fin').addTo(markers); }
+            }
+
+            paraderos.forEach(function (p) { const ll = toLatLng(p); if (!ll) return; bounds.push(ll); routePoints.push(ll); L.circleMarker(ll,{radius:7,color:'#7c3aed',fillColor:'#a78bfa',fillOpacity:.9}).bindPopup(`<strong>${getProp(p,'nombre')||'Paradero'}</strong><br/>${getProp(p,'direccion')||''}`).addTo(markers); });
+            if (routePoints.length > 1) L.polyline(routePoints, { color: '#2563eb', weight: 4, opacity: 0.85 }).addTo(markers);
+
+            const ubicacion = getProp(data, 'ubicacionActual');
+            const busLat = toNumber(getProp(ubicacion, 'latitud')); const busLng = toNumber(getProp(ubicacion, 'longitud'));
+            if (validLatLng(busLat, busLng)) {
+                const busIcon = L.divIcon({ className: 'capi-bus-icon', html: '<i class="bi bi-bus-front-fill"></i>', iconSize: [30, 30], iconAnchor: [15, 15] });
+                busMarker = L.marker([busLat, busLng], { icon: busIcon }).bindPopup('Ubicación actual del bus').addTo(markers);
+                bounds.push([busLat, busLng]);
+                if (updatedElement) updatedElement.textContent = getProp(ubicacion, 'fechaHora') || 'Sin fecha';
+            }
+
+            if (bounds.length > 0) { map.fitBounds(L.latLngBounds(bounds).pad(0.2)); if (emptyElement) emptyElement.classList.add('d-none'); }
+            else if (emptyElement) { emptyElement.classList.remove('d-none'); }
+        }
+
+        fetch(options.apiUrl).then(r => r.ok ? r.json() : Promise.reject(r.statusText)).then(paint).catch(e => { console.error('Mapa recorrido:', e); if (emptyElement) emptyElement.classList.remove('d-none'); });
+        setTimeout(function(){ map.invalidateSize(); }, 200);
+        return { map: map, centerBus: function(){ if (busMarker) map.setView(busMarker.getLatLng(),16); }, fitAll: function(){ const g=L.featureGroup(Object.values(markers._layers)); if(Object.keys(markers._layers).length) map.fitBounds(g.getBounds().pad(0.2)); } };
+    }
+
     window.CapiMovilMaps = {
         createPointPicker: createPointPicker,
         createRouteViewer: createRouteViewer,
         createRouteEditor: createRouteEditor,
         createLiveMonitoringMap: createLiveMonitoringMap,
+        createRecorridoTrackingMap: createRecorridoTrackingMap,
         bindImagePreview: bindImagePreview
     };
 })(window);

@@ -1,5 +1,5 @@
 .capimovil-login-page {
-    min-height: 80vh;
+    min-height: 100vh;
     background: #eaf4ff;
     display: flex;
     align-items: center;
@@ -10,7 +10,7 @@
 
 .capimovil-login-stage {
     position: relative;
-    width: min(1120px, 92vw);
+    width: min(1080px, 92vw);
     height: min(640px, calc(100vh - 1.2rem));
     border-radius: 28px;
     overflow: hidden;
@@ -28,7 +28,7 @@
 
 .capimovil-login-form-layer {
     position: absolute;
-    top: 14%;
+    top: 11%;
     right: 6.5%;
     width: min(40%, 390px);
 }
@@ -42,7 +42,7 @@
 }
 
 .capimovil-title {
-    font-size: 2.15rem;
+    font-size: 1.8rem;
     font-weight: 800;
     line-height: 1;
     color: #0d3f75;
@@ -175,8 +175,8 @@
 
     .capimovil-login-stage {
         width: 100%;
-        height: 720px;
-        max-height: none;
+        height: min(640px, calc(100dvh - 1rem));
+        max-height: 640px;
         border-radius: 24px;
     }
 
