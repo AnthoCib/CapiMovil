@@ -428,48 +428,78 @@
         flex-direction: column;
     }
 }
-
 /* ============================================================
    DASHBOARD CONDUCTOR - FLUJO PRINCIPAL
+   Paleta suave crema / dorado
    ============================================================ */
 
 .dashboard-conductor {
-    background: linear-gradient(180deg, #fff7ed 0%, #f8f9fa 45%, #f8f9fa 100%);
+    --capi-bg: #f4efe3;
+    --capi-bg-soft: #faf6ee;
+    --capi-card: #fffdf8;
+    --capi-card-soft: #fff9ef;
+    --capi-border: #eadcc4;
+    --capi-border-soft: #f2e7d5;
+    --capi-primary: #d7a637;
+    --capi-primary-dark: #9a6a18;
+    --capi-primary-hover: #b98722;
+    --capi-primary-soft: #f4e3b4;
+    --capi-primary-light: #fff5db;
+    --capi-text: #2f2a23;
+    --capi-muted: #756b5c;
+    --capi-success-bg: #e7f4ec;
+    --capi-success-text: #3f7a5a;
+    --capi-success-border: #bfdcc9;
+    --capi-warning-bg: #f8edd0;
+    --capi-warning-text: #80601e;
+    --capi-warning-border: #ead7a4;
+    --capi-danger-bg: #faece8;
+    --capi-danger-text: #a25547;
+    --capi-danger-border: #e6b6ac;
+    --capi-info-bg: #edf3f7;
+    --capi-info-text: #557082;
+    --capi-info-border: #c8d8e2;
+    background: linear-gradient(180deg, var(--capi-bg) 0%, var(--capi-bg-soft) 55%, var(--capi-bg) 100%);
     border-radius: 1.25rem;
     padding: 1rem;
 }
 
+/* Encabezado / saludo */
 .dashboard-saludo {
-    background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
-    color: #fff;
+    background: linear-gradient(135deg, #efe0b5 0%, #d7b45d 100%);
+    color: #3c2d12;
     border-radius: 1.25rem;
     padding: 1.6rem;
-    box-shadow: 0 10px 25px rgba(249, 115, 22, 0.22);
+    box-shadow: 0 10px 25px rgba(148, 111, 35, 0.14);
 }
 
     .dashboard-saludo h1 {
         font-weight: 800;
         margin-bottom: .25rem;
+        color: #2f2a23;
     }
 
     .dashboard-saludo p {
         margin-bottom: 0;
-        opacity: .95;
+        color: #5f4b24;
+        opacity: 1;
     }
 
+/* Cards principales */
 .card-conductor {
-    background: #fff;
-    border: 1px solid #f1e7dc;
+    background: var(--capi-card);
+    border: 1px solid var(--capi-border);
     border-radius: 1.25rem;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+    box-shadow: 0 8px 24px rgba(92, 72, 39, 0.08);
 }
 
 .titulo-card {
-    color: #1f2937;
+    color: var(--capi-text);
     font-weight: 800;
     font-size: 1.35rem;
 }
 
+/* Badges generales */
 .badge-conductor {
     display: inline-flex;
     align-items: center;
@@ -477,40 +507,47 @@
     padding: .35rem .75rem;
     font-size: .8rem;
     font-weight: 700;
+    border: 1px solid transparent;
 }
 
 .estado-programado {
-    background: #fff7ed;
-    color: #c2410c;
+    background: var(--capi-warning-bg);
+    color: var(--capi-warning-text);
+    border-color: var(--capi-warning-border);
 }
 
 .estado-curso {
-    background: #eff6ff;
-    color: #1d4ed8;
+    background: var(--capi-info-bg);
+    color: var(--capi-info-text);
+    border-color: var(--capi-info-border);
 }
 
 .estado-finalizado {
-    background: #ecfdf5;
-    color: #047857;
+    background: var(--capi-success-bg);
+    color: var(--capi-success-text);
+    border-color: var(--capi-success-border);
 }
 
 .estado-cancelado {
-    background: #fef2f2;
-    color: #b91c1c;
+    background: var(--capi-danger-bg);
+    color: var(--capi-danger-text);
+    border-color: var(--capi-danger-border);
 }
 
 .estado-pendiente {
-    background: #f3f4f6;
-    color: #4b5563;
+    background: #f0ece4;
+    color: #6f6253;
+    border: 1px solid #ddd1bf;
 }
 
+/* Bus resumen */
 .bus-resumen {
     min-width: 78px;
-    background: #fff7ed;
-    color: #c2410c;
+    background: var(--capi-primary-light);
+    color: var(--capi-primary-dark);
     border-radius: 1rem;
     padding: .7rem .85rem;
-    border: 1px solid #fed7aa;
+    border: 1px solid var(--capi-border);
 }
 
     .bus-resumen strong {
@@ -521,70 +558,86 @@
     .bus-resumen span {
         display: block;
         font-size: .75rem;
-        color: #9a3412;
+        color: var(--capi-muted);
     }
 
+/* Datos del recorrido */
 .recorrido-datos small {
     display: block;
-    color: #6b7280;
+    color: var(--capi-muted);
     font-weight: 600;
     margin-bottom: .25rem;
 }
 
 .recorrido-datos strong {
     display: block;
-    color: #1f2937;
+    color: var(--capi-text);
 }
 
+/* Tarjetas de ruta */
 .ruta-etapa-card {
-    background: #fffaf5;
-    border: 1px solid #fed7aa;
+    background: var(--capi-card-soft);
+    border: 1px solid var(--capi-border);
     border-radius: 1rem;
     padding: 1rem;
 }
 
     .ruta-etapa-card h5 {
         font-weight: 800;
-        color: #1f2937;
+        color: var(--capi-text);
     }
 
     .ruta-etapa-card small {
-        color: #6b7280;
+        color: var(--capi-muted);
     }
 
+/* Botón principal naranja/dorado suave */
 .btn-naranja {
-    background: #f97316;
-    border-color: #f97316;
-    color: #fff;
+    background: var(--capi-primary);
+    border-color: var(--capi-primary);
+    color: #3c2d12;
     font-weight: 700;
     border-radius: .75rem;
 }
 
     .btn-naranja:hover {
-        background: #ea580c;
-        border-color: #ea580c;
+        background: var(--capi-primary-hover);
+        border-color: var(--capi-primary-hover);
         color: #fff;
     }
 
+.btn-outline-warning {
+    border-color: var(--capi-primary);
+    color: var(--capi-primary-dark);
+}
+
+    .btn-outline-warning:hover {
+        background: var(--capi-primary-light);
+        border-color: var(--capi-primary);
+        color: var(--capi-primary-dark);
+    }
+
+/* Detalle de etapas */
 .detalle-etapa {
-    background: #fff;
-    border: 1px solid #f1e7dc;
+    background: var(--capi-card);
+    border: 1px solid var(--capi-border);
     border-radius: 1rem;
     padding: 1rem;
 }
 
     .detalle-etapa h6 {
-        color: #c2410c;
+        color: var(--capi-primary-dark);
         font-weight: 800;
         margin-bottom: 1rem;
     }
 
+/* Paraderos */
 .paradero-item {
     display: flex;
     align-items: center;
     gap: .85rem;
-    background: #fffaf5;
-    border: 1px solid #fed7aa;
+    background: var(--capi-card-soft);
+    border: 1px solid var(--capi-border);
     border-radius: 1rem;
     padding: .85rem;
     margin-bottom: .75rem;
@@ -598,28 +651,29 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #f97316;
-    color: #fff;
+    background: var(--capi-primary);
+    color: #3c2d12;
     font-weight: 800;
 }
 
 .paradero-item strong {
     display: block;
-    color: #1f2937;
+    color: var(--capi-text);
 }
 
 .paradero-item small {
     display: block;
-    color: #6b7280;
+    color: var(--capi-muted);
 }
 
+/* Pills */
 .pill-total {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #fff7ed;
-    color: #c2410c;
-    border: 1px solid #fed7aa;
+    background: var(--capi-primary-light);
+    color: var(--capi-primary-dark);
+    border: 1px solid var(--capi-border);
     border-radius: 999px;
     padding: .3rem .7rem;
     font-size: .8rem;
@@ -627,6 +681,7 @@
     white-space: nowrap;
 }
 
+/* Estudiantes */
 .lista-estudiantes {
     display: grid;
     gap: .75rem;
@@ -636,8 +691,8 @@
     display: flex;
     align-items: center;
     gap: .85rem;
-    background: #fff;
-    border: 1px solid #f1e7dc;
+    background: var(--capi-card);
+    border: 1px solid var(--capi-border-soft);
     border-radius: 1rem;
     padding: .85rem;
 }
@@ -650,19 +705,19 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #ffedd5;
-    color: #c2410c;
+    background: var(--capi-primary-light);
+    color: var(--capi-primary-dark);
     font-weight: 800;
 }
 
 .estudiante-item strong {
     display: block;
-    color: #1f2937;
+    color: var(--capi-text);
 }
 
 .estudiante-item small {
     display: block;
-    color: #6b7280;
+    color: var(--capi-muted);
 }
 
 .badge-estado {
@@ -673,17 +728,19 @@
     font-size: .78rem;
     font-weight: 800;
     white-space: nowrap;
+    border: 1px solid transparent;
 }
 
+/* Alertas / incidencias */
 .card-alertas {
-    background: #fff;
-    border: 1px solid #f1e7dc;
+    background: var(--capi-card);
+    border: 1px solid var(--capi-border);
     border-radius: 1.25rem;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+    box-shadow: 0 8px 24px rgba(92, 72, 39, 0.08);
 }
 
     .card-alertas h3 {
-        color: #b91c1c;
+        color: #9b4b3f;
         font-weight: 800;
         font-size: 1.2rem;
         margin-bottom: 1rem;
@@ -694,11 +751,11 @@
     place-items: center;
     text-align: center;
     gap: .25rem;
-    background: #fff7ed;
-    border: 1px dashed #fdba74;
+    background: var(--capi-primary-light);
+    border: 1px dashed var(--capi-border);
     border-radius: 1rem;
     padding: 1.3rem;
-    color: #9a3412;
+    color: var(--capi-primary-dark);
 }
 
     .sin-alertas i {
@@ -711,12 +768,12 @@
 
     .sin-alertas span {
         font-size: .9rem;
-        color: #6b7280;
+        color: var(--capi-muted);
     }
 
 .alerta-item {
-    background: #fef2f2;
-    border: 1px solid #fecaca;
+    background: var(--capi-danger-bg);
+    border: 1px solid var(--capi-danger-border);
     border-radius: .85rem;
     padding: .75rem;
     margin-bottom: .65rem;
@@ -724,25 +781,26 @@
 
     .alerta-item strong {
         display: block;
-        color: #991b1b;
+        color: var(--capi-danger-text);
     }
 
     .alerta-item small {
         display: block;
-        color: #7f1d1d;
+        color: #7f5149;
     }
 
+/* Botón ver todos */
 .btn-ver-todos {
     border-radius: .75rem;
-    background: #fff7ed;
-    border: 1px solid #fed7aa;
-    color: #c2410c;
+    background: var(--capi-primary-light);
+    border: 1px solid var(--capi-border);
+    color: var(--capi-primary-dark);
     font-weight: 700;
 }
 
     .btn-ver-todos:hover {
-        background: #ffedd5;
-        color: #9a3412;
+        background: var(--capi-primary-soft);
+        color: #6f4c10;
     }
 
 /* Tabla rápida de alumnos por paradero */
@@ -752,6 +810,37 @@
 
 .table .btn-group .btn {
     font-weight: 700;
+}
+
+/* Bootstrap badges dentro del dashboard */
+.dashboard-conductor .badge.bg-success {
+    background-color: var(--capi-success-bg) !important;
+    color: var(--capi-success-text) !important;
+    border: 1px solid var(--capi-success-border);
+}
+
+.dashboard-conductor .badge.bg-warning {
+    background-color: var(--capi-warning-bg) !important;
+    color: var(--capi-warning-text) !important;
+    border: 1px solid var(--capi-warning-border);
+}
+
+.dashboard-conductor .badge.bg-danger {
+    background-color: var(--capi-danger-bg) !important;
+    color: var(--capi-danger-text) !important;
+    border: 1px solid var(--capi-danger-border);
+}
+
+.dashboard-conductor .badge.bg-primary {
+    background-color: var(--capi-info-bg) !important;
+    color: var(--capi-info-text) !important;
+    border: 1px solid var(--capi-info-border);
+}
+
+.dashboard-conductor .badge.bg-secondary {
+    background-color: #f0ece4 !important;
+    color: #6f6253 !important;
+    border: 1px solid #ddd1bf;
 }
 
 /* Responsive */
@@ -779,4 +868,4 @@
     .pill-total {
         white-space: normal;
     }
-}
+}}
