@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
      */
     [
         { toggleId: "adminNotificationToggle", panelId: "adminNotificationPanel", listId: "adminNotificationList", dataNodeId: "admin-notification-data" },
-        { toggleId: "conductorNotificationToggle", panelId: "conductorNotificationPanel", listId: "conductor-notification-data" },
+        { toggleId: "conductorNotificationToggle", panelId: "conductorNotificationPanel", listId: "conductorNotificationList", dataNodeId: "conductor-notification-data" },
         { toggleId: "padreNotificationToggle", panelId: "padreNotificationPanel", listId: "padreNotificationList", dataNodeId: "padre-notification-data" }
     ].forEach(inicializarPanelNotificaciones);
 
@@ -278,7 +278,7 @@ function inicializarConfirmacionesGlobales() {
                 text: form.dataset.confirmText || "Esta acción eliminará el registro seleccionado y no se puede deshacer.",
                 icon: form.dataset.confirmIcon || "warning",
                 showCancelButton: true,
-                confirmButtonText: form.dataset.confirmConfirmText || "Sí, eliminar",
+                confirmButtonText: form.dataset.confirmButton || form.dataset.confirmConfirmText || "Sí, eliminar",
                 cancelButtonText: form.dataset.confirmCancelText || "Cancelar",
                 reverseButtons: true
             }).then((result) => {
