@@ -51,100 +51,18 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Index(Guid? idRecorridoOperacion, Guid? idParaderoActual, string? tipoParadero)
         {
-            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
+            IActionResult? acceso = ValidarAccesoConductor();
             if (acceso != null)
                 return acceso;
 
-            ConductorBE? conductor = ObtenerConductorAutenticado();
-            if (conductor == null)
-            {
-                TempData["error"] = "No existe un conductor vinculado al usuario autenticado.";
-                return RedirectToAction("SesionInvalida", "Auth");
-            }
-
-            List<RecorridoBE> recorridos = _recorridoBC.ListarPorConductor(conductor.IdConductor)
-                .OrderByDescending(r => r.Fecha)
-                .ThenByDescending(r => PrioridadEstadoRecorrido(r.EstadoRecorrido))
-                .ToList();
-
-            RecorridoBE? recorridoHoy = recorridos
-                .Where(r => r.Fecha.Date == DateTime.Today)
-                .OrderByDescending(r => PrioridadEstadoRecorrido(r.EstadoRecorrido))
-                .FirstOrDefault();
-
-            List<IncidenciaBE> incidenciasConductor = _incidenciaBC.ListarPorConductor(conductor.IdConductor);
-            int incidenciasAbiertas = incidenciasConductor
-                .Count(i => !string.Equals(i.EstadoIncidencia, "CERRADA", StringComparison.OrdinalIgnoreCase));
-
-            List<IncidenciaBE> alertasRecientes = incidenciasConductor
-                .OrderByDescending(i => i.FechaHora)
-                .Take(4)
-                .ToList();
-
-            int estudiantesRutaActiva = 0;
-            List<ConductorDashboardEstudianteItemViewModel> estudiantesEnRuta = new();
-            if (recorridoHoy != null)
-            {
-                List<RutaEstudianteBE> asignacionesRuta = _rutaEstudianteBC.Listar()
-                    .Where(re => re.IdRuta == recorridoHoy.IdRuta && re.Estado)
-                    .ToList();
-
-                estudiantesRutaActiva = asignacionesRuta.Count;
-
-                Dictionary<Guid, string> paraderosSubida = _paraderoBC.ListarPorRuta(recorridoHoy.IdRuta)
-                    .ToDictionary(p => p.IdParadero, p => p.Nombre);
-
-                Dictionary<Guid, EstudianteBE> estudiantesDict = _estudianteBC.Listar()
-                    .Where(e => asignacionesRuta.Select(a => a.IdEstudiante).Contains(e.IdEstudiante))
-                    .ToDictionary(e => e.IdEstudiante, e => e);
-
-                List<EventoAbordajeBE> eventosHoy = _eventoAbordajeBC.Listar()
-                    .Where(e => e.IdRecorrido == recorridoHoy.IdRecorrido)
-                    .OrderByDescending(e => e.FechaHora)
-                    .ToList();
-
-                foreach (RutaEstudianteBE asignacion in asignacionesRuta.Take(8))
-                {
-                    if (!estudiantesDict.TryGetValue(asignacion.IdEstudiante, out EstudianteBE? estudiante))
-                        continue;
-
-                    EventoAbordajeBE? ultimoEvento = eventosHoy.FirstOrDefault(e => e.IdEstudiante == asignacion.IdEstudiante);
-                    string estadoEstudiante = ultimoEvento?.TipoEvento switch
-                    {
-                        "SUBIDA" => "ABORDÓ",
-                        "BAJADA" => "DESCENDIÓ",
-                        _ => "PENDIENTE"
-                    };
-
-                    string hora = ultimoEvento?.FechaHora.ToString("HH:mm") ?? "--:--";
-                    string parada = (asignacion.IdParaderoSubida.HasValue && paraderosSubida.TryGetValue(asignacion.IdParaderoSubida.Value, out string? nombreParada))
-                        ? nombreParada
-                        : "Sin parada";
-
-                    estudiantesEnRuta.Add(new ConductorDashboardEstudianteItemViewModel
-                    {
-                        Nombre = estudiante.NombreCompleto,
-                        Parada = parada,
-                        Hora = hora,
-                        Estado = estadoEstudiante
-                    });
-                }
-            }
-
-            ConductorDashboardViewModel vm = new()
-            {
-                NombreConductor = conductor.NombreCompleto,
-                RecorridoHoy = recorridoHoy,
-                RecorridosHoy = recorridos.Count(r => r.Fecha.Date == DateTime.Today),
-                IncidenciasAbiertas = incidenciasAbiertas,
-                EstudiantesRutaActiva = estudiantesRutaActiva,
-                AlertasRecientes = alertasRecientes,
-                EstudiantesEnRuta = estudiantesEnRuta,
-                PuedeIniciarRecorrido = recorridoHoy != null && string.Equals(recorridoHoy.EstadoRecorrido, "PROGRAMADO", StringComparison.OrdinalIgnoreCase)
-            };
+            ConductorDashboardViewModel vm = ConstruirDashboardConductor();
+            vm.IdRecorridoOperacion = idRecorridoOperacion ?? vm.IdRecorridoOperacion;
+            vm.IdParaderoActual = idParaderoActual;
+            vm.TipoParaderoActual = tipoParadero ?? string.Empty;
 
             return View(vm);
         }
+
 
         public IActionResult MiConductor()
         {
@@ -1003,133 +921,67 @@ namespace CapiMovil.PL.Gui.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-        [HttpGet]
-        public IActionResult MiBus()
-        {
-            IActionResult? acceso = ValidarAccesoConductor();
-
-            if (acceso != null)
-                return acceso;
-
-            ConductorDashboardViewModel vm = ConstruirDashboardConductor();
-            return View(vm);
-        }
-
-        [HttpGet]
-        public IActionResult MiRuta()
-        {
-            IActionResult? acceso = ValidarAccesoConductor();
-
-            if (acceso != null)
-                return acceso;
-
-            ConductorDashboardViewModel vm = ConstruirDashboardConductor();
-            return View(vm);
-        }
-
-        [HttpGet]
-        public IActionResult Estudiantes()
-        {
-            IActionResult? acceso = ValidarAccesoConductor();
-
-            if (acceso != null)
-                return acceso;
-
-            ConductorDashboardViewModel vm = ConstruirDashboardConductor();
-            return View(vm);
-        }
-
-        [HttpGet]
-        public IActionResult Recorrido()
-        {
-            IActionResult? acceso = ValidarAccesoConductor();
-
-            if (acceso != null)
-                return acceso;
-
-            ConductorDashboardViewModel vm = ConstruirDashboardConductor();
-            return View(vm);
-        }
-
-        [HttpGet]
-        public IActionResult Incidencias()
-        {
-            IActionResult? acceso = ValidarAccesoConductor();
-
-            if (acceso != null)
-                return acceso;
-
-            ConductorDashboardViewModel vm = ConstruirDashboardConductor();
-
-            if (vm.RecorridoActual != null)
-            {
-                vm.IncidenciasPendientes = _incidenciaBC.Listar()
-                    .Where(i => i.IdRecorrido == vm.RecorridoActual.IdRecorrido)
-                    .OrderByDescending(i => i.FechaHora)
-                    .Select(i => new IncidenciaResumenConductorViewModel
-                    {
-                        TipoIncidencia = i.TipoIncidencia,
-                        Descripcion = i.Descripcion,
-                        Prioridad = i.Prioridad,
-                        FechaHora = i.FechaHora
-                    })
-                    .ToList();
-            }
-
-            return View(vm);
-        }
         private IActionResult? ValidarAccesoConductor()
         {
-            string? usuarioId = HttpContext.Session.GetString("UsuarioId");
-            string? rol = HttpContext.Session.GetString("RolNombre");
-
-            if (string.IsNullOrEmpty(usuarioId))
-                return RedirectToAction("Login", "Auth");
-
-            if ((rol ?? "").Trim().ToUpperInvariant() != "CONDUCTOR")
-                return RedirectToAction("AccesoDenegado", "Auth");
-
-            return null;
+            return AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
         }
 
         private ConductorDashboardViewModel ConstruirDashboardConductor()
         {
-            ConductorDashboardViewModel vm = new ConductorDashboardViewModel
-            {
-                NombreConductor = HttpContext.Session.GetString("Username") ?? "Conductor"
-            };
-
-            string? usuarioId = HttpContext.Session.GetString("UsuarioId");
-
-            if (string.IsNullOrEmpty(usuarioId))
-                return vm;
-
-            Guid idUsuario = Guid.Parse(usuarioId);
-
-            ConductorBE? conductor = _conductorBC.ObtenerPorIdUsuario(idUsuario);
-
+            ConductorBE? conductor = ObtenerConductorAutenticado();
             if (conductor == null)
-                return vm;
+                return new ConductorDashboardViewModel();
 
-            vm.NombreConductor = conductor.NombreCompleto;
-
-            List<RecorridoBE> recorridosHoy = _recorridoBC.ListarHoyPorConductor(
-                conductor.IdConductor,
-                DateTime.Today
-            );
-
-            vm.RecorridoActual = recorridosHoy.FirstOrDefault();
-
-            vm.RecorridosHoy = recorridosHoy
-                .Select(r => CrearResumenRecorrido(r))
+            List<RecorridoBE> recorridosHoy = _recorridoBC.ListarHoyPorConductor(conductor.IdConductor, DateTime.Today)
+                .OrderBy(r => r.HoraInicioProgramada ?? TimeSpan.MaxValue)
                 .ToList();
 
-            if (vm.RecorridoActual != null)
+            RecorridoBE? recorridoActual = recorridosHoy.FirstOrDefault(r => string.Equals(r.EstadoRecorrido, "EN_CURSO", StringComparison.OrdinalIgnoreCase))
+                ?? recorridosHoy.FirstOrDefault();
+
+            ConductorDashboardViewModel vm = new()
             {
-                CargarDatosRecorrido(vm, vm.RecorridoActual.IdRecorrido);
-            }
+                NombreConductor = conductor.NombreCompleto,
+                RecorridoActual = recorridoActual,
+                RecorridosHoy = recorridosHoy.Select(CrearResumenRecorrido).ToList()
+            };
+
+            if (recorridoActual != null)
+                CargarDatosRecorrido(vm, recorridoActual.IdRecorrido);
 
             return vm;
         }
+
+        private RecorridoResumenConductorViewModel CrearResumenRecorrido(RecorridoBE recorrido)
+        {
+            return new RecorridoResumenConductorViewModel
+            {
+                IdRecorrido = recorrido.IdRecorrido,
+                CodigoRecorrido = recorrido.CodigoRecorrido,
+                NombreRuta = recorrido.Ruta?.Nombre ?? string.Empty,
+                CodigoBus = recorrido.Bus?.CodigoBus ?? string.Empty,
+                HoraInicioProgramada = recorrido.HoraInicioProgramada,
+                HoraFinProgramada = recorrido.HoraFinProgramada,
+                EstadoRecorrido = recorrido.EstadoRecorrido,
+                TurnoTexto = recorrido.Turno?.NombreTurno ?? string.Empty
+            };
+        }
+
+        private void CargarDatosRecorrido(ConductorDashboardViewModel vm, Guid idRecorrido)
+        {
+            vm.IdRecorridoOperacion = idRecorrido;
+            vm.IncidenciasPendientes = _incidenciaBC.Listar()
+                .Where(i => i.IdRecorrido == idRecorrido)
+                .OrderByDescending(i => i.FechaHora)
+                .Take(6)
+                .Select(i => new IncidenciaResumenConductorViewModel
+                {
+                    TipoIncidencia = i.TipoIncidencia,
+                    Descripcion = i.Descripcion,
+                    Prioridad = i.Prioridad,
+                    FechaHora = i.FechaHora
+                }).ToList();
+        }
+
     }
 }
