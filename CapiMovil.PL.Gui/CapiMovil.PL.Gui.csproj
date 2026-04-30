@@ -290,6 +290,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="jQuery" Version="3.7.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Update="wwwroot\lib\jquery-validation-unobtrusive\package.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
