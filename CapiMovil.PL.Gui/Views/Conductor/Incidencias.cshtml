@@ -172,7 +172,7 @@
                 <form asp-controller="Conductor"
                       asp-action="RegistrarIncidenciaConductor"
                       method="post"
-                      onsubmit="return confirm('¿Deseas registrar esta incidencia?');">
+                      data-confirm="true" data-confirm-title="¿Registrar incidencia?" data-confirm-text="La incidencia se guardará para el recorrido actual." data-confirm-icon="warning" data-confirm-confirm-text="Sí, registrar" data-confirm-cancel-text="Cancelar">
                     @Html.AntiForgeryToken()
 
                     <input type="hidden" name="idRecorrido" value="@Model.RecorridoActual.IdRecorrido" />

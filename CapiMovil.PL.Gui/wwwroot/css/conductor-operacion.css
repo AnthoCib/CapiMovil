@@ -1,5 +1,5 @@
 .conductor-op-shell {
-    background: linear-gradient(180deg, #faf7ef 0%, #f3f7fb 100%);
+    background: linear-gradient(180deg, var(--cm-bg) 0%, var(--cm-bg) 100%);
     border-radius: 1rem;
     padding: 1rem;
 }
@@ -9,7 +9,7 @@
 .conductor-op-map-wrap,
 .conductor-student-manifest {
     border-radius: 1rem;
-    background: #fffdf8;
+    background: var(--cm-surface);
 }
 
 .conductor-op-nav .nav-link {
@@ -23,24 +23,24 @@
 
 .conductor-op-nav .nav-link.active,
 .conductor-op-nav .nav-link:hover {
-    background: #f0efe9;
+    background: var(--cm-surface-2);
 }
 
 .btn-op-live {
-    background: #d8a93d;
-    border-color: #d8a93d;
+    background: var(--cm-accent);
+    border-color: var(--cm-accent);
     color: #2f2500;
     font-weight: 600;
 }
 
 .btn-op-live:hover {
-    background: #c5952d;
-    border-color: #c5952d;
+    background: var(--cm-accent);
+    border-color: var(--cm-accent);
     color: #2f2500;
 }
 
 .bg-op-info {
-    background: #eaf4ff;
+    background: var(--cm-info);
 }
 
 .conductor-student-item {
@@ -48,7 +48,7 @@
     grid-template-columns: auto 1fr auto;
     align-items: center;
     gap: .6rem;
-    border: 1px solid #ece8dd;
+    border: 1px solid var(--cm-border);
     border-radius: .75rem;
     padding: .5rem;
     margin-bottom: .45rem;

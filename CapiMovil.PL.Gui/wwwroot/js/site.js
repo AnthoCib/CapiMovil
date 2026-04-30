@@ -572,5 +572,5 @@ window.validarFormularioParadero = function () {
         }
     }
 
-    return confirm('¿Deseas guardar los eventos de este paradero?');
+    return true;
 };

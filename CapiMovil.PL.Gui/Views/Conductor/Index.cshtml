@@ -219,7 +219,7 @@
                                             <form asp-controller="Conductor"
                                                   asp-action="IniciarRecorrido"
                                                   method="post"
-                                                  onsubmit="return confirm('¿Deseas iniciar este recorrido?');">
+                                                  data-confirm="true" data-confirm-title="¿Iniciar recorrido?" data-confirm-text="El recorrido pasará a estado EN CURSO." data-confirm-icon="question" data-confirm-confirm-text="Sí, iniciar" data-confirm-cancel-text="Cancelar">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="idRecorrido" value="@recorrido.IdRecorrido" />
 
@@ -241,7 +241,7 @@
                                             <form asp-controller="Conductor"
                                                   asp-action="FinalizarRecorrido"
                                                   method="post"
-                                                  onsubmit="return confirm('¿Deseas finalizar este recorrido?');">
+                                                  data-confirm="true" data-confirm-title="¿Finalizar recorrido?" data-confirm-text="El recorrido pasará a estado FINALIZADO." data-confirm-icon="warning" data-confirm-confirm-text="Sí, finalizar" data-confirm-cancel-text="Cancelar">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="idRecorrido" value="@recorrido.IdRecorrido" />
 
@@ -345,7 +345,7 @@
                                                 <form asp-controller="Conductor"
                                                       asp-action="Index"
                                                       method="get"
-                                                      onsubmit="return confirm('¿Llegaste a este paradero?');">
+                                                      data-confirm="true" data-confirm-title="¿Confirmar llegada?" data-confirm-text="Se abrirá el registro de abordaje para este paradero." data-confirm-icon="question" data-confirm-confirm-text="Sí, continuar" data-confirm-cancel-text="Cancelar">
                                                     <input type="hidden" name="idRecorridoOperacion" value="@Model.RecorridoActual.IdRecorrido" />
                                                     <input type="hidden" name="idParaderoActual" value="@paradero.IdParadero" />
                                                     <input type="hidden" name="tipoParadero" value="SUBIDA" />
@@ -409,7 +409,7 @@
                                                 <form asp-controller="Conductor"
                                                       asp-action="Index"
                                                       method="get"
-                                                      onsubmit="return confirm('¿Llegaste a este paradero?');">
+                                                      data-confirm="true" data-confirm-title="¿Confirmar llegada?" data-confirm-text="Se abrirá el registro de abordaje para este paradero." data-confirm-icon="question" data-confirm-confirm-text="Sí, continuar" data-confirm-cancel-text="Cancelar">
                                                     <input type="hidden" name="idRecorridoOperacion" value="@Model.RecorridoActual.IdRecorrido" />
                                                     <input type="hidden" name="idParaderoActual" value="@paradero.IdParadero" />
                                                     <input type="hidden" name="tipoParadero" value="BAJADA" />
@@ -647,7 +647,7 @@
                 <form asp-controller="Conductor"
                       asp-action="RegistrarIncidenciaConductor"
                       method="post"
-                      onsubmit="return confirm('¿Deseas registrar esta incidencia?');">
+                      data-confirm="true" data-confirm-title="¿Registrar incidencia?" data-confirm-text="La incidencia se guardará para el recorrido actual." data-confirm-icon="warning" data-confirm-confirm-text="Sí, registrar" data-confirm-cancel-text="Cancelar">
                     @Html.AntiForgeryToken()
 
                     <input type="hidden" name="idRecorrido" value="@Model.RecorridoActual.IdRecorrido" />
