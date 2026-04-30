@@ -9,6 +9,7 @@ namespace CapiMovil.PL.Gui.Controllers
 {
     public class PadreFamiliaController : Controller
     {
+        private static readonly string[] ExtensionesPermitidas = [".jpg", ".jpeg", ".png", ".webp"];
         private readonly PadreFamiliaBC _padreFamiliaBC;
         private readonly UsuarioBC _usuarioBC;
         private readonly EstudianteBC _estudianteBC;
@@ -20,6 +21,7 @@ namespace CapiMovil.PL.Gui.Controllers
         private readonly IncidenciaBC _incidenciaBC;
         private readonly UbicacionBusBC _ubicacionBusBC;
         private readonly CalificacionConductorBC _calificacionConductorBC;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
         public PadreFamiliaController(
             PadreFamiliaBC padreFamiliaBC,
@@ -32,7 +34,8 @@ namespace CapiMovil.PL.Gui.Controllers
             ParaderoBC paraderoBC,
             IncidenciaBC incidenciaBC,
             UbicacionBusBC ubicacionBusBC,
-            CalificacionConductorBC calificacionConductorBC)
+            CalificacionConductorBC calificacionConductorBC,
+            IWebHostEnvironment webHostEnvironment)
         {
             _padreFamiliaBC = padreFamiliaBC;
             _usuarioBC = usuarioBC;
@@ -45,6 +48,7 @@ namespace CapiMovil.PL.Gui.Controllers
             _incidenciaBC = incidenciaBC;
             _ubicacionBusBC = ubicacionBusBC;
             _calificacionConductorBC = calificacionConductorBC;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         public IActionResult Index()
@@ -113,6 +117,9 @@ namespace CapiMovil.PL.Gui.Controllers
                 return RedirectToAction(nameof(MisHijos));
             }
 
+            if (!ValidarFoto(vm.FotoArchivo, out string? errorFoto))
+                ModelState.AddModelError(nameof(vm.FotoArchivo), errorFoto!);
+
             if (!ModelState.IsValid)
                 return View(vm);
 
@@ -130,6 +137,9 @@ namespace CapiMovil.PL.Gui.Controllers
                     Grado = vm.Grado,
                     Seccion = vm.Seccion,
                     Direccion = vm.Direccion,
+                    LatitudCasa = vm.LatitudCasa,
+                    LongitudCasa = vm.LongitudCasa,
+                    FotoUrl = vm.FotoArchivo != null ? GuardarFoto(vm.FotoArchivo) : vm.FotoUrl,
                     Observaciones = vm.Observaciones,
                     Estado = true
                 };
@@ -981,6 +991,49 @@ namespace CapiMovil.PL.Gui.Controllers
                     Selected = u.IdUsuario == idUsuarioActual
                 })
                 .ToList();
+        }
+
+        private static bool ValidarFoto(IFormFile? fotoArchivo, out string? error)
+        {
+            error = null;
+
+            if (fotoArchivo == null || fotoArchivo.Length == 0)
+                return true;
+
+            string extension = Path.GetExtension(fotoArchivo.FileName).ToLowerInvariant();
+            if (!ExtensionesPermitidas.Contains(extension))
+            {
+                error = "Formato inválido. Use JPG, PNG o WEBP.";
+                return false;
+            }
+
+            if (fotoArchivo.Length > 2 * 1024 * 1024)
+            {
+                error = "La imagen no debe superar 2MB.";
+                return false;
+            }
+
+            return true;
+        }
+
+        private string? GuardarFoto(IFormFile? fotoArchivo)
+        {
+            if (fotoArchivo == null || fotoArchivo.Length == 0)
+                return null;
+
+            string extension = Path.GetExtension(fotoArchivo.FileName).ToLowerInvariant();
+            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "estudiantes");
+            Directory.CreateDirectory(uploadsFolder);
+
+            string nombreArchivo = $"{Guid.NewGuid():N}_{DateTime.UtcNow:yyyyMMddHHmmss}{extension}";
+            string rutaFisica = Path.Combine(uploadsFolder, nombreArchivo);
+
+            using (FileStream stream = new FileStream(rutaFisica, FileMode.Create))
+            {
+                fotoArchivo.CopyTo(stream);
+            }
+
+            return $"/uploads/estudiantes/{nombreArchivo}";
         }
     }
 }

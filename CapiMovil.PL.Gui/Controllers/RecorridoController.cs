@@ -33,6 +33,10 @@ namespace CapiMovil.PL.Gui.Controllers
 
         public IActionResult Listar()
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administrador, RolesSistema.Admin);
+            if (acceso != null)
+                return acceso;
+
             var lista = _recorridoBC.Listar();
             return View(lista);
         }
@@ -40,6 +44,10 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Crear()
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administrador, RolesSistema.Admin);
+            if (acceso != null)
+                return acceso;
+
             RecorridoFormViewModel vm = new()
             {
                 Rutas = ObtenerRutas(),
@@ -58,6 +66,10 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Crear(RecorridoFormViewModel vm)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administrador, RolesSistema.Admin);
+            if (acceso != null)
+                return acceso;
+
             if (vm.IdRuta == Guid.Empty)
                 ModelState.AddModelError(nameof(vm.IdRuta), "Debe seleccionar una ruta.");
 
@@ -115,6 +127,10 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Editar(Guid id)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administrador, RolesSistema.Admin);
+            if (acceso != null)
+                return acceso;
+
             var entidad = _recorridoBC.ListarPorId(id);
 
             if (entidad == null)
@@ -149,6 +165,10 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Editar(RecorridoFormViewModel vm)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administrador, RolesSistema.Admin);
+            if (acceso != null)
+                return acceso;
+
             if (vm.IdRuta == Guid.Empty)
                 ModelState.AddModelError(nameof(vm.IdRuta), "Debe seleccionar una ruta.");
 
@@ -208,6 +228,10 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Eliminar(Guid id)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administrador, RolesSistema.Admin);
+            if (acceso != null)
+                return acceso;
+
             try
             {
                 bool ok = _recorridoBC.Eliminar(id, ObtenerUsuarioIdSesion(), ObtenerUsernameSesion(), ObtenerIpCliente(), ObtenerUserAgent());
@@ -228,8 +252,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Iniciar(Guid id)
         {
-            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
-            if (acceso != null) return acceso;
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administrador, RolesSistema.Admin);
+            if (acceso != null)
+                return acceso;
 
             try
             {
@@ -250,8 +275,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Finalizar(Guid id)
         {
-            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
-            if (acceso != null) return acceso;
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administrador, RolesSistema.Admin);
+            if (acceso != null)
+                return acceso;
 
             try
             {
@@ -272,6 +298,10 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Cancelar(Guid id)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administrador, RolesSistema.Admin);
+            if (acceso != null)
+                return acceso;
+
             try
             {
                 bool ok = _recorridoBC.Cancelar(id, ObtenerUsuarioIdSesion(), ObtenerUsernameSesion(), ObtenerIpCliente(), ObtenerUserAgent());
