@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
 namespace CapiMovil.PL.Gui.Models.ViewModels
@@ -35,6 +36,19 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
 
         [Display(Name = "Dirección")]
         public string? Direccion { get; set; }
+
+        [Display(Name = "Latitud casa")]
+        [Range(-90d, 90d, ErrorMessage = "La latitud debe estar entre -90 y 90.")]
+        public decimal? LatitudCasa { get; set; }
+
+        [Display(Name = "Longitud casa")]
+        [Range(-180d, 180d, ErrorMessage = "La longitud debe estar entre -180 y 180.")]
+        public decimal? LongitudCasa { get; set; }
+
+        [Display(Name = "Foto")]
+        public IFormFile? FotoArchivo { get; set; }
+
+        public string? FotoUrl { get; set; }
 
         [Display(Name = "Observaciones")]
         public string? Observaciones { get; set; }

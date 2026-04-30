@@ -1,0 +1,20 @@
+.capimovil-login-page{min-height:100vh;background:#eaf4ff;display:flex;align-items:center;justify-content:center;padding:1.2rem}
+.capimovil-login-stage{position:relative;width:min(1920px,100%);border-radius:40px;overflow:hidden;box-shadow:0 24px 40px rgba(0,0,0,.16)}
+.capimovil-login-bg{width:100%;display:block;min-height:720px;object-fit:cover}
+.capimovil-login-form-layer{position:absolute;top:12.5%;right:7.5%;width:min(38%,680px)}
+.capimovil-login-form{background:rgba(255,255,255,.94);backdrop-filter:blur(1.5px);border-radius:34px;padding:2.4rem 2.2rem 1.9rem;box-shadow:0 12px 30px rgba(48,95,142,.18)}
+.capimovil-title{font-size:3.2rem;font-weight:800;line-height:1;color:#0d3f75;text-align:center;margin:0}
+.capimovil-subtitle{font-size:1.55rem;color:#6f8096;text-align:center;margin:.35rem 0 1.35rem}
+.capimovil-field{display:flex;align-items:center;gap:.65rem;border:2px solid #dde3eb;border-radius:18px;padding:.6rem .9rem;background:#fff}
+.capimovil-field i{font-size:1.4rem;color:#7f8fa5}
+.capimovil-field .form-control{border:0;box-shadow:none;font-size:1.28rem;padding:.4rem 0;background:transparent}
+.capimovil-password-toggle{border:0;background:transparent;color:#6e8098;font-size:1.35rem}
+.capimovil-login-options{display:flex;justify-content:space-between;align-items:center;margin:.65rem 0 1.2rem}
+.capimovil-remember .form-check-input{transform:scale(1.2)}
+.capimovil-remember .form-check-label{font-size:1.2rem;color:#34495e;margin-left:.3rem}
+.capimovil-forgot{font-size:1.15rem;text-decoration:none;color:#2f73b2;font-weight:600}.capimovil-forgot:hover{text-decoration:underline}
+.capimovil-submit{width:100%;border:0;border-radius:18px;background:linear-gradient(180deg,#ffd23b 0%,#ffc108 100%);padding:.82rem 1rem;color:#0e4f87;font-size:1.85rem;font-weight:800;display:flex;justify-content:center;align-items:center;gap:.6rem}
+.capimovil-secure{text-align:center;color:#75879a;font-size:1.22rem;margin:1.2rem 0 0}
+.capimovil-login-error:empty{display:none}
+@media (max-width:1400px){.capimovil-login-form-layer{top:10%;right:5%;width:min(42%,640px)}.capimovil-title{font-size:2.7rem}.capimovil-subtitle{font-size:1.25rem}.capimovil-submit{font-size:1.45rem}.capimovil-remember .form-check-label,.capimovil-forgot{font-size:1rem}}
+@media (max-width:991.98px){.capimovil-login-page{padding:.6rem}.capimovil-login-stage{border-radius:24px}.capimovil-login-bg{min-height:860px}.capimovil-login-form-layer{position:absolute;inset:auto 1rem 1rem 1rem;width:auto}.capimovil-login-form{padding:1.4rem 1.05rem;border-radius:22px}.capimovil-title{font-size:2.2rem}.capimovil-subtitle{font-size:1.05rem}.capimovil-field .form-control{font-size:1rem}.capimovil-submit{font-size:1.18rem}.capimovil-secure{font-size:1rem}}
