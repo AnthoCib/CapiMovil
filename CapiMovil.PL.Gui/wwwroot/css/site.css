@@ -1,5 +1,27 @@
 ﻿body {
     background-color: #f8f9fa;
+    font-family: "Nunito", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+input,
+select,
+textarea,
+button,
+.btn,
+.form-control,
+.form-select,
+.input-group-text,
+.table,
+.card,
+.badge,
+.dropdown-menu,
+.modal-content,
+.swal2-popup,
+.swal2-title,
+.swal2-html-container {
+    font-family: inherit;
 }
 
 .page-title {
