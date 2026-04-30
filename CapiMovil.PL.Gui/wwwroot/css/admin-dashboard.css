@@ -560,3 +560,42 @@
         padding: .65rem;
     }
 }
+
+.admin-quick-links .btn {
+    border-radius: .75rem;
+    border: 1px solid #ece8dd;
+    font-weight: 500;
+    text-align: left;
+}
+
+.admin-activity-item,
+.admin-pending-item {
+    display: flex;
+    gap: .75rem;
+    align-items: flex-start;
+    padding: .6rem;
+    border: 1px solid #efece1;
+    border-radius: .75rem;
+    background: #fff;
+}
+
+.admin-activity-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: .6rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+}
+
+.admin-activity-icon.info { background: #dbeafe; color: #1d4ed8; }
+.admin-activity-icon.warning { background: #fef3c7; color: #b45309; }
+.admin-activity-icon.danger { background: #fee2e2; color: #b91c1c; }
+.admin-activity-icon.success { background: #dcfce7; color: #15803d; }
+.admin-activity-icon.secondary { background: #e5e7eb; color: #374151; }
+
+.admin-pending-list {
+    display: grid;
+    gap: .65rem;
+}

@@ -3,31 +3,26 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
     public class AdminDashboardViewModel
     {
         public string Saludo { get; set; } = "Buenos días";
-        public int TotalEstudiantes { get; set; }
-        public int TotalConductoresActivos { get; set; }
-        public int TotalRutasActivas { get; set; }
-        public int TotalRecorridosEnCurso { get; set; }
-        public int TotalIncidenciasActivas { get; set; }
-        public int TotalNotificacionesPendientes { get; set; }
-        public int TotalBusesActivos { get; set; }
-        public int TotalPadresActivos { get; set; }
         public int TotalUsuariosActivos { get; set; }
-        public int TotalParaderos { get; set; }
-        public int TotalAsignacionesRutaEstudiante { get; set; }
+        public int TotalPadresActivos { get; set; }
+        public int TotalConductoresActivos { get; set; }
+        public int TotalEstudiantes { get; set; }
+        public int TotalBusesActivos { get; set; }
+        public int TotalRutasActivas { get; set; }
+        public int TotalRecorridosProgramadosHoy { get; set; }
+        public int TotalRecorridosEnCurso { get; set; }
+        public int TotalIncidenciasPendientes { get; set; }
+        public int TotalNotificacionesNoLeidas { get; set; }
         public int TotalAbordajesHoy { get; set; }
-        public int TotalNotificacionesRegistradas { get; set; }
-        public List<string> RecorridosTendenciaLabels { get; set; } = new();
-        public List<int> RecorridosTendenciaData { get; set; } = new();
-        public List<int> IncidenciasTendenciaData { get; set; } = new();
-        public List<string> RecorridosEstadoLabels { get; set; } = new();
-        public List<int> RecorridosEstadoData { get; set; } = new();
-        public List<string> IncidenciasEstadoLabels { get; set; } = new();
-        public List<int> IncidenciasEstadoData { get; set; } = new();
-        public List<string> IncidenciasPrioridadLabels { get; set; } = new();
-        public List<int> IncidenciasPrioridadData { get; set; } = new();
-        public List<AdminMapaBusItemViewModel> BusesMapa { get; set; } = new();
-        public List<AdminMapaParaderoItemViewModel> ParaderosMapa { get; set; } = new();
+
+        public int TotalRecorridosSinFinalizar { get; set; }
+        public int TotalBusesInactivos { get; set; }
+        public int TotalRutasSinParaderos { get; set; }
+        public int TotalEstudiantesSinRuta { get; set; }
+        public int TotalIncidenciasCriticas { get; set; }
+
         public List<AdminActividadItemViewModel> ActividadReciente { get; set; } = new();
+        public List<AdminPendienteItemViewModel> PendientesAtencion { get; set; } = new();
     }
 
     public class AdminActividadItemViewModel
@@ -38,25 +33,15 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
         public DateTime Fecha { get; set; }
         public string FechaTexto { get; set; } = string.Empty;
         public string Tipo { get; set; } = "info";
+        public string EstadoTexto { get; set; } = "Informativo";
     }
 
-    public class AdminMapaBusItemViewModel
+    public class AdminPendienteItemViewModel
     {
-        public decimal Latitud { get; set; }
-        public decimal Longitud { get; set; }
-        public string CodigoRecorrido { get; set; } = string.Empty;
-        public string Ruta { get; set; } = "Ruta no disponible";
-        public string Conductor { get; set; } = "Conductor no disponible";
-        public string Bus { get; set; } = "Bus no disponible";
-        public string EstadoRecorrido { get; set; } = "SIN_ESTADO";
-        public DateTime FechaHora { get; set; }
-    }
-
-    public class AdminMapaParaderoItemViewModel
-    {
-        public decimal Latitud { get; set; }
-        public decimal Longitud { get; set; }
-        public string Nombre { get; set; } = "Paradero";
-        public string Ruta { get; set; } = "Ruta no disponible";
+        public string Icono { get; set; } = "bi-exclamation-circle";
+        public string Titulo { get; set; } = string.Empty;
+        public string Detalle { get; set; } = string.Empty;
+        public int Total { get; set; }
+        public string Tipo { get; set; } = "warning";
     }
 }

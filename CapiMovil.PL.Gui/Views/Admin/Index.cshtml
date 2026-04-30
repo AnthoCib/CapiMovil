@@ -3,121 +3,63 @@
     ViewData["Title"] = "Dashboard Admin";
 }
 
-@section Styles {
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-}
-
 <div class="admin-dashboard-shell">
     <div class="card border-0 shadow-sm admin-welcome mb-3 mb-xl-4">
         <div class="card-body p-4 p-lg-5">
             <h1 class="fw-bold mb-2 app-section-title">@Model.Saludo, Administrador</h1>
-            <p class="app-section-subtitle mb-0">Este es el resumen ejecutivo de la operación diaria de transporte escolar.</p>
+            <p class="app-section-subtitle mb-0">Panel ejecutivo para supervisar operación, pendientes y accesos de gestión.</p>
         </div>
     </div>
 
     <div class="row g-3 mb-3 mb-xl-4">
-        <div class="col-12 col-sm-6 col-lg-3"><div class="admin-metric card border-0 shadow-sm h-100"><div class="card-body"><div class="d-flex justify-content-between align-items-start mb-2"><span class="admin-metric-title">Rutas activas</span><i class="bi bi-signpost-2 admin-icon amber"></i></div><div class="admin-metric-value">@Model.TotalRutasActivas</div><span class="badge rounded-pill text-bg-light">Operativas hoy</span></div></div></div>
-        <div class="col-12 col-sm-6 col-lg-3"><div class="admin-metric card border-0 shadow-sm h-100"><div class="card-body"><div class="d-flex justify-content-between align-items-start mb-2"><span class="admin-metric-title">Estudiantes</span><i class="bi bi-mortarboard admin-icon sky"></i></div><div class="admin-metric-value">@Model.TotalEstudiantes</div><span class="badge rounded-pill text-bg-light">Activos registrados</span></div></div></div>
-        <div class="col-12 col-sm-6 col-lg-3"><div class="admin-metric card border-0 shadow-sm h-100"><div class="card-body"><div class="d-flex justify-content-between align-items-start mb-2"><span class="admin-metric-title">Conductores</span><i class="bi bi-person-badge admin-icon mint"></i></div><div class="admin-metric-value">@Model.TotalConductoresActivos</div><span class="badge rounded-pill text-bg-light">Disponibles</span></div></div></div>
-        <div class="col-12 col-sm-6 col-lg-3"><div class="admin-metric card border-0 shadow-sm h-100"><div class="card-body"><div class="d-flex justify-content-between align-items-start mb-2"><span class="admin-metric-title">Incidencias activas</span><i class="bi bi-exclamation-triangle admin-icon soft-red"></i></div><div class="admin-metric-value">@Model.TotalIncidenciasActivas</div><span class="badge rounded-pill text-bg-light">Requieren atención</span></div></div></div>
+        <div class="col-6 col-lg-3"><div class="admin-metric card border-0 shadow-sm h-100"><div class="card-body"><div class="admin-metric-title">Usuarios activos</div><div class="admin-metric-value">@Model.TotalUsuariosActivos</div><span class="badge text-bg-success">Activo</span></div></div></div>
+        <div class="col-6 col-lg-3"><div class="admin-metric card border-0 shadow-sm h-100"><div class="card-body"><div class="admin-metric-title">Padres activos</div><div class="admin-metric-value">@Model.TotalPadresActivos</div><span class="badge text-bg-success">Activo</span></div></div></div>
+        <div class="col-6 col-lg-3"><div class="admin-metric card border-0 shadow-sm h-100"><div class="card-body"><div class="admin-metric-title">Conductores activos</div><div class="admin-metric-value">@Model.TotalConductoresActivos</div><span class="badge text-bg-success">Activo</span></div></div></div>
+        <div class="col-6 col-lg-3"><div class="admin-metric card border-0 shadow-sm h-100"><div class="card-body"><div class="admin-metric-title">Estudiantes activos</div><div class="admin-metric-value">@Model.TotalEstudiantes</div><span class="badge text-bg-primary">Registrado</span></div></div></div>
+        <div class="col-6 col-lg-3"><div class="admin-metric card border-0 shadow-sm h-100"><div class="card-body"><div class="admin-metric-title">Buses activos</div><div class="admin-metric-value">@Model.TotalBusesActivos</div><span class="badge text-bg-success">Activo</span></div></div></div>
+        <div class="col-6 col-lg-3"><div class="admin-metric card border-0 shadow-sm h-100"><div class="card-body"><div class="admin-metric-title">Rutas activas</div><div class="admin-metric-value">@Model.TotalRutasActivas</div><span class="badge text-bg-success">Activo</span></div></div></div>
+        <div class="col-6 col-lg-3"><div class="admin-metric card border-0 shadow-sm h-100"><div class="card-body"><div class="admin-metric-title">Recorridos de hoy</div><div class="admin-metric-value">@Model.TotalRecorridosProgramadosHoy</div><span class="badge text-bg-info">Programado</span></div></div></div>
+        <div class="col-6 col-lg-3"><div class="admin-metric card border-0 shadow-sm h-100"><div class="card-body"><div class="admin-metric-title">Recorridos en curso</div><div class="admin-metric-value">@Model.TotalRecorridosEnCurso</div><span class="badge text-bg-warning">En curso</span></div></div></div>
+        <div class="col-6 col-lg-3"><div class="admin-metric card border-0 shadow-sm h-100"><div class="card-body"><div class="admin-metric-title">Incidencias pendientes</div><div class="admin-metric-value">@Model.TotalIncidenciasPendientes</div><span class="badge text-bg-danger">Pendiente</span></div></div></div>
+        <div class="col-6 col-lg-3"><div class="admin-metric card border-0 shadow-sm h-100"><div class="card-body"><div class="admin-metric-title">Notificaciones no leídas</div><div class="admin-metric-value">@Model.TotalNotificacionesNoLeidas</div><span class="badge text-bg-secondary">Pendiente</span></div></div></div>
+        <div class="col-6 col-lg-3"><div class="admin-metric card border-0 shadow-sm h-100"><div class="card-body"><div class="admin-metric-title">Abordajes hoy</div><div class="admin-metric-value">@Model.TotalAbordajesHoy</div><span class="badge text-bg-primary">Registrado</span></div></div></div>
+        <div class="col-6 col-lg-3"><div class="admin-metric card border-0 shadow-sm h-100"><div class="card-body"><div class="admin-metric-title">Incidencias críticas</div><div class="admin-metric-value">@Model.TotalIncidenciasCriticas</div><span class="badge text-bg-danger">Crítica</span></div></div></div>
     </div>
 
-    <div class="row g-3 mb-3 mb-xl-4">
-       
-
-        <div class="col-12 col-lg-4">
-            <div class="card border-0 shadow-sm admin-activity h-100">
-                <div class="card-body p-4">
-                    <h2 class="h5 fw-bold mb-3">Actividad reciente</h2>
-
-                    @if (!Model.ActividadReciente.Any())
-                    {
-                        <div class="text-muted">Sin actividad reciente para mostrar.</div>
-                    }
-                    else
-                    {
-                        <div class="admin-activity-list">
-                            @foreach (var item in Model.ActividadReciente)
-                            {
-                                <div class="admin-activity-item">
-                                    <div class="admin-activity-icon @item.Tipo"><i class="bi @item.Icono"></i></div>
-                                    <div>
-                                        <div class="fw-semibold small">@item.Titulo</div>
-                                        <div class="text-muted small">@item.Descripcion</div>
-                                        <div class="text-muted x-small">@item.FechaTexto</div>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card border-0 shadow-sm admin-analytics">
+    <div class="card border-0 shadow-sm mb-3 mb-xl-4">
         <div class="card-body p-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h2 class="h5 fw-bold mb-0">Monitoreo geográfico en vivo</h2>
-                <span class="badge text-bg-light border">Buses y paraderos</span>
+            <h2 class="h5 fw-bold mb-3">Acciones rápidas</h2>
+            <div class="row g-2 admin-quick-links">
+                <div class="col-6 col-md-4 col-xl-3"><a class="btn btn-light w-100" asp-controller="Usuario" asp-action="Listar"><i class="bi bi-people me-2"></i>Gestionar usuarios</a></div>
+                <div class="col-6 col-md-4 col-xl-3"><a class="btn btn-light w-100" asp-controller="PadreFamilia" asp-action="Listar"><i class="bi bi-person-hearts me-2"></i>Gestionar padres</a></div>
+                <div class="col-6 col-md-4 col-xl-3"><a class="btn btn-light w-100" asp-controller="Conductor" asp-action="Listar"><i class="bi bi-person-badge me-2"></i>Gestionar conductores</a></div>
+                <div class="col-6 col-md-4 col-xl-3"><a class="btn btn-light w-100" asp-controller="Estudiante" asp-action="Listar"><i class="bi bi-mortarboard me-2"></i>Gestionar estudiantes</a></div>
+                <div class="col-6 col-md-4 col-xl-3"><a class="btn btn-light w-100" asp-controller="Bus" asp-action="Listar"><i class="bi bi-bus-front me-2"></i>Gestionar buses</a></div>
+                <div class="col-6 col-md-4 col-xl-3"><a class="btn btn-light w-100" asp-controller="Ruta" asp-action="Listar"><i class="bi bi-signpost-2 me-2"></i>Gestionar rutas</a></div>
+                <div class="col-6 col-md-4 col-xl-3"><a class="btn btn-light w-100" asp-controller="Paradero" asp-action="Listar"><i class="bi bi-geo-alt me-2"></i>Gestionar paraderos</a></div>
+                <div class="col-6 col-md-4 col-xl-3"><a class="btn btn-light w-100" asp-controller="Recorrido" asp-action="Listar"><i class="bi bi-map me-2"></i>Gestionar recorridos</a></div>
+                <div class="col-6 col-md-4 col-xl-3"><a class="btn btn-light w-100" asp-controller="Incidencia" asp-action="Listar"><i class="bi bi-exclamation-triangle me-2"></i>Ver incidencias</a></div>
+                <div class="col-6 col-md-4 col-xl-3"><a class="btn btn-light w-100" asp-controller="Notificacion" asp-action="Listar"><i class="bi bi-bell me-2"></i>Ver notificaciones</a></div>
+                <div class="col-6 col-md-4 col-xl-3"><a class="btn btn-light w-100" asp-controller="Auditoria" asp-action="Listar"><i class="bi bi-journal-text me-2"></i>Ver auditoría</a></div>
             </div>
-            <div id="adminMonitoreoMapa" class="admin-map"></div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-xl-6">
+            <div class="card border-0 shadow-sm admin-activity h-100"><div class="card-body p-4"><h2 class="h5 fw-bold mb-3">Actividad reciente</h2>
+                @if (!Model.ActividadReciente.Any()) { <div class="text-muted">Sin actividad reciente por mostrar.</div> }
+                else { <div class="admin-activity-list">@foreach (var item in Model.ActividadReciente) {
+                    <div class="admin-activity-item"><div class="admin-activity-icon @item.Tipo"><i class="bi @item.Icono"></i></div><div><div class="fw-semibold small">@item.Titulo</div><div class="text-muted small">@item.Descripcion</div><div class="d-flex gap-2 align-items-center"><span class="text-muted x-small">@item.FechaTexto</span><span class="badge text-bg-light">@item.EstadoTexto</span></div></div></div>
+                }</div> }
+            </div></div>
+        </div>
+        <div class="col-12 col-xl-6">
+            <div class="card border-0 shadow-sm h-100"><div class="card-body p-4"><h2 class="h5 fw-bold mb-3">Pendientes de atención</h2>
+                <div class="admin-pending-list">@foreach (var item in Model.PendientesAtencion) {
+                    <div class="admin-pending-item"><div class="admin-activity-icon @item.Tipo"><i class="bi @item.Icono"></i></div><div class="flex-grow-1"><div class="fw-semibold small">@item.Titulo</div><div class="text-muted small">@item.Detalle</div></div><span class="badge text-bg-light">@item.Total</span></div>
+                }</div>
+            </div></div>
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script src="~/js/capimovil-maps.js" asp-append-version="true"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RecorridosTendenciaLabels));
-            const recorridosTrend = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RecorridosTendenciaData));
-            const incidenciasTrend = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.IncidenciasTendenciaData));
-
-            const recEstadoLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RecorridosEstadoLabels));
-            const recEstadoData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RecorridosEstadoData));
-            const incEstadoLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.IncidenciasEstadoLabels));
-            const incEstadoData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.IncidenciasEstadoData));
-            const incPrioLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.IncidenciasPrioridadLabels));
-            const incPrioData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.IncidenciasPrioridadData));
-
-            new Chart(document.getElementById('chartAdminTendencia'), {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [
-                        { label: 'Recorridos', data: recorridosTrend, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.2)', fill: true, tension: .35 },
-                        { label: 'Incidencias', data: incidenciasTrend, borderColor: '#dc2626', backgroundColor: 'rgba(220,38,38,.15)', fill: true, tension: .35 }
-                    ]
-                },
-                options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-            });
-
-            new Chart(document.getElementById('chartAdminRecorridosEstado'), {
-                type: 'doughnut',
-                data: { labels: recEstadoLabels, datasets: [{ data: recEstadoData, backgroundColor: ['#0ea5e9', '#22c55e', '#f59e0b', '#a855f7', '#ef4444'] }] },
-                options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-            });
-
-            new Chart(document.getElementById('chartAdminIncidenciasEstado'), {
-                type: 'bar',
-                data: { labels: incEstadoLabels, datasets: [{ label: 'Incidencias', data: incEstadoData, backgroundColor: '#f97316' }] },
-                options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
-
-            new Chart(document.getElementById('chartAdminIncidenciasPrioridad'), {
-                type: 'polarArea',
-                data: { labels: incPrioLabels, datasets: [{ data: incPrioData, backgroundColor: ['#ef4444', '#f59e0b', '#22c55e', '#94a3b8'] }] },
-                options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-            });
-
-            CapiMovilMaps.createLiveMonitoringMap({
-                mapId: 'adminMonitoreoMapa',
-                buses: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BusesMapa)),
-                paraderos: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ParaderosMapa))
-            });
-        });
-    </script>
-}
