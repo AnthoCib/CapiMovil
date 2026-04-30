@@ -10,18 +10,22 @@ namespace CapiMovil.BL.BC
         private readonly EstudianteBC _estudianteBC;
         private readonly RecorridoBC _recorridoBC;
         private readonly RutaEstudianteBC _rutaEstudianteBC;
+        private readonly AuditoriaBC _auditoriaBC;
+        
         public EventoAbordajeBC(
               EventoAbordajeDALC eventoAbordajeDALC,
               NotificacionBC notificacionBC,
               EstudianteBC estudianteBC,
               RecorridoBC recorridoBC,
-              RutaEstudianteBC rutaEstudianteBC)
+              RutaEstudianteBC rutaEstudianteBC,
+              AuditoriaBC auditoriaBC)
         {
             _eventoAbordajeDALC = eventoAbordajeDALC;
             _notificacionBC = notificacionBC;
             _estudianteBC = estudianteBC;
             _recorridoBC = recorridoBC;
             _rutaEstudianteBC = rutaEstudianteBC;
+            _auditoriaBC = auditoriaBC;
         }
 
         public List<EventoAbordajeBE> Listar()
