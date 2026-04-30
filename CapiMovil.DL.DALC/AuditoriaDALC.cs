@@ -69,14 +69,16 @@ namespace CapiMovil.DL.DALC
             cn.Open();
             using SqlDataReader dr = cmd.ExecuteReader();
 
-            if (dr.Read())
+            if (RegistroResultadoDALC.EsRegistroExitoso(dr, out int filas, out string codigoGenerado, out string? mensaje))
             {
-                int filas = Convert.ToInt32(dr["FilasAfectadas"]);
-                if (filas > 0)
+                if (!string.IsNullOrWhiteSpace(codigoGenerado) &&
+                    !System.Text.RegularExpressions.Regex.IsMatch(codigoGenerado, @"^AUD-\d{4}-\d{6}$"))
                 {
-                    entidad.CodigoAuditoria = dr["CodigoGenerado"]?.ToString() ?? string.Empty;
-                    return true;
+                    throw new InvalidOperationException($"Formato de código de auditoría inválido: {codigoGenerado}");
                 }
+
+                entidad.CodigoAuditoria = codigoGenerado;
+                    return true;
             }
 
             return false;

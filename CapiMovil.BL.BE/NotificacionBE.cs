@@ -23,5 +23,6 @@
 
         public string? NombrePadre { get; set; }
         public string? NombreEstudiante { get; set; }
+        public string? CodigoEstudiante { get; set; }
     }
 }

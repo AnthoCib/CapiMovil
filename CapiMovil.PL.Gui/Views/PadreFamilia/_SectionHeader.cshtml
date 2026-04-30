@@ -1,0 +1,12 @@
+@model (string Titulo, string Subtitulo, string? Icono)
+
+<div class="d-flex align-items-start gap-2 mb-3">
+    @if (!string.IsNullOrWhiteSpace(Model.Icono))
+    {
+        <span class="pf-badge-soft pf-badge-info"><i class="bi @Model.Icono me-1"></i>Sección</span>
+    }
+    <div>
+        <h2 class="h5 pf-title mb-1">@Model.Titulo</h2>
+        <p class="pf-subtitle mb-0">@Model.Subtitulo</p>
+    </div>
+</div>

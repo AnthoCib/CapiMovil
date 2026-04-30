@@ -1,0 +1,42 @@
+@model List<CapiMovil.BL.BE.IncidenciaBE>
+@{
+    ViewData["Title"] = "Incidencias relacionadas";
+}
+
+<div class="pf-page">
+    <section class="pf-card p-3">
+        @await Html.PartialAsync("_SectionHeader", ("Incidencias", "Alertas e incidencias vinculadas al servicio de tus hijos.", "bi-exclamation-triangle"))
+
+        @if (Model.Any())
+        {
+            <div class="d-flex flex-column gap-2">
+                @foreach (var i in Model.OrderByDescending(x => x.FechaHora))
+                {
+                    var badge = i.Prioridad?.ToUpperInvariant() switch
+                    {
+                        "ALTA" => "pf-badge-danger",
+                        "MEDIA" => "pf-badge-warning",
+                        _ => "pf-badge-info"
+                    };
+                    <article class="pf-list-item">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div>
+                                <strong>@i.CodigoIncidencia · @i.TipoIncidencia</strong>
+                                <p class="pf-student-meta mb-1">Recorrido: @i.CodigoRecorrido · @i.FechaHora.ToString("dd/MM/yyyy HH:mm")</p>
+                                <p class="mb-0">@(string.IsNullOrWhiteSpace(i.Descripcion) ? "Sin descripción adicional." : i.Descripcion)</p>
+                            </div>
+                            <div class="text-end">
+                                <span class="pf-badge-soft @badge">@i.Prioridad</span>
+                                <div class="mt-1"><span class="pf-badge-soft pf-badge-muted">@i.EstadoIncidencia</span></div>
+                            </div>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+        else
+        {
+            @await Html.PartialAsync("_EmptyState", ("Sin incidencias", "No hay incidencias relacionadas en este momento.", "bi-check2-circle"))
+        }
+    </section>
+</div>

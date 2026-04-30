@@ -35,6 +35,9 @@ namespace CapiMovil.DL.DALC
                     Username = dr["Username"].ToString() ?? string.Empty,
                     Correo = dr["Correo"].ToString() ?? string.Empty,
                     PasswordHash = dr["PasswordHash"].ToString() ?? string.Empty,
+                    FotoPerfilUrl = ExisteColumna(dr, "FotoPerfilUrl") && dr["FotoPerfilUrl"] != DBNull.Value
+                        ? dr["FotoPerfilUrl"].ToString()
+                        : null,
                     UltimoAcceso = dr["UltimoAcceso"] == DBNull.Value ? null : Convert.ToDateTime(dr["UltimoAcceso"]),
                     Estado = Convert.ToBoolean(dr["Estado"]),
                     FechaCreacion = Convert.ToDateTime(dr["FechaCreacion"]),
@@ -76,6 +79,9 @@ namespace CapiMovil.DL.DALC
                     Username = dr["Username"].ToString() ?? string.Empty,
                     Correo = dr["Correo"].ToString() ?? string.Empty,
                     PasswordHash = dr["PasswordHash"].ToString() ?? string.Empty,
+                    FotoPerfilUrl = ExisteColumna(dr, "FotoPerfilUrl") && dr["FotoPerfilUrl"] != DBNull.Value
+                        ? dr["FotoPerfilUrl"].ToString()
+                        : null,
                     UltimoAcceso = dr["UltimoAcceso"] == DBNull.Value ? null : Convert.ToDateTime(dr["UltimoAcceso"]),
                     Estado = Convert.ToBoolean(dr["Estado"]),
                     FechaCreacion = Convert.ToDateTime(dr["FechaCreacion"]),
@@ -221,6 +227,9 @@ namespace CapiMovil.DL.DALC
                     Username = dr["Username"]?.ToString() ?? string.Empty,
                     Correo = dr["Correo"]?.ToString() ?? string.Empty,
                     PasswordHash = dr["PasswordHash"]?.ToString() ?? string.Empty,
+                    FotoPerfilUrl = ExisteColumna(dr, "FotoPerfilUrl") && dr["FotoPerfilUrl"] != DBNull.Value
+                        ? dr["FotoPerfilUrl"].ToString()
+                        : null,
                     Estado = Convert.ToBoolean(dr["Estado"]),
                     Rol = new RolBE
                     {
@@ -233,6 +242,30 @@ namespace CapiMovil.DL.DALC
             }
 
             return usuario;
+        }
+
+        public bool ActualizarFotoPerfil(Guid idUsuario, string? fotoPerfilUrl)
+        {
+            using SqlConnection cn = _bdConexion.ObtenerConexion();
+            using SqlCommand cmd = new SqlCommand("sp_Usuario_ActualizarFotoPerfil", cn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@IdUsuario", idUsuario);
+            cmd.Parameters.AddWithValue("@FotoPerfilUrl", (object?)fotoPerfilUrl ?? DBNull.Value);
+
+            cn.Open();
+            object? result = cmd.ExecuteScalar();
+            return result != null && Convert.ToInt32(result) > 0;
+        }
+
+        private static bool ExisteColumna(SqlDataReader dr, string nombreColumna)
+        {
+            for (int i = 0; i < dr.FieldCount; i++)
+            {
+                if (dr.GetName(i).Equals(nombreColumna, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            return false;
         }
 
     }

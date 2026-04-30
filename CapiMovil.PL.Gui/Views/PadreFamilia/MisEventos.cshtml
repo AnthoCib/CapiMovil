@@ -1,0 +1,32 @@
+@model List<CapiMovil.BL.BE.EventoAbordajeBE>
+@{
+    ViewData["Title"] = "Eventos de Abordaje";
+}
+
+<div class="pf-page">
+    <section class="pf-card p-3">
+        @await Html.PartialAsync("_SectionHeader", ("Eventos de abordaje", "Historial de subida y bajada registrado para tus hijos.", "bi-clock-history"))
+
+        @if (Model.Any())
+        {
+            <div class="d-flex flex-column gap-2">
+                @foreach (var item in Model)
+                {
+                    var tipoClass = item.TipoEvento == "SUBIDA" ? "pf-badge-success" : item.TipoEvento == "BAJADA" ? "pf-badge-info" : "pf-badge-muted";
+                    <article class="pf-list-item">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong>@item.CodigoEvento</strong>
+                            <span class="pf-badge-soft @tipoClass">@item.TipoEvento</span>
+                        </div>
+                        <p class="mb-1 pf-student-meta">@item.FechaHora.ToString("dd/MM/yyyy HH:mm")</p>
+                        <p class="mb-0">@(string.IsNullOrWhiteSpace(item.Observacion) ? "Sin observación" : item.Observacion)</p>
+                    </article>
+                }
+            </div>
+        }
+        else
+        {
+            @await Html.PartialAsync("_EmptyState", ("Sin eventos registrados", "Aún no hay eventos de abordaje para mostrar.", "bi-clock"))
+        }
+    </section>
+</div>

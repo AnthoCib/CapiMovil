@@ -1,5 +1,6 @@
 ﻿using CapiMovil.BL.BC;
 using CapiMovil.BL.BE;
+using CapiMovil.PL.Gui.Infrastructure;
 using CapiMovil.PL.Gui.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,14 +17,15 @@ namespace CapiMovil.PL.Gui.Controllers
 
         private IActionResult RedireccionarSegunRol(string? rol)
         {
-            string rolNormalizado = (rol ?? "").Trim().ToUpperInvariant();
+            string rolNormalizado = AutenticacionSesion.NormalizarRol(rol);
 
             return rolNormalizado switch
             {
-                "ADMINISTRADOR" => RedirectToAction("Index", "Admin"),
-                "CONDUCTOR" => RedirectToAction("Index", "Conductor"),
-                "PADRE" => RedirectToAction("Index", "PadreFamilia"),
-                "PADRE DE FAMILIA" => RedirectToAction("Index", "PadreFamilia"),
+                RolesSistema.Administrador => RedirectToAction("Index", "Admin"),
+                RolesSistema.Admin => RedirectToAction("Index", "Admin"),
+                RolesSistema.Conductor => RedirectToAction("Index", "Conductor"),
+                RolesSistema.Padre => RedirectToAction("Index", "PadreFamilia"),
+                RolesSistema.PadreFamilia => RedirectToAction("Index", "PadreFamilia"),
                 _ => RedirectToAction(nameof(SesionInvalida))
             };
         }
@@ -59,7 +61,9 @@ namespace CapiMovil.PL.Gui.Controllers
                     return View(vm);
                 }
 
-                string rolNombre = (usuario.Rol?.Nombre ?? "").Trim().ToUpperInvariant();
+                string rolNombre = AutenticacionSesion.NormalizarRol(usuario.Rol?.Nombre);
+                UsuarioBE? usuarioCompleto = _usuarioBC.ListarPorId(usuario.IdUsuario);
+                string fotoPerfilUrl = usuarioCompleto?.FotoPerfilUrl ?? usuario.FotoPerfilUrl ?? string.Empty;
 
                 HttpContext.Session.SetString("UsuarioId", usuario.IdUsuario.ToString());
                 HttpContext.Session.SetString("Username", usuario.Username ?? "");
@@ -67,6 +71,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 HttpContext.Session.SetString("CodigoUsuario", usuario.CodigoUsuario ?? "");
                 HttpContext.Session.SetString("RolId", usuario.Rol?.IdRol.ToString() ?? "");
                 HttpContext.Session.SetString("RolNombre", rolNombre);
+                HttpContext.Session.SetString("FotoPerfilUrl", fotoPerfilUrl);
 
                 TempData["ok"] = $"Bienvenido, {usuario.Username}. Rol: {rolNombre}";
 

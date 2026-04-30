@@ -1,47 +1,100 @@
-﻿@model CapiMovil.PL.Gui.Models.ViewModels.LoginViewModel
+@model CapiMovil.PL.Gui.Models.ViewModels.LoginViewModel
 
 @{
     ViewData["Title"] = "Iniciar Sesión";
 }
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-body p-4">
-                    <h2 class="text-center mb-4">Iniciar Sesión</h2>
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth-login.css" asp-append-version="true" />
+}
 
-                    <form asp-action="Login" method="post">
-                        @Html.AntiForgeryToken()
+<div class="auth-login-page py-4 py-md-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-xl-10">
+                <section class="auth-login-panel shadow-lg">
+                    <div class="row g-0">
+                        <div class="col-lg-6 d-none d-lg-flex">
+                            <div class="auth-login-visual w-100">
+                                <div class="auth-brand-chip mb-4">
+                                    <i class="bi bi-bus-front-fill"></i>
+                                    <span>CapiMovil</span>
+                                </div>
+                                <h1 class="auth-visual-title">Gestión segura del transporte escolar</h1>
+                                <p class="auth-visual-subtitle">Controla rutas, unidades y comunicación con familias desde una plataforma moderna y confiable.</p>
 
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                                <div class="auth-visual-illustration">
+                                    <img src="~/images/login-school-transport.svg" alt="Ilustración de transporte escolar CapiMovil" class="img-fluid" />
+                                </div>
 
-                        <div class="mb-3">
-                            <label asp-for="UsuarioOCorreo" class="form-label"></label>
-                            <input asp-for="UsuarioOCorreo" class="form-control" />
-                            <span asp-validation-for="UsuarioOCorreo" class="text-danger"></span>
+                                <div class="auth-visual-badges">
+                                    <span><i class="bi bi-shield-check"></i>Seguridad</span>
+                                    <span><i class="bi bi-geo-alt"></i>Rutas</span>
+                                    <span><i class="bi bi-people"></i>Comunidad</span>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label asp-for="Password" class="form-label"></label>
-                            <input asp-for="Password" class="form-control" />
-                            <span asp-validation-for="Password" class="text-danger"></span>
-                        </div>
+                        <div class="col-lg-6">
+                            <div class="auth-login-form-wrap">
+                                <div class="auth-mobile-brand d-lg-none mb-4">
+                                    <span class="auth-mobile-icon"><i class="bi bi-bus-front-fill"></i></span>
+                                    <div>
+                                        <strong>CapiMovil</strong>
+                                        <small>Sistema de Gestión de Servicio Escolar</small>
+                                    </div>
+                                </div>
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">
-                                Ingresar
-                            </button>
+                                <h2 class="auth-form-title">Bienvenido de nuevo</h2>
+                                <p class="auth-form-subtitle">Inicia sesión para administrar el servicio escolar con total confianza.</p>
+
+                                <form asp-action="Login" method="post" novalidate>
+                                    @Html.AntiForgeryToken()
+
+                                    <div asp-validation-summary="ModelOnly" class="alert alert-danger auth-validation-summary ux-validation-summary"></div>
+
+                                    <div class="mb-3">
+                                        <label asp-for="UsuarioOCorreo" class="form-label fw-semibold"></label>
+                                        <div class="input-group auth-input-group">
+                                            <span class="input-group-text"><i class="bi bi-person-circle"></i></span>
+                                            <input asp-for="UsuarioOCorreo" class="form-control" placeholder="usuario o correo@dominio.com" autocomplete="username" />
+                                        </div>
+                                        <span asp-validation-for="UsuarioOCorreo" class="text-danger small"></span>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label asp-for="Password" class="form-label fw-semibold"></label>
+                                        <div class="input-group auth-input-group">
+                                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                            <input asp-for="Password" class="form-control" placeholder="Ingresa tu contraseña" autocomplete="current-password" />
+                                        </div>
+                                        <span asp-validation-for="Password" class="text-danger small"></span>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end mb-4">
+                                        <a href="#" class="auth-forgot-link">Olvidé mi contraseña</a>
+                                    </div>
+
+                                    <div class="d-grid mb-3">
+                                        <button type="submit" class="btn auth-login-btn btn-lg">
+                                            <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar sesión
+                                        </button>
+                                    </div>
+
+                                    <p class="auth-trust-note mb-0">
+                                        <i class="bi bi-shield-lock me-1"></i>
+                                        Tu acceso está protegido y cifrado para mantener la seguridad del sistema.
+                                    </p>
+                                </form>
+                            </div>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                </section>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

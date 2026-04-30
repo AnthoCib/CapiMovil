@@ -5,80 +5,79 @@
 }
 
 <div class="row justify-content-center">
-    <div class="col-lg-9">
-        <div class="card card-soft">
+    <div class="col-lg-10">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-0 pt-4 pb-0">
+                <h2 class="h4 fw-bold mb-1"><i class="bi bi-signpost-split-fill text-primary me-2"></i>Registrar Asignación Ruta - Estudiante</h2>
+                <p class="text-muted mb-0">La asignación se crea activa por defecto.</p>
+            </div>
             <div class="card-body">
-                <h2 class="page-title mb-4">Registrar Asignación Ruta - Estudiante</h2>
-
                 <form asp-action="Crear" method="post">
                     @Html.AntiForgeryToken()
-
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                    <div class="mb-3">
-                        <label asp-for="IdRuta" class="form-label"></label>
-                        <select asp-for="IdRuta" asp-items="Model.Rutas" class="form-select">
-                            <option value="">Seleccione una ruta</option>
-                        </select>
-                        <span asp-validation-for="IdRuta" class="text-danger"></span>
-                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="IdRuta" class="form-label"></label>
+                            <select asp-for="IdRuta" asp-items="Model.Rutas" class="form-select">
+                                <option value="">Seleccione una ruta</option>
+                            </select>
+                            <span asp-validation-for="IdRuta" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="IdEstudiante" class="form-label"></label>
+                            <select asp-for="IdEstudiante" asp-items="Model.Estudiantes" class="form-select">
+                                <option value="">Seleccione un estudiante</option>
+                            </select>
+                            <span asp-validation-for="IdEstudiante" class="text-danger"></span>
+                        </div>
 
-                    <div class="mb-3">
-                        <label asp-for="IdEstudiante" class="form-label"></label>
-                        <select asp-for="IdEstudiante" asp-items="Model.Estudiantes" class="form-select">
-                            <option value="">Seleccione un estudiante</option>
-                        </select>
-                        <span asp-validation-for="IdEstudiante" class="text-danger"></span>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-6">
                             <label asp-for="IdParaderoSubida" class="form-label"></label>
                             <select asp-for="IdParaderoSubida" asp-items="Model.ParaderosSubida" class="form-select">
                                 <option value="">Seleccione un paradero</option>
                             </select>
                         </div>
-
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-6">
                             <label asp-for="IdParaderoBajada" class="form-label"></label>
                             <select asp-for="IdParaderoBajada" asp-items="Model.ParaderosBajada" class="form-select">
                                 <option value="">Seleccione un paradero</option>
                             </select>
                         </div>
-                    </div>
+                        <div class="col-12">
+                            <label class="form-label">Dirección de Paradero de Bajada (Punto final de ruta)</label>
+                            <input id="txtDireccionFinRuta" class="form-control" readonly value="@Model.DireccionFinalRuta" placeholder="Seleccione una ruta para ver la dirección final." />
+                        </div>
 
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-4">
                             <label asp-for="FechaInicioVigencia" class="form-label"></label>
                             <input asp-for="FechaInicioVigencia" class="form-control" />
                             <span asp-validation-for="FechaInicioVigencia" class="text-danger"></span>
                         </div>
 
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-4">
                             <label asp-for="FechaFinVigencia" class="form-label"></label>
                             <input asp-for="FechaFinVigencia" class="form-control" />
                         </div>
 
-                        <div class="col-md-4 mb-3">
-                            <label asp-for="EstadoAsignacion" class="form-label"></label>
-                            <select asp-for="EstadoAsignacion" asp-items="Model.EstadosAsignacion" class="form-select"></select>
-                            <span asp-validation-for="EstadoAsignacion" class="text-danger"></span>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <div class="alert alert-info w-100 mb-0 py-2">
+                                <i class="bi bi-info-circle me-1"></i>Estado de asignación inicial: <strong>ACTIVO</strong>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Observaciones" class="form-label"></label>
+                            <textarea asp-for="Observaciones" class="form-control" rows="2"></textarea>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="Observaciones" class="form-label"></label>
-                        <textarea asp-for="Observaciones" class="form-control"></textarea>
-                    </div>
+                    <input asp-for="EstadoAsignacion" type="hidden" value="ACTIVO" />
+                    <input asp-for="Estado" type="hidden" value="true" />
 
-                    <div class="form-check form-switch mb-4">
-                        <input asp-for="Estado" class="form-check-input" />
-                        <label asp-for="Estado" class="form-check-label"></label>
-                    </div>
-
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">Guardar</button>
-                        <a asp-action="Listar" class="btn btn-secondary">Cancelar</a>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-floppy me-1"></i>Guardar</button>
+                        <a asp-action="Listar" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Cancelar</a>
                     </div>
                 </form>
             </div>
@@ -88,4 +87,35 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const rutaSelect = document.getElementById('IdRuta');
+            const subidaSelect = document.getElementById('IdParaderoSubida');
+            const bajadaSelect = document.getElementById('IdParaderoBajada');
+            const direccionFinInput = document.getElementById('txtDireccionFinRuta');
+
+            async function cargarParaderos() {
+                const idRuta = rutaSelect.value;
+                subidaSelect.innerHTML = '<option value="">Seleccione un paradero</option>';
+                bajadaSelect.innerHTML = '<option value="">Seleccione un paradero</option>';
+                direccionFinInput.value = '';
+
+                if (!idRuta) return;
+
+                const response = await fetch(`/RutaEstudiante/ObtenerParaderosPorRuta?idRuta=${idRuta}`);
+                const payload = await response.json();
+                if (!payload.ok) return;
+
+                payload.data.forEach(function (item) {
+                    subidaSelect.insertAdjacentHTML('beforeend', `<option value="${item.value}">${item.text}</option>`);
+                    bajadaSelect.insertAdjacentHTML('beforeend', `<option value="${item.value}">${item.text}</option>`);
+                });
+
+                direccionFinInput.value = payload.direccionFin || 'No disponible';
+            }
+
+            rutaSelect.addEventListener('change', cargarParaderos);
+            if (rutaSelect.value) cargarParaderos();
+        });
+    </script>
 }

@@ -1,0 +1,3 @@
+@model (string Titulo, string Mensaje, string Icono)
+
+@await Html.PartialAsync("~/Views/Shared/_ListEmptyState.cshtml", (titulo: Model.Titulo, mensaje: Model.Mensaje, icono: Model.Icono))

@@ -1,0 +1,60 @@
+@model CapiMovil.PL.Gui.Models.ViewModels.PadreHijoDetalleViewModel
+@{
+    ViewData["Title"] = "Detalle de Hijo";
+}
+
+<div class="pf-page">
+@if (Model.Estudiante == null)
+{
+    @await Html.PartialAsync("_EmptyState", ("Estudiante no encontrado", "No se encontró información del estudiante seleccionado.", "bi-search"))
+}
+else
+{
+    <section class="pf-card p-3 mb-3">
+        @await Html.PartialAsync("_SectionHeader", ("Ficha del estudiante", "Información general y datos de identificación.", "bi-person-vcard"))
+        <div class="pf-data-grid">
+            <div class="pf-data-cell"><small>Código</small>@Model.Estudiante.CodigoEstudiante</div>
+            <div class="pf-data-cell"><small>Nombre</small>@Model.Estudiante.NombreCompleto</div>
+            <div class="pf-data-cell"><small>DNI</small>@Model.Estudiante.DNI</div>
+            <div class="pf-data-cell"><small>Grado / Sección</small>@Model.Estudiante.Grado - @Model.Estudiante.Seccion</div>
+        </div>
+    </section>
+
+    <section class="pf-card p-3 mb-3">
+        @await Html.PartialAsync("_SectionHeader", ("Ruta y paraderos", "Detalle de subida y bajada asignada.", "bi-signpost-2"))
+        <div class="pf-data-grid">
+            <div class="pf-data-cell"><small>Ruta</small>@(Model.RutaAsignada?.Ruta?.CodigoRuta ?? "No disponible") - @(Model.RutaAsignada?.Ruta?.Nombre ?? "Sin ruta asignada")</div>
+            <div class="pf-data-cell"><small>Paradero de subida</small>@(Model.ParaderoSubida?.Nombre ?? "No disponible")<br/><span class="pf-student-meta">@Model.ParaderoSubida?.Direccion</span></div>
+            <div class="pf-data-cell"><small>Paradero de bajada</small>@(Model.ParaderoBajada?.Nombre ?? "No disponible")<br/><span class="pf-student-meta">@Model.ParaderoBajada?.Direccion</span></div>
+        </div>
+    </section>
+
+    <section class="pf-card p-3">
+        @await Html.PartialAsync("_SectionHeader", ("Últimos eventos", "Registro reciente de subida y bajada del estudiante.", "bi-clock-history"))
+        <div class="mb-3">
+            <a asp-action="CalificarConductor" asp-route-idEstudiante="@Model.Estudiante.IdEstudiante" class="btn btn-sm btn-outline-warning">
+                <i class="bi bi-star-fill me-1"></i>Calificar conductor
+            </a>
+        </div>
+        @if (Model.EventosRecientes.Any())
+        {
+            <div class="d-flex flex-column gap-2">
+                @foreach (var e in Model.EventosRecientes)
+                {
+                    <article class="pf-list-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong>@e.TipoEvento</strong>
+                            <span class="pf-badge-soft pf-badge-info">@e.FechaHora.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                        <p class="mb-0 pf-student-meta">@(string.IsNullOrWhiteSpace(e.Observacion) ? "Sin observación." : e.Observacion)</p>
+                    </article>
+                }
+            </div>
+        }
+        else
+        {
+            @await Html.PartialAsync("_EmptyState", ("Sin eventos recientes", "No hay eventos de abordaje registrados para este estudiante.", "bi-clock"))
+        }
+    </section>
+}
+</div>

@@ -1,92 +1,252 @@
-﻿@model List<CapiMovil.BL.BE.EventoAbordajeBE>
+@model CapiMovil.PL.Gui.Models.ViewModels.AdminAbordajeDashboardViewModel
 
 @{
-    ViewData["Title"] = "Eventos de Abordaje";
+    ViewData["Title"] = "Supervisión de Abordajes";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="page-title mb-1">Operaciones - Eventos de Abordaje</h2>
-        <p class="text-muted mb-0">Registra subidas, bajadas, ausencias y eventos de no abordaje.</p>
-    </div>
-    <a asp-action="Crear" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-1"></i>Nuevo Evento
-    </a>
-</div>
+@section Styles {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+}
 
-<div class="card card-soft shadow-sm">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table align-middle">
-                <thead>
-                    <tr>
-                        <th>Código</th>
-                        <th>Recorrido</th>
-                        <th>Estudiante</th>
-                        <th>Paradero</th>
-                        <th>Tipo</th>
-                        <th>Fecha y Hora</th>
-                        <th style="width:160px;">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.Any())
-                    {
-                        foreach (var item in Model)
-                        {
-                            <tr>
-                                <td>@item.CodigoEvento</td>
-                                <td>@item.Recorrido?.CodigoRecorrido</td>
-                                <td>@($"{item.Estudiante?.Nombres} {item.Estudiante?.ApellidoPaterno}")</td>
-                                <td>@(item.Paradero?.Nombre ?? "-")</td>
-                                <td>
-                                    @if (item.TipoEvento == "SUBIDA")
-                                    {
-                                        <span class="badge bg-success">SUBIDA</span>
-                                    }
-                                    else if (item.TipoEvento == "BAJADA")
-                                    {
-                                        <span class="badge bg-primary">BAJADA</span>
-                                    }
-                                    else if (item.TipoEvento == "AUSENTE")
-                                    {
-                                        <span class="badge bg-warning text-dark">AUSENTE</span>
-                                    }
-                                    else if (item.TipoEvento == "NO_ABORDO")
-                                    {
-                                        <span class="badge bg-danger">NO ABORDÓ</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-dark">@item.TipoEvento</span>
-                                    }
-                                </td>
-                                <td>@item.FechaHora.ToString("dd/MM/yyyy HH:mm")</td>
-                                <td>
-                                    <a asp-action="Editar" asp-route-id="@item.IdEvento" class="btn btn-warning btn-sm">Editar</a>
-
-                                    <form asp-action="Eliminar" asp-route-id="@item.IdEvento" method="post" class="d-inline">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit"
-                                                class="btn btn-danger btn-sm"
-                                                onclick="return confirm('¿Desea eliminar este evento?');">
-                                            Eliminar
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="7" class="text-center text-muted py-4">
-                                No hay eventos registrados.
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+<div class="list-shell">
+    <div class="list-toolbar mb-3">
+        <div>
+            <h2 class="list-title mb-1">Panel de Supervisión de Abordajes</h2>
+            <p class="list-subtitle mb-0">Monitoreo operativo por recorrido, paraderos y eventos.</p>
         </div>
     </div>
+
+    <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3 col-xl-2"><div class="list-kpi-card"><small>Recorridos (día)</small><strong>@Model.TotalRecorridosDia</strong></div></div>
+        <div class="col-6 col-md-3 col-xl-2"><div class="list-kpi-card"><small>Estudiantes</small><strong>@Model.TotalEstudiantesAsignados</strong></div></div>
+        <div class="col-6 col-md-3 col-xl-2"><div class="list-kpi-card"><small>Eventos</small><strong>@Model.TotalAbordajesRegistrados</strong></div></div>
+        <div class="col-6 col-md-3 col-xl-2"><div class="list-kpi-card"><small>Subidas</small><strong class="text-success">@Model.TotalSubidas</strong></div></div>
+        <div class="col-6 col-md-3 col-xl-2"><div class="list-kpi-card"><small>Bajadas</small><strong class="text-primary">@Model.TotalBajadas</strong></div></div>
+        <div class="col-6 col-md-3 col-xl-2"><div class="list-kpi-card"><small>Ausentes</small><strong class="text-danger">@Model.TotalAusentes</strong></div></div>
+        <div class="col-6 col-md-3 col-xl-2"><div class="list-kpi-card"><small>No abordó</small><strong class="text-secondary">@Model.TotalNoAbordo</strong></div></div>
+        <div class="col-6 col-md-3 col-xl-2"><div class="list-kpi-card"><small>Incidencias</small><strong class="text-warning">@Model.TotalIncidenciasRelacionadas</strong></div></div>
+    </div>
+
+    <div class="list-table-card p-3 mb-3">
+        <form asp-action="Listar" method="get" class="row g-2">
+            <div class="col-md-2">
+                <label class="form-label mb-1">Fecha</label>
+                <input type="date" name="fecha" class="form-control form-control-sm" value="@Model.Fecha.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label mb-1">Ruta</label>
+                <select name="idRuta" class="form-select form-select-sm">
+                    <option value="">Todas</option>
+                    @foreach (var x in Model.Rutas)
+                    {
+                        <option value="@x.Value" selected="@x.Selected">@x.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label mb-1">Recorrido</label>
+                <select name="idRecorrido" class="form-select form-select-sm">
+                    <option value="">Todos</option>
+                    @foreach (var x in Model.Recorridos)
+                    {
+                        <option value="@x.Value" selected="@x.Selected">@x.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label mb-1">Conductor</label>
+                <select name="idConductor" class="form-select form-select-sm">
+                    <option value="">Todos</option>
+                    @foreach (var x in Model.Conductores)
+                    {
+                        <option value="@x.Value" selected="@x.Selected">@x.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label mb-1">Estado Recorrido</label>
+                <select name="estadoRecorrido" class="form-select form-select-sm">
+                    <option value="">Todos</option>
+                    @foreach (var x in Model.EstadosRecorrido)
+                    {
+                        <option value="@x.Value" selected="@x.Selected">@x.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label mb-1">Estado Abordaje</label>
+                <select name="estadoAbordaje" class="form-select form-select-sm">
+                    <option value="">Todos</option>
+                    @foreach (var x in Model.EstadosAbordaje)
+                    {
+                        <option value="@x.Value" selected="@x.Selected">@x.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 text-end">
+                <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-funnel me-1"></i>Filtrar</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-xl-8">
+            <div class="list-entity-card">
+                <h3 class="h6 mb-3"><i class="bi bi-map me-2"></i>Mapa de abordajes</h3>
+                <div id="adminAbordajeMap" class="capi-map"></div>
+            </div>
+        </div>
+        <div class="col-xl-4">
+            <div class="list-entity-card h-100">
+                <h3 class="h6 mb-3"><i class="bi bi-broadcast-pin me-2"></i>Detalle del recorrido</h3>
+                @if (Model.RecorridoSeleccionado == null)
+                {
+                    <p class="text-muted mb-0">Seleccione un recorrido para ver detalle.</p>
+                }
+                else
+                {
+                    <div class="list-meta-grid mb-3">
+                        <div><small>Código</small><strong>@Model.RecorridoSeleccionado.CodigoRecorrido</strong></div>
+                        <div><small>Ruta</small><strong>@Model.RecorridoSeleccionado.Ruta</strong></div>
+                        <div><small>Bus</small><strong>@Model.RecorridoSeleccionado.Bus</strong></div>
+                        <div><small>Conductor</small><strong>@Model.RecorridoSeleccionado.Conductor</strong></div>
+                        <div><small>Fecha</small><strong>@Model.RecorridoSeleccionado.Fecha.ToString("dd/MM/yyyy")</strong></div>
+                        <div><small>Estado</small><strong>@Model.RecorridoSeleccionado.EstadoRecorrido</strong></div>
+                        <div><small>Hora prog.</small><strong>@(Model.RecorridoSeleccionado.HoraInicioProgramada?.ToString(@"hh\:mm") ?? "--:--")</strong></div>
+                        <div><small>Inicio real</small><strong>@(Model.RecorridoSeleccionado.HoraInicioReal?.ToString("HH:mm") ?? "--:--")</strong></div>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        @foreach (var p in Model.Paraderos)
+                        {
+                            <div class="border rounded p-2">
+                                <div class="fw-semibold">@p.OrdenParada - @p.Nombre</div>
+                                <div class="small text-muted">@p.Direccion</div>
+                                <div class="small text-muted">Hora estimada: @(p.HoraEstimada?.ToString(@"hh\:mm") ?? "--:--")</div>
+                                <div class="mt-1 d-flex flex-wrap gap-1">
+                                    <span class="badge text-bg-light border">Est: @p.TotalEstudiantes</span>
+                                    <span class="badge text-bg-success">Subidas: @p.Subidas</span>
+                                    <span class="badge text-bg-primary">Bajadas: @p.Bajadas</span>
+                                    <span class="badge text-bg-danger">Ausentes: @p.Ausentes</span>
+                                    <span class="badge text-bg-warning text-dark">Pendientes: @p.Pendientes</span>
+                                    <span class="badge text-bg-secondary">No abordó: @p.NoAbordo</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="list-table-card p-3 mt-3">
+        <h3 class="h6 mb-3"><i class="bi bi-clock-history me-2"></i>Timeline de eventos</h3>
+        @if (Model.Timeline.Any())
+        {
+            <div class="d-flex flex-column gap-2">
+                @foreach (var e in Model.Timeline)
+                {
+                    var badge = e.TipoEvento switch
+                    {
+                        "SUBIDA" => "bg-success",
+                        "BAJADA" => "bg-primary",
+                        "AUSENTE" => "bg-danger",
+                        "NO_ABORDO" => "bg-secondary",
+                        _ => "bg-dark"
+                    };
+                    <div class="border rounded p-2 d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="fw-semibold">@e.Alumno</div>
+                            <div class="small text-muted">@e.Paradero · @e.Recorrido</div>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge @badge">@e.TipoEvento</span>
+                            <div class="small text-muted mt-1">@e.FechaHora.ToString("dd/MM HH:mm")</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="text-muted mb-0">No hay eventos para los filtros seleccionados.</p>
+        }
+    </div>
 </div>
+
+@section Scripts {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const mapElement = document.getElementById('adminAbordajeMap');
+            if (!mapElement || typeof L === 'undefined') return;
+
+            const paraderos = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Paraderos));
+            const buses = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BusesMapa));
+
+            const map = L.map(mapElement).setView([-12.046374, -77.042793], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            const layers = [];
+            const route = [];
+
+            function colorForStop(p) {
+                if (p.ausentes > 0) return '#dc2626';
+                if (p.noAbordo > 0) return '#6b7280';
+                if (p.subidas > 0) return '#16a34a';
+                if (p.bajadas > 0) return '#2563eb';
+                return '#f59e0b';
+            }
+
+            paraderos.forEach(function (p) {
+                if (p.latitud == null || p.longitud == null) return;
+                const lat = Number(p.latitud), lng = Number(p.longitud);
+                route.push([lat, lng]);
+
+                const marker = L.circleMarker([lat, lng], {
+                    radius: 7,
+                    color: colorForStop(p),
+                    fillColor: colorForStop(p),
+                    fillOpacity: 0.9,
+                    weight: 1.5
+                }).addTo(map);
+
+                marker.bindPopup(
+                    `<strong>${p.ordenParada} - ${p.nombre}</strong><br/>` +
+                    `${p.direccion}<br/>` +
+                    `Estudiantes: ${p.totalEstudiantes}<br/>` +
+                    `<span class='badge text-bg-success'>Subidas ${p.subidas}</span> ` +
+                    `<span class='badge text-bg-primary'>Bajadas ${p.bajadas}</span> ` +
+                    `<span class='badge text-bg-danger'>Ausentes ${p.ausentes}</span> ` +
+                    `<span class='badge text-bg-warning text-dark'>Pendientes ${p.pendientes}</span> ` +
+                    `<span class='badge text-bg-secondary'>No abordó ${p.noAbordo}</span>`
+                );
+
+                layers.push(marker);
+            });
+
+            if (route.length > 1) {
+                const line = L.polyline(route, { color: '#0d6efd', weight: 4, opacity: 0.85 }).addTo(map);
+                layers.push(line);
+            }
+
+            buses.forEach(function (b) {
+                const icon = L.divIcon({
+                    className: 'capi-bus-icon',
+                    html: '<i class="bi bi-bus-front-fill"></i>',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                });
+                const marker = L.marker([Number(b.latitud), Number(b.longitud)], { icon }).addTo(map);
+                marker.bindPopup(`<strong>${b.bus}</strong><br/>Conductor: ${b.conductor}<br/>Recorrido: ${b.recorrido}`);
+                layers.push(marker);
+            });
+
+            if (layers.length > 0) {
+                map.fitBounds(L.featureGroup(layers).getBounds().pad(0.2));
+            }
+        });
+    </script>
+}

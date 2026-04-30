@@ -1,0 +1,110 @@
+@model CapiMovil.PL.Gui.Models.ViewModels.PerfilEditarViewModel
+@{
+    ViewData["Title"] = "Editar Perfil";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/profile-shared.css" asp-append-version="true" />
+}
+
+<section class="profile-shell">
+    <div class="card border-0 shadow-sm profile-card app-surface">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                @if (!string.IsNullOrWhiteSpace(Model.FotoPerfilUrl))
+                {
+                    <img src="@Model.FotoPerfilUrl" alt="Foto de perfil" class="profile-avatar-img" />
+                }
+                else
+                {
+                    <div class="profile-avatar-fallback">@Model.InicialesAvatar</div>
+                }
+                <div>
+                    <h2 class="h5 fw-bold mb-1 app-section-title">Editar perfil</h2>
+                    <p class="app-section-subtitle mb-0">@Model.Rol</p>
+                </div>
+            </div>
+
+            <form asp-action="EditarPerfil" method="post" class="row g-3" data-disable-on-submit>
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger ux-validation-summary"></div>
+                <input asp-for="IdUsuario" type="hidden" />
+                <input asp-for="IdEntidadRol" type="hidden" />
+                <input asp-for="Rol" type="hidden" />
+
+                <div class="col-md-6">
+                    <label asp-for="Username" class="form-label"></label>
+                    <input asp-for="Username" class="form-control" />
+                    <span asp-validation-for="Username" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Correo" class="form-label"></label>
+                    <input asp-for="Correo" class="form-control" />
+                    <span asp-validation-for="Correo" class="text-danger"></span>
+                </div>
+                @if (Model.EsConductor || Model.EsPadre)
+                {
+                    <div class="col-md-4">
+                        <label asp-for="Nombres" class="form-label"></label>
+                        <input asp-for="Nombres" class="form-control" />
+                        <span asp-validation-for="Nombres" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="ApellidoPaterno" class="form-label"></label>
+                        <input asp-for="ApellidoPaterno" class="form-control" />
+                        <span asp-validation-for="ApellidoPaterno" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="ApellidoMaterno" class="form-label"></label>
+                        <input asp-for="ApellidoMaterno" class="form-control" />
+                        <span asp-validation-for="ApellidoMaterno" class="text-danger"></span>
+                    </div>
+                }
+                <div class="col-md-6">
+                    <label asp-for="Telefono" class="form-label"></label>
+                    <input asp-for="Telefono" class="form-control" />
+                </div>
+                @if (Model.EsPadre)
+                {
+                    <div class="col-md-6">
+                        <label asp-for="TelefonoAlterno" class="form-label"></label>
+                        <input asp-for="TelefonoAlterno" class="form-control" />
+                    </div>
+                }
+                <div class="col-md-12">
+                    <label asp-for="Direccion" class="form-label"></label>
+                    <input asp-for="Direccion" class="form-control" />
+                </div>
+
+                @if (Model.EsConductor)
+                {
+                    <div class="col-md-6">
+                        <label asp-for="Licencia" class="form-label"></label>
+                        <input asp-for="Licencia" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="CategoriaLicencia" class="form-label"></label>
+                        <input asp-for="CategoriaLicencia" class="form-control" />
+                    </div>
+                }
+
+                @if (Model.EsPadre)
+                {
+                    <div class="col-md-6">
+                        <label asp-for="CorreoContacto" class="form-label"></label>
+                        <input asp-for="CorreoContacto" class="form-control" />
+                    </div>
+                }
+
+                <div class="col-12 d-flex gap-2">
+                    <button class="btn btn-primary" data-loading-text="Guardando cambios..."><i class="bi bi-save2 me-2"></i>Guardar cambios</button>
+                    <a asp-action="MiPerfil" class="btn btn-outline-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

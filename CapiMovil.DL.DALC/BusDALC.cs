@@ -111,15 +111,14 @@ namespace CapiMovil.DL.DALC
             cn.Open();
             using SqlDataReader dr = cmd.ExecuteReader();
 
-            if (dr.Read())
+            if (RegistroResultadoDALC.EsRegistroExitoso(dr, out int filas, out string codigoGenerado, out string? mensaje))
             {
-                int filas = Convert.ToInt32(dr["FilasAfectadas"]);
-                if (filas > 0)
-                {
-                    bus.CodigoBus = dr["CodigoGenerado"]?.ToString() ?? string.Empty;
+                bus.CodigoBus = codigoGenerado;
                     return true;
-                }
             }
+
+            if (!string.IsNullOrWhiteSpace(mensaje))
+                throw new InvalidOperationException(mensaje);
 
             return false;
         }
@@ -144,15 +143,8 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.AddWithValue("@Estado", bus.Estado);
 
             cn.Open();
-            object? result = cmd.ExecuteScalar();
-
-            if (result != null)
-            {
-                int filas = Convert.ToInt32(result);
-                return filas > 0;
-            }
-
-            return false;
+            using SqlDataReader dr = cmd.ExecuteReader();
+            return RegistroResultadoDALC.EsRegistroExitoso(dr, out _, out _, out _);
         }
 
         public bool Eliminar(Guid idBus)
@@ -164,15 +156,8 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.AddWithValue("@IdBus", idBus);
 
             cn.Open();
-            object? result = cmd.ExecuteScalar();
-
-            if (result != null)
-            {
-                int filas = Convert.ToInt32(result);
-                return filas > 0;
-            }
-
-            return false;
+            using SqlDataReader dr = cmd.ExecuteReader();
+            return RegistroResultadoDALC.EsRegistroExitoso(dr, out _, out _, out _);
         }
         public List<BusBE> ListarActivos()
         {

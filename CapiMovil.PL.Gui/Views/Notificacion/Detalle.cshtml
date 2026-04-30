@@ -1,7 +1,11 @@
 ﻿@model CapiMovil.BL.BE.NotificacionBE
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
 
 @{
     ViewData["Title"] = "Detalle de Notificación";
+    string rol = (HttpContextAccessor.HttpContext?.Session.GetString("RolNombre") ?? string.Empty).Trim().ToUpperInvariant();
+    bool esAdmin = rol == "ADMIN" || rol == "ADMINISTRADOR";
 }
 
 <div class="container-fluid py-3">
@@ -11,7 +15,10 @@
             <p class="text-muted mb-0">Consulta la información completa de la notificación.</p>
         </div>
         <div class="d-flex gap-2">
-            <a asp-action="Editar" asp-route-id="@Model.IdNotificacion" class="btn btn-warning">Editar</a>
+            @if (!esAdmin)
+            {
+                <a asp-action="Editar" asp-route-id="@Model.IdNotificacion" class="btn btn-warning">Editar</a>
+            }
             <a asp-action="Listar" class="btn btn-outline-secondary">Volver</a>
         </div>
     </div>
@@ -37,6 +44,10 @@
             <div class="col-md-6">
                 <div class="text-muted small">Estudiante</div>
                 <div class="fw-semibold">@(!string.IsNullOrWhiteSpace(Model.NombreEstudiante) ? Model.NombreEstudiante : "-")</div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-muted small">Código de estudiante</div>
+                <div class="fw-semibold">@(!string.IsNullOrWhiteSpace(Model.CodigoEstudiante) ? Model.CodigoEstudiante : "-")</div>
             </div>
             <div class="col-md-6">
                 <div class="text-muted small">Estado de lectura</div>

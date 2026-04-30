@@ -1,0 +1,47 @@
+@model CapiMovil.BL.BE.EstudianteRutaEstadoBE
+
+@{
+    string inicial = string.IsNullOrWhiteSpace(Model.Nombres)
+        ? "E"
+        : Model.Nombres.Trim()[0].ToString().ToUpperInvariant();
+
+    string estado = (Model.EstadoEvento ?? "PENDIENTE").Trim().ToUpperInvariant();
+
+    string badgeClass = estado switch
+    {
+        "SUBIDA" => "bg-success",
+        "BAJADA" => "bg-success",
+        "NO_ABORDO" => "bg-warning text-dark",
+        "AUSENTE" => "bg-danger",
+        _ => "bg-secondary"
+    };
+
+    string estadoTexto = estado switch
+    {
+        "SUBIDA" => "Subida",
+        "BAJADA" => "Bajada",
+        "NO_ABORDO" => "No abordó",
+        "AUSENTE" => "Ausente",
+        _ => "Pendiente"
+    };
+}
+
+<div class="estudiante-item">
+    <div class="avatar-estudiante">
+        @inicial
+    </div>
+
+    <div class="flex-fill">
+        <strong>@Model.NombreCompleto</strong>
+
+        <small>
+            @(string.IsNullOrWhiteSpace(Model.ParaderoSubidaNombre)
+                ? "Sin paradero asignado"
+                : Model.ParaderoSubidaNombre)
+        </small>
+    </div>
+
+    <span class="badge @badgeClass">
+        @estadoTexto
+    </span>
+</div>

@@ -8,18 +8,20 @@ namespace CapiMovil.BL.BC
         private readonly EventoAbordajeDALC _eventoAbordajeDALC;
         private readonly NotificacionBC _notificacionBC;
         private readonly EstudianteBC _estudianteBC;
-        private readonly AuditoriaBC _auditoriaBC;
-
+        private readonly RecorridoBC _recorridoBC;
+        private readonly RutaEstudianteBC _rutaEstudianteBC;
         public EventoAbordajeBC(
-            EventoAbordajeDALC eventoAbordajeDALC,
-            NotificacionBC notificacionBC,
-            EstudianteBC estudianteBC,
-            AuditoriaBC auditoriaBC)
+              EventoAbordajeDALC eventoAbordajeDALC,
+              NotificacionBC notificacionBC,
+              EstudianteBC estudianteBC,
+              RecorridoBC recorridoBC,
+              RutaEstudianteBC rutaEstudianteBC)
         {
             _eventoAbordajeDALC = eventoAbordajeDALC;
             _notificacionBC = notificacionBC;
             _estudianteBC = estudianteBC;
-            _auditoriaBC = auditoriaBC;
+            _recorridoBC = recorridoBC;
+            _rutaEstudianteBC = rutaEstudianteBC;
         }
 
         public List<EventoAbordajeBE> Listar()
@@ -37,7 +39,8 @@ namespace CapiMovil.BL.BC
 
         public bool Registrar(EventoAbordajeBE entidad)
         {
-            Validar(entidad);
+            entidad.FechaHora = DateTime.Now;
+            ValidarRegistro(entidad);
 
             bool ok = _eventoAbordajeDALC.Registrar(entidad);
 
@@ -71,13 +74,13 @@ namespace CapiMovil.BL.BC
                     }
                     else if (tipo == "AUSENTE")
                     {
-                        titulo = "Estudiante ausente";
+                        titulo = "Estudiante ausente en el recorrido";
                         mensaje = "Se registró al estudiante como ausente en el recorrido.";
                     }
                     else if (tipo == "NO_ABORDO")
                     {
-                        titulo = "Estudiante no abordó";
-                        mensaje = "Se registró que el estudiante no abordó la unidad.";
+                        titulo = "Estudiante no abordó la unidad";
+                        mensaje = "Se registró que el estudiante no abordó la unidad de transporte.";
                     }
 
                     if (!string.IsNullOrWhiteSpace(titulo))
@@ -121,6 +124,23 @@ namespace CapiMovil.BL.BC
             }
 
             return ok;
+        }
+
+        public void ValidarRegistro(EventoAbordajeBE entidad)
+        {
+            Validar(entidad);
+            ValidarSecuenciaAbordaje(entidad);
+        }
+
+        public EventoAbordajeResumenBE ObtenerResumenPorEstudianteRecorrido(Guid idRecorrido, Guid idEstudiante)
+        {
+            if (idRecorrido == Guid.Empty)
+                throw new ArgumentException("El recorrido es inválido.");
+
+            if (idEstudiante == Guid.Empty)
+                throw new ArgumentException("El estudiante es inválido.");
+
+            return _eventoAbordajeDALC.ObtenerResumenPorEstudianteRecorrido(idRecorrido, idEstudiante);
         }
 
         public bool Eliminar(Guid id)
@@ -198,6 +218,95 @@ namespace CapiMovil.BL.BC
                 e.Observacion,
                 e.Estado
             };
+        }
+
+        private void ValidarSecuenciaAbordaje(EventoAbordajeBE entidad)
+        {
+            RecorridoBE? recorrido = _recorridoBC.ListarPorId(entidad.IdRecorrido);
+            if (recorrido == null || !recorrido.Estado)
+                throw new ArgumentException("El recorrido no existe o no está disponible.");
+
+            string estadoRecorrido = (recorrido.EstadoRecorrido ?? string.Empty).Trim().ToUpperInvariant();
+            if (!string.Equals(estadoRecorrido, "EN_CURSO", StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("Solo se pueden registrar eventos en recorridos EN_CURSO.");
+
+            EstudianteBE? estudiante = _estudianteBC.ListarPorId(entidad.IdEstudiante);
+            if (estudiante == null || !estudiante.Estado)
+                throw new ArgumentException("El estudiante no existe o se encuentra inactivo.");
+
+            bool perteneceRuta = _rutaEstudianteBC.Listar().Any(x =>
+                x.Estado &&
+                x.IdRuta == recorrido.IdRuta &&
+                x.IdEstudiante == entidad.IdEstudiante);
+
+            if (!perteneceRuta)
+                throw new ArgumentException("El estudiante no pertenece a la ruta del recorrido.");
+
+            EventoAbordajeResumenBE resumen = _eventoAbordajeDALC.ObtenerResumenPorEstudianteRecorrido(entidad.IdRecorrido, entidad.IdEstudiante);
+            string tipo = (entidad.TipoEvento ?? string.Empty).Trim().ToUpperInvariant();
+
+            bool tieneSubida = resumen.TotalSubidas > 0;
+            bool tieneBajada = resumen.TotalBajadas > 0;
+            bool marcadoAusente = resumen.TotalAusentes > 0;
+            bool marcadoNoAbordo = resumen.TotalNoAbordo > 0;
+            bool marcadoNoAbordaje = marcadoAusente || marcadoNoAbordo;
+
+            if (tipo == "SUBIDA")
+            {
+                if (marcadoAusente)
+                    throw new ArgumentException("No se puede registrar este evento porque ya fue marcado como ausente.");
+
+                if (marcadoNoAbordo)
+                    throw new ArgumentException("No se puede registrar este evento porque ya fue marcado como no abordó.");
+
+                if (tieneSubida && !tieneBajada)
+                    throw new ArgumentException("El alumno ya registró una subida en este recorrido.");
+
+                if (tieneSubida && tieneBajada)
+                    throw new ArgumentException("El alumno ya completó su ciclo de abordaje en este recorrido.");
+            }
+            else if (tipo == "BAJADA")
+            {
+                if (marcadoAusente)
+                    throw new ArgumentException("No se puede registrar este evento porque ya fue marcado como ausente.");
+
+                if (marcadoNoAbordo)
+                    throw new ArgumentException("No se puede registrar este evento porque ya fue marcado como no abordó.");
+
+                if (!tieneSubida)
+                    throw new ArgumentException("No se puede registrar la bajada porque el alumno aún no tiene una subida.");
+
+                if (tieneBajada)
+                    throw new ArgumentException("El alumno ya registró una bajada en este recorrido.");
+            }
+            else if (tipo == "AUSENTE")
+            {
+                if (tieneSubida || tieneBajada)
+                    throw new ArgumentException("No se puede registrar este evento porque el alumno ya tiene eventos de abordaje en este recorrido.");
+
+                if (marcadoAusente)
+                    throw new ArgumentException("El alumno ya fue marcado como ausente en este recorrido.");
+
+                if (marcadoNoAbordo)
+                    throw new ArgumentException("No se puede registrar ausente porque el alumno ya fue marcado como no abordó.");
+            }
+            else if (tipo == "NO_ABORDO")
+            {
+                if (tieneSubida || tieneBajada)
+                    throw new ArgumentException("No se puede registrar este evento porque el alumno ya tiene eventos de abordaje en este recorrido.");
+
+                if (marcadoNoAbordo)
+                    throw new ArgumentException("El alumno ya fue marcado como no abordó en este recorrido.");
+
+                if (marcadoAusente)
+                    throw new ArgumentException("No se puede registrar no abordó porque el alumno ya fue marcado como ausente.");
+            }
+
+            if (resumen.TotalEventos >= 2 && (tipo == "SUBIDA" || tipo == "BAJADA"))
+                throw new ArgumentException("El alumno ya completó su ciclo de abordaje en este recorrido.");
+
+            if (marcadoNoAbordaje && (tipo == "SUBIDA" || tipo == "BAJADA"))
+                throw new ArgumentException("No se puede registrar este evento porque el alumno tiene un estado de no abordaje en este recorrido.");
         }
     }
 }

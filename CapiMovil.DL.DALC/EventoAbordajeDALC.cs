@@ -117,19 +117,14 @@ namespace CapiMovil.DL.DALC
             cn.Open();
             using SqlDataReader dr = cmd.ExecuteReader();
 
-            if (dr.Read())
+            if (RegistroResultadoDALC.EsRegistroExitoso(dr, out int filas, out string codigoGenerado, out string? mensaje))
             {
-                int filas = Convert.ToInt32(dr["FilasAfectadas"]);
-                if (filas > 0)
-                {
-                    entidad.CodigoEvento = dr["CodigoGenerado"]?.ToString() ?? string.Empty;
-
-                    if (dr["IdGenerado"] != DBNull.Value)
-                        entidad.IdEvento = (Guid)dr["IdGenerado"];
-
-                    return true;
-                }
+                entidad.CodigoEvento = codigoGenerado;
+                return true;
             }
+
+            if (!string.IsNullOrWhiteSpace(mensaje))
+                throw new InvalidOperationException(mensaje);
 
             return false;
         }
@@ -180,6 +175,40 @@ namespace CapiMovil.DL.DALC
             }
 
             return false;
+        }
+
+        public EventoAbordajeResumenBE ObtenerResumenPorEstudianteRecorrido(Guid idRecorrido, Guid idEstudiante)
+        {
+            using SqlConnection cn = _bdConexion.ObtenerConexion();
+            using SqlCommand cmd = new SqlCommand("sp_EventoAbordaje_ObtenerResumenEstudianteRecorrido", cn);
+
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.Add("@IdRecorrido", SqlDbType.UniqueIdentifier).Value = idRecorrido;
+            cmd.Parameters.Add("@IdEstudiante", SqlDbType.UniqueIdentifier).Value = idEstudiante;
+
+            cn.Open();
+            using SqlDataReader dr = cmd.ExecuteReader();
+
+            if (!dr.Read())
+            {
+                return new EventoAbordajeResumenBE
+                {
+                    IdRecorrido = idRecorrido,
+                    IdEstudiante = idEstudiante
+                };
+            }
+
+            return new EventoAbordajeResumenBE
+            {
+                IdRecorrido = idRecorrido,
+                IdEstudiante = idEstudiante,
+                TotalEventos = dr["TotalEventos"] == DBNull.Value ? 0 : Convert.ToInt32(dr["TotalEventos"]),
+                TotalSubidas = dr["TotalSubidas"] == DBNull.Value ? 0 : Convert.ToInt32(dr["TotalSubidas"]),
+                TotalBajadas = dr["TotalBajadas"] == DBNull.Value ? 0 : Convert.ToInt32(dr["TotalBajadas"]),
+                TotalAusentes = dr["TotalAusentes"] == DBNull.Value ? 0 : Convert.ToInt32(dr["TotalAusentes"]),
+                TotalNoAbordo = dr["TotalNoAbordo"] == DBNull.Value ? 0 : Convert.ToInt32(dr["TotalNoAbordo"]),
+                UltimoTipoEvento = dr["UltimoTipoEvento"] == DBNull.Value ? null : dr["UltimoTipoEvento"].ToString()
+            };
         }
     }
 }

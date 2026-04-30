@@ -4,71 +4,61 @@
     ViewData["Title"] = "Lista de Paraderos";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="page-title mb-0">Lista de Paraderos</h2>
-    <a asp-action="Crear" class="btn btn-primary">Nuevo Paradero</a>
-</div>
+<div class="list-shell">
+    <div class="list-toolbar mb-4">
+        <div>
+            <h2 class="list-title mb-1">Lista de Paraderos</h2>
+            <p class="list-subtitle mb-0">Puntos de parada por ruta con orden y horario estimado.</p>
+        </div>
+        <a asp-action="Crear" class="btn btn-primary list-btn-primary"><i class="bi bi-plus-circle me-1"></i>Nuevo paradero</a>
+    </div>
 
-<div class="card card-soft">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table align-middle">
-                <thead>
-                    <tr>
-                        <th>Código</th>
-                        <th>Ruta</th>
-                        <th>Nombre</th>
-                        <th>Dirección</th>
-                        <th>Orden</th>
-                        <th>Hora Estimada</th>
-                        <th>Estado</th>
-                        <th style="width:160px;">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.Any())
-                    {
-                        foreach (var item in Model)
+    <div class="list-table-card">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table list-table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Ruta</th>
+                            <th>Nombre</th>
+                            <th>Dirección</th>
+                            <th>Orden</th>
+                            <th>Hora</th>
+                            <th>Estado</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
                         {
                             <tr>
-                                <td>@item.CodigoParadero</td>
+                                <td><span class="list-code">@item.CodigoParadero</span></td>
                                 <td>@item.Ruta?.Nombre</td>
                                 <td>@item.Nombre</td>
                                 <td>@item.Direccion</td>
                                 <td>@item.OrdenParada</td>
                                 <td>@(item.HoraEstimada?.ToString(@"hh\:mm") ?? "-")</td>
-                                <td>
-                                    @if (item.Estado)
-                                    {
-                                        <span class="badge bg-success">Activo</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary">Inactivo</span>
-                                    }
-                                </td>
-                                <td>
-                                    <a asp-action="Editar" asp-route-id="@item.IdParadero" class="btn btn-warning btn-sm">Editar</a>
-
-                                    <form asp-action="Eliminar" asp-route-id="@item.IdParadero" method="post" class="d-inline form-eliminar">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-danger btn-sm"
-                                                onclick="return confirm('¿Desea eliminar este paradero?');">
-                                            Eliminar
-                                        </button>
-                                    </form>
+                                <td><span class="badge @(item.Estado ? "text-bg-success" : "text-bg-secondary")">@(item.Estado ? "Activo" : "Inactivo")</span></td>
+                                <td class="text-end">
+                                    <div class="d-inline-flex gap-1">
+                                        <a asp-action="Editar" asp-route-id="@item.IdParadero" class="btn btn-outline-warning btn-sm"><i class="bi bi-pencil-square"></i></a>
+                                        <form asp-action="Eliminar" asp-route-id="@item.IdParadero" method="post" class="d-inline form-eliminar" data-confirm data-confirm-title="¿Estás seguro?" data-confirm-text="Esta acción eliminará el paradero seleccionado." data-confirm-icon="warning" data-confirm-confirm-text="Sí, eliminar" data-confirm-cancel-text="Cancelar">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="8" class="text-center text-muted">No hay paraderos registrados.</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            @await Html.PartialAsync("_ListEmptyState", ("Sin paraderos", "No hay paraderos registrados.", "bi-geo-alt"))
+        }
     </div>
 </div>

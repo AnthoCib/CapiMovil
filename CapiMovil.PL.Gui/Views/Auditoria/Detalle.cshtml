@@ -29,7 +29,7 @@
             </div>
             <div class="col-md-6">
                 <div class="text-muted small">Usuario</div>
-                <div class="fw-semibold">@Model.NombreUsuario</div>
+                <div class="fw-semibold">@(string.IsNullOrWhiteSpace(Model.NombreUsuario) ? "SISTEMA" : Model.NombreUsuario)</div>
             </div>
             <div class="col-md-6">
                 <div class="text-muted small">Módulo</div>

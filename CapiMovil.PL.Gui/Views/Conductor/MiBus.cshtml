@@ -1,0 +1,113 @@
+@model CapiMovil.PL.Gui.Models.ViewModels.ConductorDashboardViewModel
+
+@{
+    ViewData["Title"] = "Mi Bus";
+    var bus = Model.RecorridoActual?.Bus;
+}
+
+<div class="dashboard-conductor">
+
+    <div class="dashboard-saludo mb-4">
+        <h1>Mi Bus</h1>
+        <p>Consulta la información del bus asignado para tu recorrido.</p>
+    </div>
+
+    @if (bus == null)
+    {
+        <div class="card-conductor p-4">
+            <h2 class="titulo-card">Sin bus asignado</h2>
+            <p class="text-muted mb-0">
+                No hay información de bus para el recorrido actual.
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="card-conductor p-4">
+
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    <h2 class="titulo-card mb-1">@bus.CodigoBus</h2>
+                    <p class="text-muted mb-0">
+                        Placa: @bus.Placa
+                    </p>
+                </div>
+
+                <span class="badge bg-warning text-dark">
+                    @(string.IsNullOrWhiteSpace(bus.EstadoOperacion) ? "ACTIVO" : bus.EstadoOperacion)
+                </span>
+            </div>
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+                    <small class="text-muted">Código del bus</small>
+                    <strong class="d-block">@bus.CodigoBus</strong>
+                </div>
+
+                <div class="col-md-4">
+                    <small class="text-muted">Placa</small>
+                    <strong class="d-block">@bus.Placa</strong>
+                </div>
+
+                <div class="col-md-4">
+                    <small class="text-muted">Marca</small>
+                    <strong class="d-block">
+                        @(string.IsNullOrWhiteSpace(bus.Marca) ? "-" : bus.Marca)
+                    </strong>
+                </div>
+
+                <div class="col-md-4">
+                    <small class="text-muted">Modelo</small>
+                    <strong class="d-block">
+                        @(string.IsNullOrWhiteSpace(bus.Modelo) ? "-" : bus.Modelo)
+                    </strong>
+                </div>
+
+                <div class="col-md-4">
+                    <small class="text-muted">Color</small>
+                    <strong class="d-block">
+                        @(string.IsNullOrWhiteSpace(bus.Color) ? "-" : bus.Color)
+                    </strong>
+                </div>
+
+                <div class="col-md-4">
+                    <small class="text-muted">Año</small>
+                    <strong class="d-block">
+                        @(bus.Anio.HasValue ? bus.Anio.Value.ToString() : "-")
+                    </strong>
+                </div>
+
+                <div class="col-md-4">
+                    <small class="text-muted">Capacidad</small>
+                    <strong class="d-block">
+                        @bus.Capacidad pasajeros
+                    </strong>
+                </div>
+
+                <div class="col-md-4">
+                    <small class="text-muted">Seguro vigente</small>
+                    <strong class="d-block">
+                        @(bus.SeguroVigente ? "Sí" : "No")
+                    </strong>
+                </div>
+
+                <div class="col-md-4">
+                    <small class="text-muted">Vencimiento SOAT</small>
+                    <strong class="d-block">
+                        @(bus.FechaVencimientoSOAT.HasValue ? bus.FechaVencimientoSOAT.Value.ToString("dd/MM/yyyy") : "-")
+                    </strong>
+                </div>
+
+                <div class="col-md-4">
+                    <small class="text-muted">Revisión técnica</small>
+                    <strong class="d-block">
+                        @(bus.FechaRevisionTecnica.HasValue ? bus.FechaRevisionTecnica.Value.ToString("dd/MM/yyyy") : "-")
+                    </strong>
+                </div>
+
+            </div>
+        </div>
+    }
+
+</div>

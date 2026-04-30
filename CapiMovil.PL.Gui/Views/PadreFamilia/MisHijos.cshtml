@@ -1,0 +1,43 @@
+@model List<CapiMovil.BL.BE.EstudianteBE>
+@{
+    ViewData["Title"] = "Mis Hijos";
+}
+
+<div class="pf-page">
+    <section class="pf-card p-3">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+            @await Html.PartialAsync("_SectionHeader", ("Mis Hijos", "Consulta el perfil académico y el seguimiento de cada estudiante.", "bi-people"))
+            <a asp-action="RegistrarHijo" class="btn btn-primary btn-sm"><i class="bi bi-person-plus me-1"></i>Registrar hijo</a>
+        </div>
+
+        @if (Model.Any())
+        {
+            <div class="row g-3">
+                @foreach (var item in Model)
+                {
+                    <div class="col-md-6 col-xl-4">
+                        <article class="pf-student-card h-100">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <strong>@item.NombreCompleto</strong>
+                                <span class="pf-badge-soft @(item.Estado ? "pf-badge-success" : "pf-badge-muted")">@(item.Estado ? "Activo" : "Inactivo")</span>
+                            </div>
+                            <div class="pf-student-meta mb-2">@item.CodigoEstudiante</div>
+                            <div class="pf-data-grid mb-3">
+                                <div class="pf-data-cell"><small>Grado</small>@(item.Grado ?? "No disponible")</div>
+                                <div class="pf-data-cell"><small>Sección</small>@(item.Seccion ?? "No disponible")</div>
+                                <div class="pf-data-cell"><small>Ruta asignada</small>No disponible</div>
+                            </div>
+                            <a asp-action="DetalleHijo" asp-route-idEstudiante="@item.IdEstudiante" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye me-1"></i>Ver detalle
+                            </a>
+                        </article>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            @await Html.PartialAsync("_EmptyState", ("Sin estudiantes asociados", "Aún no tienes hijos registrados para seguimiento en el sistema.", "bi-person-x"))
+        }
+    </section>
+</div>

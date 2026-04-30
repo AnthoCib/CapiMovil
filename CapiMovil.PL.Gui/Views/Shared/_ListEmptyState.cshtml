@@ -1,0 +1,10 @@
+@model (string titulo, string mensaje, string icono)
+
+<div class="app-empty-state">
+    <div class="app-empty-state-icon">
+        <i class="bi @(string.IsNullOrWhiteSpace(Model.icono) ? "bi-inbox" : Model.icono)"></i>
+    </div>
+    <h6 class="mb-1 app-section-title">@Model.titulo</h6>
+    <p class="mb-1">@Model.mensaje</p>
+    <small class="text-muted">Puedes usar la acción principal de la vista para continuar.</small>
+</div>

@@ -33,12 +33,14 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
         [DataType(DataType.Date)]
         public DateTime? FechaFinVigencia { get; set; }
 
-        [Required(ErrorMessage = "Debe seleccionar el estado de asignación.")]
         [Display(Name = "Estado Asignación")]
         public string EstadoAsignacion { get; set; } = "ACTIVO";
 
         [Display(Name = "Observaciones")]
         public string? Observaciones { get; set; }
+
+        [Display(Name = "Dirección final de ruta")]
+        public string? DireccionFinalRuta { get; set; }
 
         [Display(Name = "Estado")]
         public bool Estado { get; set; } = true;
@@ -47,6 +49,5 @@ namespace CapiMovil.PL.Gui.Models.ViewModels
         public List<SelectListItem> Estudiantes { get; set; } = new();
         public List<SelectListItem> ParaderosSubida { get; set; } = new();
         public List<SelectListItem> ParaderosBajada { get; set; } = new();
-        public List<SelectListItem> EstadosAsignacion { get; set; } = new();
     }
 }

@@ -1,0 +1,74 @@
+.conductor-op-shell {
+    background: linear-gradient(180deg, var(--cm-bg) 0%, var(--cm-bg) 100%);
+    border-radius: 1rem;
+    padding: 1rem;
+}
+
+.conductor-op-sidebar,
+.conductor-op-header,
+.conductor-op-map-wrap,
+.conductor-student-manifest {
+    border-radius: 1rem;
+    background: var(--cm-surface);
+}
+
+.conductor-op-nav .nav-link {
+    color: #263238;
+    border-radius: .7rem;
+    display: flex;
+    gap: .55rem;
+    align-items: center;
+    padding: .55rem .7rem;
+}
+
+.conductor-op-nav .nav-link.active,
+.conductor-op-nav .nav-link:hover {
+    background: var(--cm-surface-2);
+}
+
+.btn-op-live {
+    background: var(--cm-accent);
+    border-color: var(--cm-accent);
+    color: #2f2500;
+    font-weight: 600;
+}
+
+.btn-op-live:hover {
+    background: var(--cm-accent);
+    border-color: var(--cm-accent);
+    color: #2f2500;
+}
+
+.bg-op-info {
+    background: var(--cm-info);
+}
+
+.conductor-student-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: .6rem;
+    border: 1px solid var(--cm-border);
+    border-radius: .75rem;
+    padding: .5rem;
+    margin-bottom: .45rem;
+    background: #fff;
+}
+
+.conductor-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: .65rem;
+    background: #dbeafe;
+    color: #1d4ed8;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.x-small { font-size: .74rem; }
+
+@media (max-width: 1199.98px) {
+    .conductor-op-shell { padding: .75rem; }
+}

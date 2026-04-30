@@ -1,19 +1,33 @@
-﻿@model List<CapiMovil.BL.BE.NotificacionBE>
+@model List<CapiMovil.BL.BE.NotificacionBE>
+@using Microsoft.AspNetCore.Http
+@using System.Linq
+@inject IHttpContextAccessor HttpContextAccessor
+
+
 
 @{
     ViewData["Title"] = "Notificaciones";
     int total = Model?.Count ?? 0;
     int noLeidas = Model?.Count(x => !x.Leido) ?? 0;
     int leidas = Model?.Count(x => x.Leido) ?? 0;
+    string rol = (HttpContextAccessor.HttpContext?.Session.GetString("RolNombre") ?? string.Empty).Trim().ToUpperInvariant();
+    bool esAdmin = rol == "ADMIN" || rol == "ADMINISTRADOR";
 }
 
-<div class="container-fluid py-3">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="list-shell">
+    <div class="list-toolbar mb-4">
         <div>
-            <h2 class="fw-bold mb-1">Gestión de Notificaciones</h2>
-            <p class="text-muted mb-0">Consulta y administra las notificaciones del sistema.</p>
+            <h2 class="list-title mb-1">Gestión de Notificaciones</h2>
+            <p class="list-subtitle mb-0">
+                @(esAdmin
+                    ? "Seguimiento de alertas enviadas. Para Admin la acción principal es consultar (Ver)."
+                    : "Seguimiento de alertas enviadas a padres y estudiantes.")
+            </p>
         </div>
-        <a asp-action="Crear" class="btn btn-primary">Nueva Notificación</a>
+        @if (!esAdmin)
+        {
+            <a asp-action="Crear" class="btn btn-primary list-btn-primary"><i class="bi bi-plus-circle me-1"></i>Nueva notificación</a>
+        }
     </div>
 
     @if (TempData["ok"] != null)
@@ -27,100 +41,62 @@
     }
 
     <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <div class="text-muted small">Total</div>
-                    <div class="fs-3 fw-bold">@total</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <div class="text-muted small">No leídas</div>
-                    <div class="fs-3 fw-bold text-warning">@noLeidas</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <div class="text-muted small">Leídas</div>
-                    <div class="fs-3 fw-bold text-success">@leidas</div>
-                </div>
-            </div>
-        </div>
+        <div class="col-md-4"><div class="list-kpi-card"><small>Total</small><strong>@total</strong></div></div>
+        <div class="col-md-4"><div class="list-kpi-card"><small>No leídas</small><strong class="text-warning">@noLeidas</strong></div></div>
+        <div class="col-md-4"><div class="list-kpi-card"><small>Leídas</small><strong class="text-success">@leidas</strong></div></div>
     </div>
 
-    <div class="card border-0 shadow-sm">
-        <div class="card-body table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Código</th>
-                        <th>Padre</th>
-                        <th>Estudiante</th>
-                        <th>Título</th>
-                        <th>Tipo</th>
-                        <th>Canal</th>
-                        <th>Leído</th>
-                        <th>Fecha</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.Any())
-                    {
-                        foreach (var item in Model)
-                        {
-                            <tr>
-                                <td>@item.CodigoNotificacion</td>
-                                <td>@item.NombrePadre</td>
-                                <td>@item.NombreEstudiante</td>
-                                <td>@item.Titulo</td>
-                                <td><span class="badge bg-info text-dark">@item.TipoNotificacion</span></td>
-                                <td><span class="badge bg-secondary">@item.Canal</span></td>
-                                <td>
-                                    @if (item.Leido)
-                                    {
-                                        <span class="badge bg-success">LEÍDA</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-warning text-dark">NO LEÍDA</span>
-                                    }
-                                </td>
-                                <td>@item.FechaEnvio.ToString("dd/MM/yyyy HH:mm")</td>
-                                <td>
-                                    <a asp-action="Detalle" asp-route-id="@item.IdNotificacion" class="btn btn-outline-info btn-sm">Ver</a>
-                                  
-                                    @if (!item.Leido)
-                                    {
-                                        <form asp-action="MarcarLeida" method="post" class="d-inline">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="id" value="@item.IdNotificacion" />
-                                            <button type="submit" class="btn btn-outline-success btn-sm">Leer</button>
-                                        </form>
-                                    }
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-3">
+            @foreach (var item in Model.OrderByDescending(x => x.FechaEnvio))
+            {
+                <div class="col-12 col-lg-6">
+                    <article class="list-entity-card h-100">
+                        <header class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                            <div>
+                                <div class="list-code">@item.CodigoNotificacion</div>
+                                <h3 class="h6 mb-0">@item.Titulo</h3>
+                            </div>
+                            <span class="badge @(item.Leido ? "text-bg-success" : "text-bg-warning")">@(item.Leido ? "LEÍDA" : "NO LEÍDA")</span>
+                        </header>
 
-                                    <form asp-action="Eliminar" method="post" class="d-inline form-eliminar">
+                        <div class="list-meta-grid mb-3">
+                            <div><small>Tipo</small><strong>@item.TipoNotificacion</strong></div>
+                            <div><small>Canal</small><strong>@item.Canal</strong></div>
+                            <div><small>Padre</small><strong>@(string.IsNullOrWhiteSpace(item.NombrePadre) ? "Sin padre" : item.NombrePadre)</strong></div>
+                            <div><small>Estudiante</small><strong>@(string.IsNullOrWhiteSpace(item.NombreEstudiante) ? "Sin estudiante" : item.NombreEstudiante)</strong></div>
+                            <div><small>Fecha envío</small><strong>@item.FechaEnvio.ToString("dd/MM/yyyy HH:mm")</strong></div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <a asp-action="Detalle" asp-route-id="@item.IdNotificacion" class="btn btn-outline-primary btn-sm"><i class="bi bi-eye me-1"></i>Ver</a>
+
+                            @if (!esAdmin)
+                            {
+                                @if (!item.Leido)
+                                {
+                                    <form asp-action="MarcarLeida" method="post" class="d-inline">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="id" value="@item.IdNotificacion" />
-                                        <button type="submit" class="btn btn-outline-danger btn-sm">Eliminar</button>
+                                        <button type="submit" class="btn btn-outline-success btn-sm"><i class="bi bi-check2 me-1"></i>Marcar leída</button>
                                     </form>
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="9" class="text-center">No hay notificaciones registradas.</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                                }
+
+                                <form asp-action="Eliminar" method="post" class="d-inline form-eliminar" data-confirm data-confirm-title="¿Estás seguro?" data-confirm-text="Esta acción eliminará la notificación seleccionada." data-confirm-icon="warning" data-confirm-confirm-text="Sí, eliminar" data-confirm-cancel-text="Cancelar">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@item.IdNotificacion" />
+                                    <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Eliminar</button>
+                                </form>
+                            }
+                        </div>
+                    </article>
+                </div>
+            }
         </div>
-    </div>
+    }
+    else
+    {
+        @await Html.PartialAsync("_ListEmptyState", ("Sin notificaciones", "No hay notificaciones registradas por ahora.", "bi-bell"))
+    }
 </div>

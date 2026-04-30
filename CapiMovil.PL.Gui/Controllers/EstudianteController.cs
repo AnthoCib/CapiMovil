@@ -1,5 +1,6 @@
 ﻿using CapiMovil.BL.BC;
 using CapiMovil.BL.BE;
+using CapiMovil.PL.Gui.Infrastructure;
 using CapiMovil.PL.Gui.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -8,18 +9,25 @@ namespace CapiMovil.PL.Gui.Controllers
 {
     public class EstudianteController : Controller
     {
+        private static readonly string[] ExtensionesPermitidas = [".jpg", ".jpeg", ".png", ".webp"];
+
         private readonly EstudianteBC _estudianteBC;
         private readonly PadreFamiliaBC _padreFamiliaBC;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public EstudianteController(EstudianteBC estudianteBC, PadreFamiliaBC padreFamiliaBC)
+        public EstudianteController(EstudianteBC estudianteBC, PadreFamiliaBC padreFamiliaBC, IWebHostEnvironment webHostEnvironment)
         {
             _estudianteBC = estudianteBC;
             _padreFamiliaBC = padreFamiliaBC;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         [HttpGet]
         public IActionResult Listar()
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             var lista = _estudianteBC.Listar();
             return View(lista);
         }
@@ -27,71 +35,30 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Crear()
         {
-            EstudianteFormViewModel vm = new EstudianteFormViewModel
-            {
-                Estado = true,
-                Padres = ObtenerPadres(),
-                Generos = ObtenerGeneros()
-            };
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
 
-            return View(vm);
+            TempData["error"] = "El alta de estudiantes corresponde al Padre de Familia autenticado desde su módulo Mis Hijos.";
+            return RedirectToAction(nameof(Listar));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Crear(EstudianteFormViewModel vm)
         {
-            if (!ModelState.IsValid)
-            {
-                vm.Padres = ObtenerPadres();
-                vm.Generos = ObtenerGeneros();
-                return View(vm);
-            }
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
 
-            try
-            {
-                EstudianteBE entidad = new EstudianteBE
-                {
-                    IdPadre = vm.IdPadre,
-                    CodigoEstudiante = vm.CodigoEstudiante,
-                    Nombres = vm.Nombres,
-                    ApellidoPaterno = vm.ApellidoPaterno,
-                    ApellidoMaterno = vm.ApellidoMaterno,
-                    DNI = vm.DNI,
-                    FechaNacimiento = vm.FechaNacimiento,
-                    Genero = vm.Genero,
-                    Grado = vm.Grado,
-                    Seccion = vm.Seccion,
-                    Direccion = vm.Direccion,
-                    LatitudCasa = vm.LatitudCasa,
-                    LongitudCasa = vm.LongitudCasa,
-                    FotoUrl = vm.FotoUrl,
-                    Observaciones = vm.Observaciones,
-                    Estado = vm.Estado
-                };
-
-                bool ok = _estudianteBC.Registrar(entidad);
-
-                TempData[ok ? "ok" : "error"] = ok
-                    ? "Estudiante registrado correctamente."
-                    : "No se pudo registrar el estudiante.";
-
-                if (ok)
-                    return RedirectToAction(nameof(Listar));
-            }
-            catch (Exception ex)
-            {
-                TempData["error"] = ex.Message;
-            }
-
-            vm.Padres = ObtenerPadres();
-            vm.Generos = ObtenerGeneros();
-            return View(vm);
+            TempData["error"] = "El alta de estudiantes para administración está deshabilitada. Use el flujo de Padre de Familia.";
+            return RedirectToAction(nameof(Listar));
         }
 
         [HttpGet]
         public IActionResult Editar(Guid id)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             var entidad = _estudianteBC.ListarPorId(id);
 
             if (entidad == null)
@@ -130,15 +97,21 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Editar(EstudianteFormViewModel vm)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
+            if (!ValidarFoto(vm.FotoArchivo, out string? errorFoto))
+                ModelState.AddModelError(nameof(vm.FotoArchivo), errorFoto!);
+
             if (!ModelState.IsValid)
-            {
-                vm.Padres = ObtenerPadres();
-                vm.Generos = ObtenerGeneros();
-                return View(vm);
-            }
+                return RetornarVistaEditar(vm);
 
             try
             {
+                string? rutaFoto = vm.FotoUrl;
+                if (vm.FotoArchivo != null)
+                    rutaFoto = GuardarFoto(vm.FotoArchivo);
+
                 EstudianteBE entidad = new EstudianteBE
                 {
                     IdEstudiante = vm.IdEstudiante,
@@ -155,7 +128,7 @@ namespace CapiMovil.PL.Gui.Controllers
                     Direccion = vm.Direccion,
                     LatitudCasa = vm.LatitudCasa,
                     LongitudCasa = vm.LongitudCasa,
-                    FotoUrl = vm.FotoUrl,
+                    FotoUrl = rutaFoto,
                     Observaciones = vm.Observaciones,
                     Estado = vm.Estado
                 };
@@ -174,15 +147,16 @@ namespace CapiMovil.PL.Gui.Controllers
                 TempData["error"] = ex.Message;
             }
 
-            vm.Padres = ObtenerPadres();
-            vm.Generos = ObtenerGeneros();
-            return View(vm);
+            return RetornarVistaEditar(vm);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Eliminar(Guid id)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             try
             {
                 bool ok = _estudianteBC.Eliminar(id);
@@ -199,20 +173,72 @@ namespace CapiMovil.PL.Gui.Controllers
             return RedirectToAction(nameof(Listar));
         }
 
+        private IActionResult RetornarVistaEditar(EstudianteFormViewModel vm)
+        {
+            vm.Padres = ObtenerPadres();
+            vm.Generos = ObtenerGeneros();
+            return View("Editar", vm);
+        }
+
+        private static bool ValidarFoto(IFormFile? fotoArchivo, out string? error)
+        {
+            error = null;
+
+            if (fotoArchivo == null || fotoArchivo.Length == 0)
+                return true;
+
+            string extension = Path.GetExtension(fotoArchivo.FileName).ToLowerInvariant();
+            if (!ExtensionesPermitidas.Contains(extension))
+            {
+                error = "Formato inválido. Use JPG, PNG o WEBP.";
+                return false;
+            }
+
+            if (fotoArchivo.Length > 2 * 1024 * 1024)
+            {
+                error = "La imagen no debe superar 2MB.";
+                return false;
+            }
+
+            return true;
+        }
+
+        private string? GuardarFoto(IFormFile? fotoArchivo)
+        {
+            if (fotoArchivo == null || fotoArchivo.Length == 0)
+                return null;
+
+            string extension = Path.GetExtension(fotoArchivo.FileName).ToLowerInvariant();
+            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "estudiantes");
+            Directory.CreateDirectory(uploadsFolder);
+
+            string nombreArchivo = $"{Guid.NewGuid():N}_{DateTime.UtcNow:yyyyMMddHHmmss}{extension}";
+            string rutaFisica = Path.Combine(uploadsFolder, nombreArchivo);
+
+            using (FileStream stream = new FileStream(rutaFisica, FileMode.Create))
+            {
+                fotoArchivo.CopyTo(stream);
+            }
+
+            return $"/uploads/estudiantes/{nombreArchivo}";
+        }
+
         private List<SelectListItem> ObtenerPadres()
         {
-            var padres = _padreFamiliaBC.Listar();
+            List<PadreFamiliaBE> padres = _padreFamiliaBC.ListarParaCombo();
 
             return padres
                 .Select(p => new SelectListItem
                 {
                     Value = p.IdPadre.ToString(),
-                    Text = $"{p.CodigoPadre} - {p.NombreCompleto}"
+                    Text = string.IsNullOrWhiteSpace(p.Usuario?.Username)
+                        ? $"{p.CodigoPadre} - {p.NombreCompleto}"
+                        : $"{p.CodigoPadre} - {p.NombreCompleto} ({p.Usuario?.Username})"
                 })
                 .ToList();
         }
 
-        private List<SelectListItem> ObtenerGeneros()
+        private static List<SelectListItem> ObtenerGeneros()
         {
             return new List<SelectListItem>
             {

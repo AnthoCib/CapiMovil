@@ -28,6 +28,23 @@ namespace CapiMovil.BL.BC
             return _incidenciaDALC.Listar();
         }
 
+        public List<IncidenciaBE> ListarPorConductor(Guid idConductor)
+        {
+            if (idConductor == Guid.Empty)
+                throw new ArgumentException("El id de conductor es inválido.");
+
+            return _incidenciaDALC.ListarPorConductor(idConductor);
+        }
+
+
+        public List<IncidenciaBE> ListarPorPadre(Guid idPadre)
+        {
+            if (idPadre == Guid.Empty)
+                throw new ArgumentException("El id de padre es inválido.");
+
+            return _incidenciaDALC.ListarPorPadre(idPadre);
+        }
+
         public IncidenciaBE? ListarPorId(Guid idIncidencia)
         {
             if (idIncidencia == Guid.Empty)
@@ -38,6 +55,7 @@ namespace CapiMovil.BL.BC
 
         public bool Registrar(IncidenciaBE entidad)
         {
+            entidad.FechaHora = DateTime.Now;
             ValidarEntidad(entidad, esNuevo: true);
 
             if (string.IsNullOrWhiteSpace(entidad.EstadoIncidencia))
@@ -193,8 +211,20 @@ namespace CapiMovil.BL.BC
             if (entidad.IdConductor == Guid.Empty)
                 throw new ArgumentException("Debe seleccionar un conductor.");
 
+            RecorridoBE? recorrido = _recorridoBC.ListarPorId(entidad.IdRecorrido);
+            if (recorrido == null || !recorrido.Estado)
+                throw new ArgumentException("El recorrido no existe o no está disponible.");
+
+            if (recorrido.IdConductor != entidad.IdConductor)
+                throw new ArgumentException("El conductor no corresponde al recorrido indicado.");
+
+            if (esNuevo && !string.Equals(recorrido.EstadoRecorrido, "EN_CURSO", StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("Solo se pueden registrar incidencias cuando el recorrido está EN_CURSO.");
+
             if (string.IsNullOrWhiteSpace(entidad.TipoIncidencia))
                 throw new ArgumentException("Debe seleccionar el tipo de incidencia.");
+
+            entidad.TipoIncidencia = entidad.TipoIncidencia.Trim().ToUpperInvariant();
 
             if (entidad.TipoIncidencia.Length > 50)
                 throw new ArgumentException("El tipo de incidencia no puede superar los 50 caracteres.");

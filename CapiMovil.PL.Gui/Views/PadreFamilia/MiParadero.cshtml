@@ -1,0 +1,33 @@
+@model List<CapiMovil.PL.Gui.Models.ViewModels.PadreParaderoInfoViewModel>
+@{
+    ViewData["Title"] = "Mi Paradero";
+}
+
+<div class="pf-page">
+    <section class="pf-card p-3">
+        @await Html.PartialAsync("_SectionHeader", ("Paraderos asignados", "Información de puntos de subida y bajada por estudiante.", "bi-pin-map"))
+
+        @if (Model.Any())
+        {
+            <div class="row g-3">
+                @foreach (var item in Model)
+                {
+                    <div class="col-md-6">
+                        <article class="pf-student-card h-100">
+                            <strong>@item.NombreEstudiante</strong>
+                            <div class="pf-student-meta mb-2">@item.CodigoEstudiante</div>
+                            <div class="pf-data-grid">
+                                <div class="pf-data-cell"><small>Paradero subida</small>@(item.ParaderoSubida ?? "No disponible")<br/><span class="pf-student-meta">@item.DireccionSubida</span></div>
+                                <div class="pf-data-cell"><small>Paradero bajada</small>@(item.ParaderoBajada ?? "No disponible")<br/><span class="pf-student-meta">@item.DireccionBajada</span></div>
+                            </div>
+                        </article>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            @await Html.PartialAsync("_EmptyState", ("Sin paraderos asignados", "No existen paraderos configurados para tus hijos.", "bi-geo"))
+        }
+    </section>
+</div>

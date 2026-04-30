@@ -1,0 +1,23 @@
+@model CapiMovil.BL.BE.NotificacionBE
+@{
+    ViewData["Title"] = "Detalle de Notificación";
+}
+
+<div class="pf-page">
+    <section class="pf-card p-3">
+        @await Html.PartialAsync("_SectionHeader", ("Detalle de notificación", "Información completa del mensaje recibido.", "bi-envelope-open"))
+        <div class="pf-data-grid mb-3">
+            <div class="pf-data-cell"><small>Título</small>@Model.Titulo</div>
+            <div class="pf-data-cell"><small>Tipo</small>@Model.TipoNotificacion</div>
+            <div class="pf-data-cell"><small>Canal</small>@Model.Canal</div>
+            <div class="pf-data-cell"><small>Fecha</small>@Model.FechaEnvio.ToString("dd/MM/yyyy HH:mm")</div>
+        </div>
+
+        <div class="pf-data-cell mb-3">
+            <small>Mensaje</small>
+            <div>@Model.Mensaje</div>
+        </div>
+
+        <a asp-action="Notificaciones" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Volver a notificaciones</a>
+    </section>
+</div>

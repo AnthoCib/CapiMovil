@@ -74,8 +74,10 @@
                         <label asp-for="FechaHora" class="form-label fw-semibold"></label>
                         <input asp-for="FechaHora"
                                type="datetime-local"
+                               readonly
                                class="form-control"
                                value="@Model.FechaHora.ToString("yyyy-MM-ddTHH:mm")" />
+                        <small class="text-muted">Se registra automáticamente al guardar.</small>
                         <span asp-validation-for="FechaHora" class="text-danger small"></span>
                     </div>
 

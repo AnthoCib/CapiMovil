@@ -66,14 +66,10 @@ namespace CapiMovil.DL.DALC
             cn.Open();
             using SqlDataReader dr = cmd.ExecuteReader();
 
-            if (dr.Read())
+            if (RegistroResultadoDALC.EsRegistroExitoso(dr, out int filas, out string codigoGenerado, out string? mensaje))
             {
-                int filas = Convert.ToInt32(dr["FilasAfectadas"]);
-                if (filas > 0)
-                {
-                    entidad.CodigoNotificacion = dr["CodigoGenerado"]?.ToString() ?? string.Empty;
+                entidad.CodigoNotificacion = codigoGenerado;
                     return true;
-                }
             }
 
             return false;
@@ -189,7 +185,8 @@ namespace CapiMovil.DL.DALC
                 FechaActualizacion = dr["FechaActualizacion"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaActualizacion"]),
                 FechaEliminacion = dr["FechaEliminacion"] == DBNull.Value ? null : Convert.ToDateTime(dr["FechaEliminacion"]),
                 NombrePadre = ExisteColumna(dr, "NombrePadre") && dr["NombrePadre"] != DBNull.Value ? dr["NombrePadre"].ToString() : null,
-                NombreEstudiante = ExisteColumna(dr, "NombreEstudiante") && dr["NombreEstudiante"] != DBNull.Value ? dr["NombreEstudiante"].ToString() : null
+                NombreEstudiante = ExisteColumna(dr, "NombreEstudiante") && dr["NombreEstudiante"] != DBNull.Value ? dr["NombreEstudiante"].ToString() : null,
+                CodigoEstudiante = ExisteColumna(dr, "CodigoEstudiante") && dr["CodigoEstudiante"] != DBNull.Value ? dr["CodigoEstudiante"].ToString() : null
             };
         }
 

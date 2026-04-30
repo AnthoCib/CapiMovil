@@ -1,0 +1,232 @@
+@model CapiMovil.PL.Gui.Models.ViewModels.ConductorDashboardViewModel
+
+@{
+    ViewData["Title"] = "Mi Ruta";
+}
+
+@functions {
+    string HoraTexto(TimeSpan? hora)
+    {
+        if (hora.HasValue)
+        {
+            return DateTime.Today.Add(hora.Value).ToString("hh:mm tt");
+        }
+
+        return "Sin hora";
+    }
+
+    string EstadoTexto(string? estado)
+    {
+        string valor = (estado ?? "").Trim().ToUpperInvariant();
+
+        if (valor == "PROGRAMADO") return "Programado";
+        if (valor == "EN_CURSO") return "En curso";
+        if (valor == "FINALIZADO") return "Finalizado";
+        if (valor == "CANCELADO") return "Cancelado";
+
+        return string.IsNullOrWhiteSpace(estado) ? "Programado" : estado;
+    }
+
+    string EstadoBadge(string? estado)
+    {
+        string valor = (estado ?? "").Trim().ToUpperInvariant();
+
+        if (valor == "PROGRAMADO") return "bg-warning text-dark";
+        if (valor == "EN_CURSO") return "bg-primary";
+        if (valor == "FINALIZADO") return "bg-success";
+        if (valor == "CANCELADO") return "bg-danger";
+
+        return "bg-secondary";
+    }
+}
+
+<div class="dashboard-conductor">
+
+    <div class="dashboard-saludo mb-4">
+        <h1>Mi Ruta</h1>
+        <p>Consulta tus recorridos y paraderos asignados para hoy.</p>
+    </div>
+
+    @if (Model.RecorridosHoy == null || !Model.RecorridosHoy.Any())
+    {
+        <div class="card-conductor p-4">
+            <h2 class="titulo-card">Sin rutas asignadas</h2>
+            <p class="text-muted mb-0">
+                No tienes recorridos programados para hoy.
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="card-conductor p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h2 class="titulo-card mb-1">Recorridos de Hoy</h2>
+                    <p class="text-muted mb-0">
+                        Revisa la información principal de tus recorridos.
+                    </p>
+                </div>
+
+                <span class="pill-total">
+                    @Model.RecorridosHoy.Count recorridos
+                </span>
+            </div>
+
+            @foreach (var recorrido in Model.RecorridosHoy)
+            {
+                <div class="ruta-etapa-card mb-3">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="mb-1">@recorrido.NombreRuta</h5>
+                            <small>@recorrido.TurnoTexto</small>
+                        </div>
+
+                        <span class="badge @EstadoBadge(recorrido.EstadoRecorrido)">
+                            @EstadoTexto(recorrido.EstadoRecorrido)
+                        </span>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <small>Código recorrido</small>
+                            <strong class="d-block">@recorrido.CodigoRecorrido</strong>
+                        </div>
+
+                        <div class="col-md-3">
+                            <small>Bus</small>
+                            <strong class="d-block">@recorrido.CodigoBus</strong>
+                        </div>
+
+                        <div class="col-md-3">
+                            <small>Hora inicio</small>
+                            <strong class="d-block">@HoraTexto(recorrido.HoraInicioProgramada)</strong>
+                        </div>
+
+                        <div class="col-md-3">
+                            <small>Hora fin</small>
+                            <strong class="d-block">@HoraTexto(recorrido.HoraFinProgramada)</strong>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="card-conductor p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h2 class="titulo-card mb-1">Detalle de Paraderos</h2>
+                    <p class="text-muted mb-0">
+                        Paraderos registrados para el recorrido actual.
+                    </p>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <button class="btn btn-outline-warning w-100 fw-bold"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#paraderosRecojo">
+                        Ver paraderos de recojo
+                    </button>
+                </div>
+
+                <div class="col-md-6">
+                    <button class="btn btn-outline-warning w-100 fw-bold"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#paraderosEntrega">
+                        Ver paraderos de entrega
+                    </button>
+                </div>
+            </div>
+
+            <div class="collapse show" id="paraderosRecojo">
+                <div class="detalle-etapa mb-3">
+                    <h6>
+                        <i class="bi bi-sun me-1"></i>
+                        Paraderos de Recojo
+                    </h6>
+
+                    @if (Model.ParaderosRecojo == null || !Model.ParaderosRecojo.Any())
+                    {
+                        <p class="text-muted mb-0">
+                            No hay paraderos de recojo registrados.
+                        </p>
+                    }
+                    else
+                    {
+                        foreach (var paradero in Model.ParaderosRecojo)
+                        {
+                            <div class="paradero-item">
+                                <span class="numero-paradero">@paradero.OrdenParada</span>
+
+                                <div class="flex-fill">
+                                    <strong>@paradero.Nombre</strong>
+                                    <small>@paradero.Direccion</small>
+                                    <small class="d-block text-muted">
+                                        Hora estimada: @HoraTexto(paradero.HoraEstimada)
+                                    </small>
+                                </div>
+
+                                <div class="text-end">
+                                    <span class="pill-total">
+                                        @paradero.TotalAlumnos alumnos
+                                    </span>
+
+                                    <small class="d-block text-muted mt-1">
+                                        Registrados: @paradero.TotalRegistrados / @paradero.TotalAlumnos
+                                    </small>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <div class="collapse" id="paraderosEntrega">
+                <div class="detalle-etapa">
+                    <h6>
+                        <i class="bi bi-moon me-1"></i>
+                        Paraderos de Entrega
+                    </h6>
+
+                    @if (Model.ParaderosEntrega == null || !Model.ParaderosEntrega.Any())
+                    {
+                        <p class="text-muted mb-0">
+                            No hay paraderos de entrega registrados.
+                        </p>
+                    }
+                    else
+                    {
+                        foreach (var paradero in Model.ParaderosEntrega)
+                        {
+                            <div class="paradero-item">
+                                <span class="numero-paradero">@paradero.OrdenParada</span>
+
+                                <div class="flex-fill">
+                                    <strong>@paradero.Nombre</strong>
+                                    <small>@paradero.Direccion</small>
+                                    <small class="d-block text-muted">
+                                        Hora estimada: @HoraTexto(paradero.HoraEstimada)
+                                    </small>
+                                </div>
+
+                                <div class="text-end">
+                                    <span class="pill-total">
+                                        @paradero.TotalAlumnos alumnos
+                                    </span>
+
+                                    <small class="d-block text-muted mt-1">
+                                        Registrados: @paradero.TotalRegistrados / @paradero.TotalAlumnos
+                                    </small>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+</div>

@@ -1,5 +1,72 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+@model CapiMovil.PL.Gui.Models.ViewModels.PadreDashboardViewModel
 @{
+    ViewData["Title"] = "Dashboard Familiar";
 }
+
+<div class="pf-dashboard">
+    <section class="pf-hero mb-3">
+        <h1 class="h3 pf-title mb-1">Hola, @Model.NombrePadre</h1>
+        <p class="pf-subtitle mb-0">Resumen amigable del transporte escolar y actividad de hoy.</p>
+    </section>
+
+    <div class="row g-3 mb-3">
+        <div class="col-xl-7">
+            <section class="pf-card p-3 h-100 app-surface">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                    <div>
+                        <p class="text-uppercase small text-muted mb-1">Estado del Niño</p>
+                        <h2 class="h5 pf-title mb-0">Monitoreo del día</h2>
+                    </div>
+                    <span class="pf-badge-soft pf-badge-success">@Model.CantidadHijos hijos vinculados</span>
+                </div>
+                <div class="pf-data-grid">
+                    <div class="pf-data-cell"><small>Hijos asociados</small><strong>@Model.CantidadHijos</strong></div>
+                    <div class="pf-data-cell"><small>Notificaciones pendientes</small><strong>@Model.CantidadNotificacionesPendientes</strong></div>
+                    <div class="pf-data-cell"><small>Eventos recientes</small><strong>@Model.CantidadEventosRecientes</strong></div>
+                    <div class="pf-data-cell"><small>Estado general</small>Seguimiento activo</div>
+                </div>
+            </section>
+        </div>
+
+        <div class="col-xl-5">
+            <section class="pf-card p-3 h-100 app-surface">
+                <p class="text-uppercase small text-muted mb-1">Próximo Viaje</p>
+                <h2 class="h5 pf-title mb-2">Operación programada</h2>
+                <p class="pf-subtitle mb-3">Consulta seguimiento para verificar horario, paradero y estado del recorrido.</p>
+                <div class="pf-list-item mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">Rastreo en Vivo</span>
+                        <a asp-action="Seguimiento" class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </div>
+                <div class="pf-list-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">Historial de viajes</span>
+                        <a asp-action="Historial" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <section class="pf-card p-3 mb-3 app-surface">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h5 pf-title mb-0">Actividad Reciente</h2>
+            <a asp-action="Historial" class="btn btn-sm btn-outline-secondary"><i class="bi bi-clock-history me-1"></i>Ver historial</a>
+        </div>
+        <div class="row g-2">
+            <div class="col-md-4"><div class="pf-list-item"><strong>Notificaciones</strong><p class="mb-0 pf-student-meta">@Model.CantidadNotificacionesPendientes pendientes por revisar.</p></div></div>
+            <div class="col-md-4"><div class="pf-list-item"><strong>Eventos</strong><p class="mb-0 pf-student-meta">@Model.CantidadEventosRecientes movimientos recientes.</p></div></div>
+            <div class="col-md-4"><div class="pf-list-item"><strong>Seguimiento</strong><p class="mb-0 pf-student-meta">Consulta el estado del transporte en tiempo real.</p></div></div>
+        </div>
+    </section>
+
+    <section class="pf-card p-3 app-surface">
+        <h2 class="h6 pf-title mb-2">Accesos rápidos</h2>
+        <div class="row g-2">
+            <div class="col-sm-4"><a class="pf-action-link" asp-action="Seguimiento"><i class="bi bi-broadcast-pin me-2"></i>Rastreo en Vivo</a></div>
+            <div class="col-sm-4"><a class="pf-action-link" asp-action="Historial"><i class="bi bi-clock-history me-2"></i>Historial</a></div>
+            <div class="col-sm-4"><a class="pf-action-link" asp-action="Incidencias"><i class="bi bi-telephone me-2"></i>Contacto</a></div>
+        </div>
+    </section>
+</div>

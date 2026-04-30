@@ -38,6 +38,12 @@ namespace CapiMovil.DL.DALC
                     HoraFin = (TimeSpan)dr["HoraFin"],
                     PuntoInicio = dr["PuntoInicio"] == DBNull.Value ? null : dr["PuntoInicio"].ToString(),
                     PuntoFin = dr["PuntoFin"] == DBNull.Value ? null : dr["PuntoFin"].ToString(),
+                    LatitudInicio = ExisteColumna(dr, "LatitudInicio") && dr["LatitudInicio"] != DBNull.Value ? Convert.ToDecimal(dr["LatitudInicio"]) : null,
+                    LongitudInicio = ExisteColumna(dr, "LongitudInicio") && dr["LongitudInicio"] != DBNull.Value ? Convert.ToDecimal(dr["LongitudInicio"]) : null,
+                    DireccionInicio = ExisteColumna(dr, "DireccionInicio") && dr["DireccionInicio"] != DBNull.Value ? dr["DireccionInicio"].ToString() : null,
+                    LatitudFin = ExisteColumna(dr, "LatitudFin") && dr["LatitudFin"] != DBNull.Value ? Convert.ToDecimal(dr["LatitudFin"]) : null,
+                    LongitudFin = ExisteColumna(dr, "LongitudFin") && dr["LongitudFin"] != DBNull.Value ? Convert.ToDecimal(dr["LongitudFin"]) : null,
+                    DireccionFin = ExisteColumna(dr, "DireccionFin") && dr["DireccionFin"] != DBNull.Value ? dr["DireccionFin"].ToString() : null,
                     EstadoRuta = dr["EstadoRuta"]?.ToString() ?? "ACTIVA",
                     Estado = Convert.ToBoolean(dr["Estado"]),
                     FechaCreacion = Convert.ToDateTime(dr["FechaCreacion"]),
@@ -75,6 +81,12 @@ namespace CapiMovil.DL.DALC
                     HoraFin = (TimeSpan)dr["HoraFin"],
                     PuntoInicio = dr["PuntoInicio"] == DBNull.Value ? null : dr["PuntoInicio"].ToString(),
                     PuntoFin = dr["PuntoFin"] == DBNull.Value ? null : dr["PuntoFin"].ToString(),
+                    LatitudInicio = ExisteColumna(dr, "LatitudInicio") && dr["LatitudInicio"] != DBNull.Value ? Convert.ToDecimal(dr["LatitudInicio"]) : null,
+                    LongitudInicio = ExisteColumna(dr, "LongitudInicio") && dr["LongitudInicio"] != DBNull.Value ? Convert.ToDecimal(dr["LongitudInicio"]) : null,
+                    DireccionInicio = ExisteColumna(dr, "DireccionInicio") && dr["DireccionInicio"] != DBNull.Value ? dr["DireccionInicio"].ToString() : null,
+                    LatitudFin = ExisteColumna(dr, "LatitudFin") && dr["LatitudFin"] != DBNull.Value ? Convert.ToDecimal(dr["LatitudFin"]) : null,
+                    LongitudFin = ExisteColumna(dr, "LongitudFin") && dr["LongitudFin"] != DBNull.Value ? Convert.ToDecimal(dr["LongitudFin"]) : null,
+                    DireccionFin = ExisteColumna(dr, "DireccionFin") && dr["DireccionFin"] != DBNull.Value ? dr["DireccionFin"].ToString() : null,
                     EstadoRuta = dr["EstadoRuta"]?.ToString() ?? "ACTIVA",
                     Estado = Convert.ToBoolean(dr["Estado"]),
                     FechaCreacion = Convert.ToDateTime(dr["FechaCreacion"]),
@@ -99,21 +111,29 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.AddWithValue("@HoraFin", ruta.HoraFin);
             cmd.Parameters.AddWithValue("@PuntoInicio", (object?)ruta.PuntoInicio ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@PuntoFin", (object?)ruta.PuntoFin ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@LatitudInicio", (object?)ruta.LatitudInicio ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@LongitudInicio", (object?)ruta.LongitudInicio ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@DireccionInicio", (object?)ruta.DireccionInicio ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@LatitudFin", (object?)ruta.LatitudFin ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@LongitudFin", (object?)ruta.LongitudFin ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@DireccionFin", (object?)ruta.DireccionFin ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@EstadoRuta", ruta.EstadoRuta);
             cmd.Parameters.AddWithValue("@Estado", ruta.Estado);
 
             cn.Open();
             using SqlDataReader dr = cmd.ExecuteReader();
 
-            if (dr.Read())
+            if (RegistroResultadoDALC.EsRegistroExitoso(dr, out _, out string codigoGenerado, out string? mensaje))
             {
-                int filas = Convert.ToInt32(dr["FilasAfectadas"]);
-                if (filas > 0)
-                {
-                    ruta.CodigoRuta = dr["CodigoGenerado"]?.ToString() ?? string.Empty;
-                    return true;
-                }
+                if (string.IsNullOrWhiteSpace(codigoGenerado))
+                    throw new InvalidOperationException("El procedimiento sp_Ruta_Registrar no devolvió CodigoGenerado.");
+
+                ruta.CodigoRuta = codigoGenerado;
+                return true;
             }
+
+            if (!string.IsNullOrWhiteSpace(mensaje))
+                throw new InvalidOperationException(mensaje);
 
             return false;
         }
@@ -132,17 +152,22 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.AddWithValue("@HoraFin", ruta.HoraFin);
             cmd.Parameters.AddWithValue("@PuntoInicio", (object?)ruta.PuntoInicio ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@PuntoFin", (object?)ruta.PuntoFin ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@LatitudInicio", (object?)ruta.LatitudInicio ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@LongitudInicio", (object?)ruta.LongitudInicio ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@DireccionInicio", (object?)ruta.DireccionInicio ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@LatitudFin", (object?)ruta.LatitudFin ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@LongitudFin", (object?)ruta.LongitudFin ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@DireccionFin", (object?)ruta.DireccionFin ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@EstadoRuta", ruta.EstadoRuta);
             cmd.Parameters.AddWithValue("@Estado", ruta.Estado);
 
             cn.Open();
-            object? result = cmd.ExecuteScalar();
+            using SqlDataReader dr = cmd.ExecuteReader();
+            if (RegistroResultadoDALC.EsRegistroExitoso(dr, out _, out _, out string? mensaje))
+                return true;
 
-            if (result != null)
-            {
-                int filas = Convert.ToInt32(result);
-                return filas > 0;
-            }
+            if (!string.IsNullOrWhiteSpace(mensaje))
+                throw new InvalidOperationException(mensaje);
 
             return false;
         }
@@ -156,15 +181,8 @@ namespace CapiMovil.DL.DALC
             cmd.Parameters.AddWithValue("@IdRuta", idRuta);
 
             cn.Open();
-            object? result = cmd.ExecuteScalar();
-
-            if (result != null)
-            {
-                int filas = Convert.ToInt32(result);
-                return filas > 0;
-            }
-
-            return false;
+            using SqlDataReader dr = cmd.ExecuteReader();
+            return RegistroResultadoDALC.EsRegistroExitoso(dr, out _, out _, out _);
         }
         public List<RutaBE> ListarActivas()
         {
@@ -189,6 +207,17 @@ namespace CapiMovil.DL.DALC
             }
 
             return lista;
+        }
+
+        private static bool ExisteColumna(SqlDataReader dr, string nombreColumna)
+        {
+            for (int i = 0; i < dr.FieldCount; i++)
+            {
+                if (dr.GetName(i).Equals(nombreColumna, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            return false;
         }
     }
 }

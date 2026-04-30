@@ -1,5 +1,6 @@
 ﻿using CapiMovil.BL.BC;
 using CapiMovil.BL.BE;
+using CapiMovil.PL.Gui.Infrastructure;
 using CapiMovil.PL.Gui.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -25,6 +26,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Listar()
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             List<IncidenciaBE> lista = _incidenciaBC.Listar();
             return View(lista);
         }
@@ -32,6 +36,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Crear()
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             IncidenciaFormViewModel vm = new IncidenciaFormViewModel
             {
                 FechaHora = DateTime.Now,
@@ -47,6 +54,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Crear(IncidenciaFormViewModel vm)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             if (!ModelState.IsValid)
             {
                 CargarCombos(vm);
@@ -64,13 +74,6 @@ namespace CapiMovil.PL.Gui.Controllers
                     return View(vm);
                 }
 
-                if (recorrido.IdConductor == Guid.Empty)
-                {
-                    ModelState.AddModelError(string.Empty, "El recorrido no tiene un conductor asociado.");
-                    CargarCombos(vm);
-                    return View(vm);
-                }
-
                 IncidenciaBE entidad = new IncidenciaBE
                 {
                     IdRecorrido = vm.IdRecorrido,
@@ -78,7 +81,7 @@ namespace CapiMovil.PL.Gui.Controllers
                     ReportadoPor = vm.ReportadoPor,
                     TipoIncidencia = vm.TipoIncidencia,
                     Descripcion = vm.Descripcion,
-                    FechaHora = vm.FechaHora,
+                    FechaHora = DateTime.Now,
                     EstadoIncidencia = vm.EstadoIncidencia,
                     Prioridad = vm.Prioridad,
                     Solucion = vm.Solucion
@@ -108,99 +111,30 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public IActionResult Editar(Guid id)
         {
-            IncidenciaBE? entidad = _incidenciaBC.ListarPorId(id);
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
 
-            if (entidad == null)
-            {
-                TempData["error"] = "La incidencia no existe.";
-                return RedirectToAction(nameof(Listar));
-            }
-
-            IncidenciaFormViewModel vm = new IncidenciaFormViewModel
-            {
-                IdIncidencia = entidad.IdIncidencia,
-                CodigoIncidencia = entidad.CodigoIncidencia,
-                IdRecorrido = entidad.IdRecorrido,
-                IdConductor = entidad.IdConductor,
-                ReportadoPor = entidad.ReportadoPor,
-                TipoIncidencia = entidad.TipoIncidencia,
-                Descripcion = entidad.Descripcion,
-                FechaHora = entidad.FechaHora,
-                EstadoIncidencia = entidad.EstadoIncidencia,
-                Prioridad = entidad.Prioridad,
-                Solucion = entidad.Solucion
-            };
-
-            CargarCombos(vm);
-            return View(vm);
+            TempData["error"] = "La edición directa de incidencias está restringida. Use las acciones de seguimiento (detalle/cierre/estado).";
+            return RedirectToAction(nameof(Listar));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Editar(IncidenciaFormViewModel vm)
         {
-            if (!ModelState.IsValid)
-            {
-                CargarCombos(vm);
-                return View(vm);
-            }
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
 
-            try
-            {
-                RecorridoBE? recorrido = _recorridoBC.ListarPorId(vm.IdRecorrido);
-
-                if (recorrido == null)
-                {
-                    ModelState.AddModelError(string.Empty, "No se encontró el recorrido seleccionado.");
-                    CargarCombos(vm);
-                    return View(vm);
-                }
-
-                if (recorrido.IdConductor == Guid.Empty)
-                {
-                    ModelState.AddModelError(string.Empty, "El recorrido no tiene un conductor asociado.");
-                    CargarCombos(vm);
-                    return View(vm);
-                }
-
-                IncidenciaBE entidad = new IncidenciaBE
-                {
-                    IdIncidencia = vm.IdIncidencia,
-                    IdRecorrido = vm.IdRecorrido,
-                    IdConductor = recorrido.IdConductor,
-                    ReportadoPor = vm.ReportadoPor,
-                    TipoIncidencia = vm.TipoIncidencia,
-                    Descripcion = vm.Descripcion,
-                    FechaHora = vm.FechaHora,
-                    EstadoIncidencia = vm.EstadoIncidencia,
-                    Prioridad = vm.Prioridad,
-                    Solucion = vm.Solucion
-                };
-
-                bool ok = _incidenciaBC.Actualizar(entidad);
-
-                TempData[ok ? "ok" : "error"] = ok
-                    ? "Incidencia actualizada correctamente."
-                    : "No se pudo actualizar la incidencia.";
-
-                return RedirectToAction(nameof(Listar));
-            }
-            catch (ArgumentException ex)
-            {
-                ModelState.AddModelError(string.Empty, ex.Message);
-            }
-            catch (Exception)
-            {
-                ModelState.AddModelError(string.Empty, "Ocurrió un error al actualizar la incidencia.");
-            }
-
-            CargarCombos(vm);
-            return View(vm);
+            TempData["error"] = "La edición directa de incidencias está restringida para administración.";
+            return RedirectToAction(nameof(Listar));
         }
 
         [HttpGet]
         public IActionResult Detalle(Guid id)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             IncidenciaBE? entidad = _incidenciaBC.ListarPorId(id);
 
             if (entidad == null)
@@ -216,22 +150,10 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Eliminar(Guid id)
         {
-            try
-            {
-                bool ok = _incidenciaBC.Eliminar(id);
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
 
-                TempData[ok ? "ok" : "error"] = ok
-                    ? "Incidencia eliminada correctamente."
-                    : "No se pudo eliminar la incidencia.";
-            }
-            catch (ArgumentException ex)
-            {
-                TempData["error"] = ex.Message;
-            }
-            catch (Exception)
-            {
-                TempData["error"] = "Ocurrió un error al eliminar la incidencia.";
-            }
+            TempData["error"] = "La eliminación de incidencias está deshabilitada para preservar la trazabilidad operativa.";
 
             return RedirectToAction(nameof(Listar));
         }
@@ -240,6 +162,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Cerrar(Guid id, string solucion)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             try
             {
                 bool ok = _incidenciaBC.Cerrar(id, solucion);
@@ -264,6 +189,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult CambiarEstado(Guid id, string estadoIncidencia)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return acceso;
+
             try
             {
                 bool ok = _incidenciaBC.CambiarEstado(id, estadoIncidencia);
@@ -287,6 +215,9 @@ namespace CapiMovil.PL.Gui.Controllers
         [HttpGet]
         public JsonResult ObtenerConductorPorRecorrido(Guid idRecorrido)
         {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
+            if (acceso != null) return Json(new { ok = false, idConductor = "" });
+
             try
             {
                 RecorridoBE? recorrido = _recorridoBC.ListarPorId(idRecorrido);

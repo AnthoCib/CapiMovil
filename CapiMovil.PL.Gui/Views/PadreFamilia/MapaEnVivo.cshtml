@@ -1,0 +1,88 @@
+@model CapiMovil.PL.Gui.Models.ViewModels.PadreMapaEnVivoViewModel
+@{
+    ViewData["Title"] = "Mapa en Vivo";
+}
+@section Styles {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+}
+
+<div class="pf-dashboard">
+    <section class="pf-card p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h1 class="h5 pf-title mb-1">Mapa en Vivo</h1>
+                <p class="pf-subtitle mb-0">Seguimiento escolar en tiempo real para tu estudiante.</p>
+            </div>
+            <span class="pf-badge-soft @(Model.TieneRastreoDisponible ? "pf-badge-success" : "pf-badge-warning")">@(Model.TieneRastreoDisponible ? "Rastreo activo" : "Sin rastreo")</span>
+        </div>
+        @if (Model.HijosDisponibles.Any())
+        {
+            <form asp-action="MapaEnVivo" method="get" class="mt-3">
+                <label class="form-label small mb-1">Estudiante</label>
+                <div class="d-flex gap-2">
+                    <select class="form-select form-select-sm" name="idEstudiante">
+                        @foreach (var hijo in Model.HijosDisponibles)
+                        {
+                            if (Model.Estudiante != null && hijo.IdEstudiante == Model.Estudiante.IdEstudiante)
+                            {
+                                <option value="@hijo.IdEstudiante" selected>@hijo.NombreCompleto (@hijo.CodigoEstudiante)</option>
+                            }
+                            else
+                            {
+                                <option value="@hijo.IdEstudiante">@hijo.NombreCompleto (@hijo.CodigoEstudiante)</option>
+                            }
+                        }
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Ver</button>
+                </div>
+            </form>
+        }
+    </section>
+
+    @if (!Model.TieneRastreoDisponible)
+    {
+        @await Html.PartialAsync("_EmptyState", ("No hay rastreo en vivo disponible", "No existe recorrido activo o ubicación reciente registrada.", "bi-geo-alt"))
+    }
+    else
+    {
+        <div class="row g-3">
+            <div class="col-xl-8">
+                <section class="pf-card p-3 h-100">
+                    <div id="padreMapaEnVivoCanvas" class="capi-map"></div>
+                </section>
+            </div>
+            <div class="col-xl-4">
+                <section class="pf-card p-3 h-100">
+                    <h2 class="h6 pf-title">@Model.MensajeEstado</h2>
+                    <div class="pf-data-grid mt-3">
+                        <div class="pf-data-cell"><small>Estudiante</small>@Model.Estudiante?.NombreCompleto</div>
+                        <div class="pf-data-cell"><small>Ruta actual</small>@(Model.RutaAsignada?.Ruta?.Nombre ?? "No disponible")</div>
+                        <div class="pf-data-cell"><small>Recorrido</small>@(Model.RecorridoActivo?.CodigoRecorrido ?? "No disponible")</div>
+                        <div class="pf-data-cell"><small>Conductor</small>@(Model.Conductor ?? "No disponible")</div>
+                        <div class="pf-data-cell"><small>Bus</small>@(Model.Bus ?? "No disponible")</div>
+                        <div class="pf-data-cell"><small>Próxima parada</small>@(Model.ProximaParada?.Nombre ?? "No disponible")</div>
+                        <div class="pf-data-cell"><small>ETA</small>@(Model.ETA ?? "No disponible")</div>
+                        <div class="pf-data-cell"><small>Estado seguridad</small>@Model.EstadoSeguridad</div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="~/js/capimovil-maps.js" asp-append-version="true"></script>
+    @if (Model.TieneRastreoDisponible)
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                CapiMovilMaps.createLiveMonitoringMap({
+                    mapId: 'padreMapaEnVivoCanvas',
+                    buses: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BusesMapa)),
+                    paraderos: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ParaderosMapa))
+                });
+            });
+        </script>
+    }
+}

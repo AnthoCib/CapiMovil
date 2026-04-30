@@ -32,6 +32,46 @@ namespace CapiMovil.DL.DALC
             return lista;
         }
 
+        public List<IncidenciaBE> ListarPorConductor(Guid idConductor)
+        {
+            List<IncidenciaBE> lista = new List<IncidenciaBE>();
+
+            using SqlConnection cn = _bdConexion.ObtenerConexion();
+            using SqlCommand cmd = new SqlCommand("sp_Incidencia_ListarPorConductor", cn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@IdConductor", idConductor);
+
+            cn.Open();
+            using SqlDataReader dr = cmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                lista.Add(Mapear(dr));
+            }
+
+            return lista;
+        }
+
+        public List<IncidenciaBE> ListarPorPadre(Guid idPadre)
+        {
+            List<IncidenciaBE> lista = new List<IncidenciaBE>();
+
+            using SqlConnection cn = _bdConexion.ObtenerConexion();
+            using SqlCommand cmd = new SqlCommand("sp_Incidencia_ListarPorPadre", cn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@IdPadre", idPadre);
+
+            cn.Open();
+            using SqlDataReader dr = cmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                lista.Add(Mapear(dr));
+            }
+
+            return lista;
+        }
+
         public IncidenciaBE? ListarPorId(Guid idIncidencia)
         {
             using SqlConnection cn = _bdConexion.ObtenerConexion();
@@ -72,12 +112,18 @@ namespace CapiMovil.DL.DALC
             if (dr.Read())
             {
                 int filas = Convert.ToInt32(dr["FilasAfectadas"]);
+                string? mensaje = ExisteColumna(dr, "Mensaje") && dr["Mensaje"] != DBNull.Value
+                    ? dr["Mensaje"].ToString()
+                    : null;
 
                 if (dr["CodigoGenerado"] != DBNull.Value)
                     entidad.CodigoIncidencia = dr["CodigoGenerado"].ToString() ?? string.Empty;
 
                 if (ExisteColumna(dr, "IdIncidencia") && dr["IdIncidencia"] != DBNull.Value)
                     entidad.IdIncidencia = (Guid)dr["IdIncidencia"];
+
+                if (filas <= 0 && !string.IsNullOrWhiteSpace(mensaje))
+                    throw new InvalidOperationException(mensaje);
 
                 return filas > 0;
             }

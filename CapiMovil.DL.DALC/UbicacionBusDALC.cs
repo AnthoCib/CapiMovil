@@ -105,15 +105,14 @@ namespace CapiMovil.DL.DALC
             cn.Open();
             using SqlDataReader dr = cmd.ExecuteReader();
 
-            if (dr.Read())
+            if (RegistroResultadoDALC.EsRegistroExitoso(dr, out int filas, out string codigoGenerado, out string? mensaje))
             {
-                int filas = Convert.ToInt32(dr["FilasAfectadas"]);
-                if (filas > 0)
-                {
-                    entidad.CodigoUbicacion = dr["CodigoGenerado"]?.ToString() ?? string.Empty;
-                    return true;
-                }
+                entidad.CodigoUbicacion = codigoGenerado;
+                return true;
             }
+
+            if (!string.IsNullOrWhiteSpace(mensaje))
+                throw new InvalidOperationException(mensaje);
 
             return false;
         }

@@ -2,76 +2,83 @@
 
 @{
     ViewData["Title"] = "Usuarios";
+    int total = Model?.Count ?? 0;
+    int activos = Model?.Count(x => x.Estado) ?? 0;
+    int inactivos = total - activos;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="page-title mb-0">Lista de Usuarios</h2>
-    <a asp-action="Crear" class="btn btn-primary">
-        Nuevo Usuario
-    </a>
-</div>
-
-<div class="card card-soft">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-primary">
-                    <tr>
-                        <th>Código</th>
-                        <th>Username</th>
-                        <th>Correo</th>
-                        <th>Rol</th>
-                        <th>Estado</th>
-                        <th class="text-center" style="width: 260px;">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.Any())
-                    {
-                        foreach (var item in Model)
-                        {
-                            <tr>
-                                <td>@item.CodigoUsuario</td>
-                                <td>@item.Username</td>
-                                <td>@item.Correo</td>
-                                <td>@item.Rol?.Nombre</td>
-                                <td>
-                                    @if (item.Estado)
-                                    {
-                                        <span class="badge bg-success">Activo</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-danger">Inactivo</span>
-                                    }
-                                </td>
-                                <td class="text-center">
-                                    <a asp-action="Editar" asp-route-id="@item.IdUsuario" class="btn btn-warning btn-sm btn-action">
-                                        Editar
-                                    </a>
-                                   
-
-                                    <form asp-action="Eliminar" method="post" class="d-inline form-eliminar">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="id" value="@item.IdUsuario" />
-                                        <button type="submit" class="btn btn-sm btn-danger">
-                                            <i class="bi bi-trash"></i> Eliminar
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="6" class="text-center text-muted">
-                                No hay registros.
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+<div class="list-shell">
+    <div class="list-toolbar mb-4">
+        <div>
+            <h2 class="list-title mb-1">Lista de Usuarios</h2>
+            <p class="list-subtitle mb-0">Gestión de cuentas de acceso, roles y estado operativo del sistema.</p>
         </div>
+        <a asp-action="Crear" class="btn btn-primary list-btn-primary"><i class="bi bi-plus-circle me-1"></i>Nuevo usuario</a>
     </div>
+
+    @if (TempData["ok"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            @TempData["ok"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            @TempData["error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4"><div class="list-kpi-card"><small>Total usuarios</small><strong>@total</strong></div></div>
+        <div class="col-md-4"><div class="list-kpi-card"><small>Activos</small><strong class="text-success">@activos</strong></div></div>
+        <div class="col-md-4"><div class="list-kpi-card"><small>Inactivos</small><strong class="text-secondary">@inactivos</strong></div></div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-3">
+            @foreach (var item in Model.OrderBy(x => x.Username))
+            {
+                var rolNombre = string.IsNullOrWhiteSpace(item.Rol?.Nombre) ? "Sin rol" : item.Rol!.Nombre;
+                <div class="col-12 col-lg-6">
+                    <article class="list-entity-card h-100">
+                        <header class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                            <div>
+                                <div class="list-code">@item.CodigoUsuario</div>
+                                <h3 class="h6 mb-0 mt-2">@item.Username</h3>
+                            </div>
+                            <span class="badge @(item.Estado ? "text-bg-success" : "text-bg-secondary")">@(item.Estado ? "ACTIVO" : "INACTIVO")</span>
+                        </header>
+
+                        <div class="list-meta-grid mb-3">
+                            <div><small>Correo</small><strong>@item.Correo</strong></div>
+                            <div>
+                                <small>Rol</small>
+                                <strong><span class="badge text-bg-primary">@rolNombre</span></strong>
+                            </div>
+                            <div><small>Último acceso</small><strong>@(item.UltimoAcceso?.ToString("dd/MM/yyyy HH:mm") ?? "Sin registro")</strong></div>
+                            <div><small>Fecha creación</small><strong>@item.FechaCreacion.ToString("dd/MM/yyyy")</strong></div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 justify-content-end">
+                            <a asp-action="Editar" asp-route-id="@item.IdUsuario" class="btn btn-outline-warning btn-sm"><i class="bi bi-pencil-square me-1"></i>Editar</a>
+                            <form asp-action="Eliminar" method="post" class="d-inline form-eliminar" data-confirm data-confirm-title="¿Estás seguro?" data-confirm-text="Esta acción eliminará el usuario seleccionado." data-confirm-icon="warning" data-confirm-confirm-text="Sí, eliminar" data-confirm-cancel-text="Cancelar">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@item.IdUsuario" />
+                                <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Eliminar</button>
+                            </form>
+                        </div>
+                    </article>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        @await Html.PartialAsync("_ListEmptyState", ("Sin usuarios", "No hay usuarios registrados.", "bi-person-badge"))
+    }
 </div>
