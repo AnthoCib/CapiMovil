@@ -1,6 +1,5 @@
 .capimovil-login-page {
-    min-height: 100vh;
-    background: #eaf4ff;
+    min-height: 75vh;
     display: flex;
     align-items: center;
     justify-content: center;

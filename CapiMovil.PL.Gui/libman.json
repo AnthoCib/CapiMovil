@@ -1,19 +1,18 @@
 {
   "version": "1.0",
-  "defaultProvider": "unpkg",
+  "defaultProvider": "cdnjs",
   "libraries": [
     {
-      "library": "jquery-validation@1.21.0",
-      "destination": "wwwroot/lib/jquery-validation"
+      "library": "jquery@3.7.1",
+      "destination": "wwwroot/lib/jquery/"
+    },
+    {
+      "library": "jquery-validate@1.21.0",
+      "destination": "wwwroot/lib/jquery-validation/"
     },
     {
       "library": "jquery-validation-unobtrusive@4.0.0",
       "destination": "wwwroot/lib/jquery-validation-unobtrusive/"
-    },
-    {
-      "provider": "cdnjs",
-      "library": "jquery@3.7.1",
-      "destination": "wwwroot/lib/jquery/"
     }
   ]
 }
