@@ -1,24 +1,194 @@
-.cap-login-shell{min-height:100vh;background:#f2f6fb;display:flex;align-items:center;padding:1.25rem 0}
-.cap-login-stage{max-width:1900px;border-radius:46px;background:linear-gradient(180deg,#9edaff 0%,#d8f0ff 100%);position:relative;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,.14)}
-.cap-login-hero{position:relative;height:100%;min-height:760px;padding:2.2rem 2rem 7rem;overflow:hidden}
-.cap-cloud{position:absolute;background:rgba(255,255,255,.62);border-radius:999px;filter:blur(.2px)}
-.cap-cloud-a{width:170px;height:70px;right:190px;top:95px}.cap-cloud-b{width:130px;height:55px;right:35px;top:130px}
-.cap-pin{position:absolute;left:6%;top:30%;font-size:4rem;color:#ffc423;text-shadow:0 8px 18px rgba(0,0,0,.12)}
-.cap-route{position:absolute;left:11%;top:40%;width:180px;height:80px;border:5px dashed #9fd2f6;border-color:#9fd2f6 transparent transparent transparent;border-radius:90px 90px 0 0;transform:rotate(-7deg)}
-.cap-hero-logo{width:min(760px,90%);display:block;margin:10px auto 6px;filter:drop-shadow(0 10px 12px rgba(0,0,0,.13))}
-.cap-hero-main{position:absolute;left:8%;right:8%;bottom:45px;width:84%;max-height:430px;object-fit:contain;object-position:center bottom}
-.cap-login-card{background:#fff;border-radius:34px;padding:2.9rem 2.6rem 2rem;box-shadow:0 18px 35px rgba(23,79,117,.18);position:relative}
-.cap-card-badge{position:absolute;top:-44px;left:50%;transform:translateX(-50%);width:90px;height:90px;border-radius:50%;background:#fff;border:6px solid #f5c544;display:flex;align-items:center;justify-content:center;color:#1a5d9e;font-size:2.2rem;box-shadow:0 6px 14px rgba(0,0,0,.15)}
-.cap-login-card h1{font-size:4rem;font-weight:800;color:#0c3e72;text-align:center;margin-top:.6rem;line-height:1}.cap-login-card>p{text-align:center;color:#6b7f93;font-size:1.9rem;margin:.4rem 0 1.3rem}
-.cap-input-group{border:1px solid #d6dee8;border-radius:18px;padding:.35rem .5rem;background:#fff}.cap-input-group .input-group-text,.cap-input-group .form-control,.cap-eye{border:0;background:transparent}
-.cap-input-group .input-group-text,.cap-eye{color:#73859b;font-size:1.35rem}.cap-input-group .form-control{font-size:1.25rem;padding:.62rem .3rem}.cap-input-group .form-control:focus{box-shadow:none}
-.cap-link{color:#2f73b2;text-decoration:none;font-weight:600}.cap-link:hover{text-decoration:underline}.form-check-label{color:#2f4052}
-.cap-login-btn{border:0;border-radius:18px;background:linear-gradient(180deg,#ffd339 0%,#ffbf0b 100%);font-size:2rem;font-weight:800;color:#0a4f86;padding:.8rem 1rem}
-.cap-secure-note{display:flex;align-items:center;gap:.8rem;justify-content:center;color:#798ea2;font-size:1.3rem}.cap-secure-note span{width:28%;height:2px;background:#d4dce4}
-.cap-benefits{position:absolute;left:0;right:0;bottom:0;background:#fff;padding:1.1rem 2.2rem;display:grid;grid-template-columns:repeat(3,1fr);gap:1.1rem;border-radius:70% 70% 46px 46px/32px 32px 46px 46px}
-.cap-benefits article{display:flex;align-items:center;gap:.8rem}.cap-benefits i{width:48px;height:48px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#e8f3fc;color:#2e74ad;font-size:1.35rem}
-.cap-benefits h3{margin:0;color:#0f4272;font-size:1.15rem}.cap-benefits p{margin:0;color:#74879b;font-size:.92rem}
-.cap-deco{position:absolute;right:22px;bottom:4px;color:#2d71a8;display:flex;gap:.45rem;font-size:2.2rem}
-.auth-validation-summary:empty{display:none}
-@media (max-width:1400px){.cap-login-card h1{font-size:3rem}.cap-login-card>p{font-size:1.35rem}.cap-login-btn{font-size:1.4rem}.cap-benefits{position:relative;border-radius:28px;grid-template-columns:1fr;padding:1rem}.cap-deco{display:none}.cap-login-hero{min-height:560px;padding-bottom:2rem}.cap-hero-main{position:relative;width:100%;left:auto;right:auto;bottom:auto;max-height:300px;margin-top:1rem}}
-@media (max-width:992px){.cap-login-stage{border-radius:24px}.cap-login-card{margin:1rem;border-radius:24px;padding:2rem 1.2rem}.cap-login-card h1{font-size:2.5rem}.cap-login-card>p{font-size:1.15rem}.cap-input-group .form-control{font-size:1rem}.cap-login-btn{font-size:1.15rem}.cap-secure-note{font-size:1rem}.cap-login-hero{min-height:420px}}
+/* =========================================================
+   LOGIN COMPACTO - PEGAR AL FINAL DEL CSS
+   ========================================================= */
+
+.cap-login-shell {
+    min-height: 100vh !important;
+    padding: 0.5rem 0 !important;
+    align-items: center !important;
+    overflow-y: hidden !important;
+}
+
+.cap-login-stage {
+    width: min(92vw, 1120px) !important;
+    max-height: calc(100vh - 1rem) !important;
+    border-radius: 26px !important;
+}
+
+.cap-login-hero {
+    min-height: 500px !important;
+    padding: 0.8rem 1rem 3.8rem !important;
+}
+
+.cap-hero-logo {
+    width: min(430px, 72%) !important;
+    margin-top: 0 !important;
+}
+
+.cap-hero-main {
+    width: 76% !important;
+    max-height: 285px !important;
+    bottom: 28px !important;
+}
+
+.cap-login-card {
+    max-width: 380px !important;
+    padding: 1.45rem 1.5rem 1.25rem !important;
+    border-radius: 24px !important;
+}
+
+.cap-card-badge {
+    width: 60px !important;
+    height: 60px !important;
+    top: -28px !important;
+    font-size: 1.35rem !important;
+    border-width: 4px !important;
+}
+
+.cap-login-card h1 {
+    font-size: 2.35rem !important;
+    margin-top: 0.35rem !important;
+}
+
+.cap-login-card > p {
+    font-size: 1rem !important;
+    margin: 0.25rem 0 0.9rem !important;
+}
+
+.cap-input-group {
+    border-radius: 14px !important;
+    padding: 0.15rem 0.4rem !important;
+}
+
+    .cap-input-group .form-control {
+        font-size: 0.95rem !important;
+        min-height: 38px !important;
+        padding: 0.4rem 0.2rem !important;
+    }
+
+    .cap-input-group .input-group-text,
+    .cap-eye {
+        font-size: 1rem !important;
+    }
+
+.cap-login-btn {
+    min-height: 46px !important;
+    font-size: 1.1rem !important;
+    padding: 0.55rem 1rem !important;
+    border-radius: 14px !important;
+}
+
+.cap-secure-note {
+    font-size: 0.9rem !important;
+}
+
+.cap-benefits {
+    padding: 0.55rem 1.4rem !important;
+    gap: 0.6rem !important;
+}
+
+    .cap-benefits i {
+        width: 34px !important;
+        height: 34px !important;
+        min-width: 34px !important;
+        font-size: 0.95rem !important;
+    }
+
+    .cap-benefits h3 {
+        font-size: 0.78rem !important;
+    }
+
+    .cap-benefits p {
+        font-size: 0.68rem !important;
+    }
+
+.cap-pin {
+    font-size: 2.4rem !important;
+}
+
+.cap-route {
+    width: 110px !important;
+    height: 52px !important;
+    border-width: 3px !important;
+}
+
+/* Pantallas menores a 1400px: aún más compacto */
+@media (max-width: 1400px) {
+    .cap-login-stage {
+        width: min(94vw, 1060px) !important;
+    }
+
+    .cap-login-hero {
+        min-height: 430px !important;
+        padding-bottom: 1rem !important;
+    }
+
+    .cap-hero-logo {
+        width: min(360px, 70%) !important;
+    }
+
+    .cap-hero-main {
+        max-height: 210px !important;
+        width: 78% !important;
+        margin-top: 0.3rem !important;
+    }
+
+    .cap-login-card {
+        max-width: 360px !important;
+        padding: 1.3rem 1.35rem 1.1rem !important;
+    }
+
+        .cap-login-card h1 {
+            font-size: 2rem !important;
+        }
+
+        .cap-login-card > p {
+            font-size: 0.92rem !important;
+        }
+
+    .cap-benefits {
+        display: none !important;
+    }
+}
+
+/* Móvil */
+@media (max-width: 576px) {
+    .cap-login-shell {
+        overflow-y: auto !important;
+    }
+
+    .cap-login-stage {
+        width: 100% !important;
+        min-height: 100dvh !important;
+        max-height: none !important;
+        border-radius: 0 !important;
+    }
+
+    .cap-login-hero {
+        min-height: 190px !important;
+        padding: 0.6rem 0.75rem 0 !important;
+    }
+
+    .cap-hero-logo {
+        width: min(240px, 82%) !important;
+    }
+
+    .cap-hero-main {
+        max-height: 115px !important;
+        width: 88% !important;
+    }
+
+    .cap-login-card {
+        margin: 0.5rem 0.75rem !important;
+        max-width: none !important;
+        padding: 1.2rem 0.95rem 1rem !important;
+    }
+
+        .cap-login-card h1 {
+            font-size: 1.75rem !important;
+        }
+
+        .cap-login-card > p {
+            font-size: 0.9rem !important;
+        }
+}
