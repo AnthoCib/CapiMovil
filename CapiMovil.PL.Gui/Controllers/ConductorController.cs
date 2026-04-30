@@ -47,101 +47,375 @@ namespace CapiMovil.PL.Gui.Controllers
             _ubicacionBusBC = ubicacionBusBC;
         }
 
-        public IActionResult Index()
+        [HttpGet]
+        public IActionResult Index(Guid? idRecorridoOperacion, Guid? idParaderoActual, string? tipoParadero)
         {
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
             if (acceso != null)
                 return acceso;
 
             ConductorBE? conductor = ObtenerConductorAutenticado();
+
             if (conductor == null)
             {
                 TempData["error"] = "No existe un conductor vinculado al usuario autenticado.";
                 return RedirectToAction("SesionInvalida", "Auth");
             }
 
-            List<RecorridoBE> recorridos = _recorridoBC.ListarPorConductor(conductor.IdConductor)
-                .OrderByDescending(r => r.Fecha)
-                .ThenByDescending(r => PrioridadEstadoRecorrido(r.EstadoRecorrido))
-                .ToList();
+            ConductorDashboardViewModel vm = ConstruirDashboardConductor(conductor);
 
-            RecorridoBE? recorridoHoy = recorridos
-                .Where(r => r.Fecha.Date == DateTime.Today)
-                .OrderByDescending(r => PrioridadEstadoRecorrido(r.EstadoRecorrido))
-                .FirstOrDefault();
-
-            List<IncidenciaBE> incidenciasConductor = _incidenciaBC.ListarPorConductor(conductor.IdConductor);
-            int incidenciasAbiertas = incidenciasConductor
-                .Count(i => !string.Equals(i.EstadoIncidencia, "CERRADA", StringComparison.OrdinalIgnoreCase));
-
-            List<IncidenciaBE> alertasRecientes = incidenciasConductor
-                .OrderByDescending(i => i.FechaHora)
-                .Take(4)
-                .ToList();
-
-            int estudiantesRutaActiva = 0;
-            List<ConductorDashboardEstudianteItemViewModel> estudiantesEnRuta = new();
-            if (recorridoHoy != null)
+            if (idRecorridoOperacion.HasValue &&
+                idParaderoActual.HasValue &&
+                !string.IsNullOrWhiteSpace(tipoParadero))
             {
-                List<RutaEstudianteBE> asignacionesRuta = _rutaEstudianteBC.Listar()
-                    .Where(re => re.IdRuta == recorridoHoy.IdRuta && re.Estado)
-                    .ToList();
-
-                estudiantesRutaActiva = asignacionesRuta.Count;
-
-                Dictionary<Guid, string> paraderosSubida = _paraderoBC.ListarPorRuta(recorridoHoy.IdRuta)
-                    .ToDictionary(p => p.IdParadero, p => p.Nombre);
-
-                Dictionary<Guid, EstudianteBE> estudiantesDict = _estudianteBC.Listar()
-                    .Where(e => asignacionesRuta.Select(a => a.IdEstudiante).Contains(e.IdEstudiante))
-                    .ToDictionary(e => e.IdEstudiante, e => e);
-
-                List<EventoAbordajeBE> eventosHoy = _eventoAbordajeBC.Listar()
-                    .Where(e => e.IdRecorrido == recorridoHoy.IdRecorrido)
-                    .OrderByDescending(e => e.FechaHora)
-                    .ToList();
-
-                foreach (RutaEstudianteBE asignacion in asignacionesRuta.Take(8))
-                {
-                    if (!estudiantesDict.TryGetValue(asignacion.IdEstudiante, out EstudianteBE? estudiante))
-                        continue;
-
-                    EventoAbordajeBE? ultimoEvento = eventosHoy.FirstOrDefault(e => e.IdEstudiante == asignacion.IdEstudiante);
-                    string estadoEstudiante = ultimoEvento?.TipoEvento switch
-                    {
-                        "SUBIDA" => "ABORDÓ",
-                        "BAJADA" => "DESCENDIÓ",
-                        _ => "PENDIENTE"
-                    };
-
-                    string hora = ultimoEvento?.FechaHora.ToString("HH:mm") ?? "--:--";
-                    string parada = (asignacion.IdParaderoSubida.HasValue && paraderosSubida.TryGetValue(asignacion.IdParaderoSubida.Value, out string? nombreParada))
-                        ? nombreParada
-                        : "Sin parada";
-
-                    estudiantesEnRuta.Add(new ConductorDashboardEstudianteItemViewModel
-                    {
-                        Nombre = estudiante.NombreCompleto,
-                        Parada = parada,
-                        Hora = hora,
-                        Estado = estadoEstudiante
-                    });
-                }
+                CargarOperacionParadero(
+                    vm,
+                    idRecorridoOperacion.Value,
+                    idParaderoActual.Value,
+                    tipoParadero
+                );
             }
 
-            ConductorDashboardViewModel vm = new()
-            {
-                NombreConductor = conductor.NombreCompleto,
-                RecorridoHoy = recorridoHoy,
-                RecorridosHoy = recorridos.Count(r => r.Fecha.Date == DateTime.Today),
-                IncidenciasAbiertas = incidenciasAbiertas,
-                EstudiantesRutaActiva = estudiantesRutaActiva,
-                AlertasRecientes = alertasRecientes,
-                EstudiantesEnRuta = estudiantesEnRuta,
-                PuedeIniciarRecorrido = recorridoHoy != null && string.Equals(recorridoHoy.EstadoRecorrido, "PROGRAMADO", StringComparison.OrdinalIgnoreCase)
-            };
-
             return View(vm);
+        }
+
+        [HttpGet]
+        public IActionResult MiBus()
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
+            if (acceso != null)
+                return acceso;
+
+            ConductorBE? conductor = ObtenerConductorAutenticado();
+
+            if (conductor == null)
+                return RedirectToAction(nameof(Index));
+
+            ConductorDashboardViewModel vm = ConstruirDashboardConductor(conductor);
+            return View(vm);
+        }
+
+        [HttpGet]
+        public IActionResult MiRuta()
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
+            if (acceso != null)
+                return acceso;
+
+            ConductorBE? conductor = ObtenerConductorAutenticado();
+
+            if (conductor == null)
+                return RedirectToAction(nameof(Index));
+
+            ConductorDashboardViewModel vm = ConstruirDashboardConductor(conductor);
+            return View(vm);
+        }
+
+        [HttpGet]
+        public IActionResult Estudiantes()
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
+            if (acceso != null)
+                return acceso;
+
+            ConductorBE? conductor = ObtenerConductorAutenticado();
+
+            if (conductor == null)
+                return RedirectToAction(nameof(Index));
+
+            ConductorDashboardViewModel vm = ConstruirDashboardConductor(conductor);
+            return View(vm);
+        }
+
+        [HttpGet]
+        public IActionResult Recorrido()
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
+            if (acceso != null)
+                return acceso;
+
+            ConductorBE? conductor = ObtenerConductorAutenticado();
+
+            if (conductor == null)
+                return RedirectToAction(nameof(Index));
+
+            ConductorDashboardViewModel vm = ConstruirDashboardConductor(conductor);
+            return View(vm);
+        }
+
+        [HttpGet]
+        public IActionResult Incidencias()
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
+            if (acceso != null)
+                return acceso;
+
+            ConductorBE? conductor = ObtenerConductorAutenticado();
+
+            if (conductor == null)
+                return RedirectToAction(nameof(Index));
+
+            ConductorDashboardViewModel vm = ConstruirDashboardConductor(conductor);
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult IniciarRecorrido(Guid idRecorrido)
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
+            if (acceso != null)
+                return acceso;
+
+            ConductorBE? conductor = ObtenerConductorAutenticado();
+
+            if (conductor == null)
+                return RedirectToAction(nameof(Index));
+
+            RecorridoBE? recorrido = _recorridoBC.ListarPorId(idRecorrido);
+
+            if (recorrido == null || recorrido.IdConductor != conductor.IdConductor)
+            {
+                TempData["error"] = "No tiene permisos para iniciar este recorrido.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                bool puedeIniciar = _recorridoBC.PuedeIniciarSegunOrden(idRecorrido);
+
+                if (!puedeIniciar)
+                {
+                    TempData["error"] = "No puedes iniciar este recorrido todavía. Primero debes finalizar el recorrido anterior.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                bool ok = _recorridoBC.Iniciar(
+                    idRecorrido,
+                    ObtenerUsuarioIdSesion(),
+                    ObtenerUsernameSesion(),
+                    ObtenerIpCliente(),
+                    ObtenerUserAgent()
+                );
+
+                TempData[ok ? "ok" : "error"] = ok
+                    ? "Recorrido iniciado correctamente."
+                    : "No se pudo iniciar el recorrido.";
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult FinalizarRecorrido(Guid idRecorrido)
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
+            if (acceso != null)
+                return acceso;
+
+            ConductorBE? conductor = ObtenerConductorAutenticado();
+
+            if (conductor == null)
+                return RedirectToAction(nameof(Index));
+
+            RecorridoBE? recorrido = _recorridoBC.ListarPorId(idRecorrido);
+
+            if (recorrido == null || recorrido.IdConductor != conductor.IdConductor)
+            {
+                TempData["error"] = "No tiene permisos para finalizar este recorrido.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                bool ok = _recorridoBC.Finalizar(
+                    idRecorrido,
+                    ObtenerUsuarioIdSesion(),
+                    ObtenerUsernameSesion(),
+                    ObtenerIpCliente(),
+                    ObtenerUserAgent()
+                );
+
+                TempData[ok ? "ok" : "error"] = ok
+                    ? "Recorrido finalizado correctamente."
+                    : "No se pudo finalizar el recorrido.";
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult GuardarEventosParadero(
+            Guid idRecorrido,
+            Guid idParadero,
+            string tipoParadero,
+            List<Guid> idsEstudiantes,
+            IFormCollection form)
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
+            if (acceso != null)
+                return acceso;
+
+            ConductorBE? conductor = ObtenerConductorAutenticado();
+
+            if (conductor == null)
+                return RedirectToAction(nameof(Index));
+
+            RecorridoBE? recorrido = _recorridoBC.ListarPorId(idRecorrido);
+
+            if (recorrido == null || recorrido.IdConductor != conductor.IdConductor)
+            {
+                TempData["error"] = "No tiene permisos para registrar eventos en este recorrido.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                Guid? usuarioSesion = ObtenerUsuarioIdSesion();
+
+                if (!usuarioSesion.HasValue)
+                {
+                    TempData["error"] = "No se pudo obtener el usuario de sesión.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                if (idsEstudiantes == null || !idsEstudiantes.Any())
+                {
+                    TempData["error"] = "No hay estudiantes para registrar.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                string tipoParaderoNormalizado = (tipoParadero ?? "").Trim().ToUpperInvariant();
+
+                bool datosValidos = ValidarEventosParadero(
+                    idRecorrido,
+                    idParadero,
+                    tipoParaderoNormalizado,
+                    idsEstudiantes,
+                    form
+                );
+
+                if (!datosValidos)
+                {
+                    return RedirectToAction(nameof(Index), new
+                    {
+                        idRecorridoOperacion = idRecorrido,
+                        idParaderoActual = idParadero,
+                        tipoParadero = tipoParaderoNormalizado
+                    });
+                }
+
+                foreach (Guid idEstudiante in idsEstudiantes)
+                {
+                    string tipoEvento = form["tipoEvento_" + idEstudiante]
+                        .ToString()
+                        .Trim()
+                        .ToUpperInvariant();
+
+                    _recorridoBC.RegistrarEventoAbordajeConductor(
+                        idRecorrido,
+                        idEstudiante,
+                        idParadero,
+                        usuarioSesion.Value,
+                        tipoEvento,
+                        null
+                    );
+                }
+
+                if (tipoParaderoNormalizado == "SUBIDA")
+                {
+                    TempData["ok"] = "Paradero de recojo registrado correctamente. Selecciona manualmente el siguiente paradero.";
+                }
+                else if (tipoParaderoNormalizado == "BAJADA")
+                {
+                    TempData["ok"] = "Paradero de entrega registrado correctamente. Selecciona manualmente el siguiente paradero.";
+                }
+                else
+                {
+                    TempData["ok"] = "Eventos registrados correctamente.";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult RegistrarIncidenciaConductor(
+            Guid idRecorrido,
+            string tipoIncidencia,
+            string prioridad,
+            string descripcion)
+        {
+            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
+            if (acceso != null)
+                return acceso;
+
+            ConductorBE? conductor = ObtenerConductorAutenticado();
+
+            if (conductor == null)
+                return RedirectToAction(nameof(Index));
+
+            RecorridoBE? recorrido = _recorridoBC.ListarPorId(idRecorrido);
+
+            if (recorrido == null || recorrido.IdConductor != conductor.IdConductor)
+            {
+                TempData["error"] = "No tiene permisos para registrar incidencia en este recorrido.";
+                return RedirectToAction(nameof(Incidencias));
+            }
+
+            if (string.IsNullOrWhiteSpace(descripcion))
+            {
+                TempData["error"] = "Debe ingresar una descripción.";
+                return RedirectToAction(nameof(Incidencias));
+            }
+
+            try
+            {
+                Guid? usuarioId = ObtenerUsuarioIdSesion();
+
+                IncidenciaBE incidencia = new()
+                {
+                    IdRecorrido = idRecorrido,
+                    IdConductor = conductor.IdConductor,
+                    ReportadoPor = usuarioId,
+                    TipoIncidencia = (tipoIncidencia ?? "").Trim().ToUpperInvariant(),
+                    Descripcion = descripcion.Trim(),
+                    FechaHora = DateTime.Now,
+                    EstadoIncidencia = "PENDIENTE",
+                    Prioridad = string.IsNullOrWhiteSpace(prioridad)
+                        ? "MEDIA"
+                        : prioridad.Trim().ToUpperInvariant(),
+                    Solucion = null,
+                    Estado = true
+                };
+
+                bool ok = _incidenciaBC.Registrar(incidencia);
+
+                TempData[ok ? "ok" : "error"] = ok
+                    ? "Incidencia registrada correctamente."
+                    : "No se pudo registrar la incidencia.";
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Incidencias));
         }
 
         public IActionResult MiConductor()
@@ -151,6 +425,7 @@ namespace CapiMovil.PL.Gui.Controllers
                 return acceso;
 
             PadreFamiliaBE? padre = _padreFamiliaBC.ObtenerPorIdUsuario(ObtenerUsuarioIdSesion() ?? Guid.Empty);
+
             if (padre == null)
             {
                 TempData["error"] = "No existe un padre de familia vinculado al usuario autenticado.";
@@ -169,147 +444,16 @@ namespace CapiMovil.PL.Gui.Controllers
         }
 
         [HttpGet]
-        public IActionResult MiBus()
-        {
-            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
-            if (acceso != null) return acceso;
-
-            ConductorBE? conductor = ObtenerConductorAutenticado();
-            if (conductor == null) return RedirectToAction(nameof(Index));
-
-            RecorridoBE? recorridoOperacion = ObtenerRecorridoOperacion(conductor.IdConductor);
-            BusBE? bus = recorridoOperacion != null
-                ? _busBC.ListarPorId(recorridoOperacion.IdBus)
-                : null;
-
-            return View(bus);
-        }
-
-        [HttpGet]
-        public IActionResult MiRuta()
-        {
-            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
-            if (acceso != null) return acceso;
-
-            ConductorBE? conductor = ObtenerConductorAutenticado();
-            if (conductor == null) return RedirectToAction(nameof(Index));
-
-            List<RecorridoBE> recorridos = _recorridoBC.ListarPorConductor(conductor.IdConductor)
-                .OrderByDescending(r => r.Fecha)
-                .ToList();
-
-            RecorridoBE? recorridoOperacion = ObtenerRecorridoOperacion(conductor.IdConductor);
-            List<ParaderoBE> paraderos = recorridoOperacion == null
-                ? new List<ParaderoBE>()
-                : _paraderoBC.ListarPorRuta(recorridoOperacion.IdRuta)
-                    .OrderBy(p => p.OrdenParada)
-                    .ToList();
-
-            List<EstudianteBE> estudiantesRuta = new();
-            if (recorridoOperacion != null)
-            {
-                HashSet<Guid> idsEstudiantes = _rutaEstudianteBC.Listar()
-                    .Where(re => re.IdRuta == recorridoOperacion.IdRuta && re.Estado)
-                    .Select(re => re.IdEstudiante)
-                    .ToHashSet();
-
-                estudiantesRuta = _estudianteBC.Listar()
-                    .Where(e => idsEstudiantes.Contains(e.IdEstudiante))
-                    .OrderBy(e => e.ApellidoPaterno)
-                    .ThenBy(e => e.Nombres)
-                    .ToList();
-            }
-
-            UbicacionBusBE? ultimaUbicacion = recorridoOperacion == null
-                ? null
-                : _ubicacionBusBC.Listar()
-                    .Where(u => u.IdRecorrido == recorridoOperacion.IdRecorrido && u.Estado)
-                    .OrderByDescending(u => u.FechaHora)
-                    .FirstOrDefault();
-
-            ConductorMiRutaViewModel vm = new()
-            {
-                RecorridoOperacion = recorridoOperacion,
-                Recorridos = recorridos,
-                Paraderos = paraderos,
-                EstudiantesRuta = estudiantesRuta,
-                UltimaUbicacionBus = ultimaUbicacion
-            };
-
-            return View(vm);
-        }
-
-        [HttpGet]
-        public IActionResult Estudiantes()
-        {
-            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
-            if (acceso != null) return acceso;
-
-            ConductorBE? conductor = ObtenerConductorAutenticado();
-            if (conductor == null) return RedirectToAction(nameof(Index));
-
-            HashSet<Guid> rutasDelConductor = _recorridoBC.ListarPorConductor(conductor.IdConductor)
-                .Select(r => r.IdRuta)
-                .ToHashSet();
-
-            HashSet<Guid> idsEstudiantes = _rutaEstudianteBC.Listar()
-                .Where(re => rutasDelConductor.Contains(re.IdRuta) && re.Estado)
-                .Select(re => re.IdEstudiante)
-                .ToHashSet();
-
-            List<EstudianteBE> estudiantes = _estudianteBC.Listar()
-                .Where(e => idsEstudiantes.Contains(e.IdEstudiante))
-                .OrderBy(e => e.ApellidoPaterno)
-                .ThenBy(e => e.Nombres)
-                .ToList();
-
-            return View(estudiantes);
-        }
-
-        [HttpGet]
-        public IActionResult Recorrido()
-        {
-            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
-            if (acceso != null) return acceso;
-
-            ConductorBE? conductor = ObtenerConductorAutenticado();
-            if (conductor == null) return RedirectToAction(nameof(Index));
-
-            List<RecorridoBE> recorridos = _recorridoBC.ListarPorConductor(conductor.IdConductor)
-                .OrderByDescending(r => r.Fecha)
-                .ToList();
-
-            return View(recorridos);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult IniciarRecorrido(Guid idRecorrido)
-        {
-            return EjecutarCambioRecorrido(
-                idRecorrido,
-                id => _recorridoBC.Iniciar(id, ObtenerUsuarioIdSesion(), ObtenerUsernameSesion(), ObtenerIpCliente(), ObtenerUserAgent()),
-                "Recorrido iniciado correctamente.");
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult FinalizarRecorrido(Guid idRecorrido)
-        {
-            return EjecutarCambioRecorrido(
-                idRecorrido,
-                id => _recorridoBC.Finalizar(id, ObtenerUsuarioIdSesion(), ObtenerUsernameSesion(), ObtenerIpCliente(), ObtenerUserAgent()),
-                "Recorrido finalizado correctamente.");
-        }
-
-        [HttpGet]
         public IActionResult Abordaje()
         {
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
-            if (acceso != null) return acceso;
+            if (acceso != null)
+                return acceso;
 
             ConductorBE? conductor = ObtenerConductorAutenticado();
-            if (conductor == null) return RedirectToAction(nameof(Index));
+
+            if (conductor == null)
+                return RedirectToAction(nameof(Index));
 
             ConductorAbordajeViewModel vm = ConstruirVistaAbordaje(conductor);
             return View(vm);
@@ -320,12 +464,16 @@ namespace CapiMovil.PL.Gui.Controllers
         public IActionResult RegistrarAbordaje(ConductorAbordajeViewModel vm)
         {
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
-            if (acceso != null) return acceso;
+            if (acceso != null)
+                return acceso;
 
             ConductorBE? conductor = ObtenerConductorAutenticado();
-            if (conductor == null) return RedirectToAction(nameof(Index));
+
+            if (conductor == null)
+                return RedirectToAction(nameof(Index));
 
             RecorridoBE? recorridoActivo = _recorridoBC.ObtenerActivoPorConductor(conductor.IdConductor);
+
             if (recorridoActivo == null)
             {
                 TempData["error"] = "No existe un recorrido activo para registrar abordajes.";
@@ -339,6 +487,7 @@ namespace CapiMovil.PL.Gui.Controllers
             }
 
             string tipoEvento = (vm.TipoEvento ?? string.Empty).Trim().ToUpperInvariant();
+
             HashSet<string> tiposPermitidos = new(StringComparer.OrdinalIgnoreCase)
             {
                 "SUBIDA",
@@ -366,8 +515,7 @@ namespace CapiMovil.PL.Gui.Controllers
 
             try
             {
-                string? usuarioIdSession = HttpContext.Session.GetString("UsuarioId");
-                Guid? usuarioId = string.IsNullOrWhiteSpace(usuarioIdSession) ? null : Guid.Parse(usuarioIdSession);
+                Guid? usuarioId = ObtenerUsuarioIdSesion();
 
                 EventoAbordajeBE entidad = new()
                 {
@@ -383,6 +531,7 @@ namespace CapiMovil.PL.Gui.Controllers
 
                 _eventoAbordajeBC.ValidarRegistro(entidad);
                 bool ok = _eventoAbordajeBC.Registrar(entidad);
+
                 TempData[ok ? "ok" : "error"] = ok
                     ? $"Evento registrado correctamente. Código: {entidad.CodigoEvento}"
                     : "No se pudo registrar el evento de abordaje.";
@@ -395,33 +544,24 @@ namespace CapiMovil.PL.Gui.Controllers
             return RedirectToAction(nameof(Abordaje));
         }
 
-        [HttpGet]
-        public IActionResult Incidencias()
-        {
-            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
-            if (acceso != null) return acceso;
-
-            ConductorBE? conductor = ObtenerConductorAutenticado();
-            if (conductor == null) return RedirectToAction(nameof(Index));
-
-            ConductorIncidenciasViewModel vm = ConstruirVistaIncidencias(conductor);
-            return View(vm);
-        }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult RegistrarIncidencia(ConductorIncidenciasViewModel vm)
         {
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
-            if (acceso != null) return acceso;
+            if (acceso != null)
+                return acceso;
 
             ConductorBE? conductor = ObtenerConductorAutenticado();
-            if (conductor == null) return RedirectToAction(nameof(Index));
 
-            RecorridoBE? recorridoOperacion = _recorridoBC.ObtenerActivoPorConductor(conductor.IdConductor);
+            if (conductor == null)
+                return RedirectToAction(nameof(Index));
+
+            RecorridoBE? recorridoOperacion = ObtenerRecorridoOperacion(conductor.IdConductor);
+
             if (recorridoOperacion == null)
             {
-                TempData["error"] = "No existe un recorrido EN_CURSO para registrar incidencias.";
+                TempData["error"] = "No existe un recorrido para registrar incidencias.";
                 return RedirectToAction(nameof(Incidencias));
             }
 
@@ -433,8 +573,7 @@ namespace CapiMovil.PL.Gui.Controllers
 
             try
             {
-                string? usuarioIdSession = HttpContext.Session.GetString("UsuarioId");
-                Guid? usuarioId = string.IsNullOrWhiteSpace(usuarioIdSession) ? null : Guid.Parse(usuarioIdSession);
+                Guid? usuarioId = ObtenerUsuarioIdSesion();
 
                 IncidenciaBE entidad = new()
                 {
@@ -443,12 +582,14 @@ namespace CapiMovil.PL.Gui.Controllers
                     ReportadoPor = usuarioId,
                     TipoIncidencia = vm.TipoIncidencia,
                     Descripcion = vm.Descripcion,
-                    FechaHora = vm.FechaHora,
+                    FechaHora = vm.FechaHora == default ? DateTime.Now : vm.FechaHora,
                     EstadoIncidencia = "PENDIENTE",
-                    Prioridad = vm.Prioridad
+                    Prioridad = vm.Prioridad,
+                    Estado = true
                 };
 
                 bool ok = _incidenciaBC.Registrar(entidad);
+
                 TempData[ok ? "ok" : "error"] = ok
                     ? "Incidencia registrada correctamente."
                     : "No se pudo registrar la incidencia.";
@@ -465,7 +606,8 @@ namespace CapiMovil.PL.Gui.Controllers
         public IActionResult Listar()
         {
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
-            if (acceso != null) return acceso;
+            if (acceso != null)
+                return acceso;
 
             var lista = _conductorBC.Listar();
             return View(lista);
@@ -475,7 +617,8 @@ namespace CapiMovil.PL.Gui.Controllers
         public IActionResult Crear()
         {
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
-            if (acceso != null) return acceso;
+            if (acceso != null)
+                return acceso;
 
             ConductorFormViewModel vm = new()
             {
@@ -491,7 +634,8 @@ namespace CapiMovil.PL.Gui.Controllers
         public IActionResult Crear(ConductorFormViewModel vm)
         {
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
-            if (acceso != null) return acceso;
+            if (acceso != null)
+                return acceso;
 
             if (vm.IdUsuario == Guid.Empty)
                 ModelState.AddModelError(nameof(vm.IdUsuario), "Debe seleccionar un usuario.");
@@ -544,7 +688,8 @@ namespace CapiMovil.PL.Gui.Controllers
         public IActionResult Editar(Guid id)
         {
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
-            if (acceso != null) return acceso;
+            if (acceso != null)
+                return acceso;
 
             var entidad = _conductorBC.ListarPorId(id);
 
@@ -579,7 +724,8 @@ namespace CapiMovil.PL.Gui.Controllers
         public IActionResult Editar(ConductorFormViewModel vm)
         {
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
-            if (acceso != null) return acceso;
+            if (acceso != null)
+                return acceso;
 
             if (vm.IdUsuario == Guid.Empty)
                 ModelState.AddModelError(nameof(vm.IdUsuario), "Debe seleccionar un usuario.");
@@ -632,7 +778,8 @@ namespace CapiMovil.PL.Gui.Controllers
         public IActionResult Eliminar(Guid id)
         {
             IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Administracion);
-            if (acceso != null) return acceso;
+            if (acceso != null)
+                return acceso;
 
             try
             {
@@ -650,37 +797,197 @@ namespace CapiMovil.PL.Gui.Controllers
             return RedirectToAction(nameof(Listar));
         }
 
-        private IActionResult EjecutarCambioRecorrido(Guid idRecorrido, Func<Guid, bool> operacion, string mensajeExito)
+        private ConductorDashboardViewModel ConstruirDashboardConductor(ConductorBE conductor)
         {
-            IActionResult? acceso = AutenticacionSesion.ValidarSesionYRol(this, RolesSistema.Conductor);
-            if (acceso != null) return acceso;
-
-            ConductorBE? conductor = ObtenerConductorAutenticado();
-            if (conductor == null) return RedirectToAction(nameof(Index));
-
-            RecorridoBE? recorrido = _recorridoBC.ListarPorId(idRecorrido);
-            if (recorrido == null || recorrido.IdConductor != conductor.IdConductor)
+            ConductorDashboardViewModel vm = new()
             {
-                TempData["error"] = "No tiene permisos para operar este recorrido.";
-                return RedirectToAction(nameof(Recorrido));
+                NombreConductor = conductor.NombreCompleto
+            };
+
+            List<RecorridoBE> recorridosHoy = _recorridoBC.ListarHoyPorConductor(
+                conductor.IdConductor,
+                DateTime.Today
+            );
+
+            vm.RecorridoActual = recorridosHoy.FirstOrDefault();
+
+            vm.RecorridosHoy = recorridosHoy
+                .Select(r => CrearResumenRecorrido(r))
+                .ToList();
+
+            if (vm.RecorridoActual != null)
+            {
+                CargarDatosRecorrido(vm, vm.RecorridoActual.IdRecorrido);
             }
 
-            try
+            return vm;
+        }
+
+        private void CargarDatosRecorrido(ConductorDashboardViewModel vm, Guid idRecorrido)
+        {
+            vm.EstudiantesEnRuta = _recorridoBC.ListarEstudiantesPorRecorridoConductor(idRecorrido);
+
+            vm.ParaderosRecojo = _recorridoBC.ListarParaderosPorRecorrido(idRecorrido, "SUBIDA")
+                .Select(p => CrearResumenParadero(p))
+                .ToList();
+
+            vm.ParaderosEntrega = _recorridoBC.ListarParaderosPorRecorrido(idRecorrido, "BAJADA")
+                .Select(p => CrearResumenParadero(p))
+                .ToList();
+
+            vm.IncidenciasPendientes = _recorridoBC.ListarIncidenciasPendientesConductor(idRecorrido)
+                .Select(i => new IncidenciaResumenConductorViewModel
+                {
+                    TipoIncidencia = i.TipoIncidencia,
+                    Descripcion = i.Descripcion,
+                    Prioridad = i.Prioridad,
+                    FechaHora = i.FechaHora
+                })
+                .ToList();
+        }
+
+        private void CargarOperacionParadero(
+            ConductorDashboardViewModel vm,
+            Guid idRecorridoOperacion,
+            Guid idParaderoActual,
+            string? tipoParadero)
+        {
+            string tipo = (tipoParadero ?? "").Trim().ToUpperInvariant();
+
+            if (tipo != "SUBIDA" && tipo != "BAJADA")
+                return;
+
+            vm.IdRecorridoOperacion = idRecorridoOperacion;
+            vm.IdParaderoActual = idParaderoActual;
+            vm.TipoParaderoActual = tipo;
+
+            ParaderoResumenConductorViewModel? paraderoSeleccionado = vm.ParaderosRecojo
+                .FirstOrDefault(p => p.IdParadero == idParaderoActual);
+
+            if (paraderoSeleccionado == null)
             {
-                bool ok = operacion(idRecorrido);
-                TempData[ok ? "ok" : "error"] = ok ? mensajeExito : "No se pudo ejecutar la operación.";
-            }
-            catch (Exception ex)
-            {
-                TempData["error"] = ex.Message;
+                paraderoSeleccionado = vm.ParaderosEntrega
+                    .FirstOrDefault(p => p.IdParadero == idParaderoActual);
             }
 
-            return RedirectToAction(nameof(Recorrido));
+            if (paraderoSeleccionado != null)
+            {
+                vm.NombreParaderoActual = paraderoSeleccionado.Nombre;
+            }
+
+            vm.EstudiantesParaderoActual = _recorridoBC.ListarEstudiantesPorParaderoConductor(
+                idRecorridoOperacion,
+                idParaderoActual,
+                tipo
+            );
+        }
+
+        private bool ValidarEventosParadero(
+            Guid idRecorrido,
+            Guid idParadero,
+            string tipoParaderoNormalizado,
+            List<Guid> idsEstudiantes,
+            IFormCollection form)
+        {
+            if (idRecorrido == Guid.Empty)
+            {
+                TempData["error"] = "Id de recorrido inválido.";
+                return false;
+            }
+
+            if (idParadero == Guid.Empty)
+            {
+                TempData["error"] = "Id de paradero inválido.";
+                return false;
+            }
+
+            if (tipoParaderoNormalizado != "SUBIDA" && tipoParaderoNormalizado != "BAJADA")
+            {
+                TempData["error"] = "Tipo de paradero inválido.";
+                return false;
+            }
+
+            foreach (Guid idEstudiante in idsEstudiantes)
+            {
+                string tipoEvento = form["tipoEvento_" + idEstudiante].ToString();
+
+                if (string.IsNullOrWhiteSpace(tipoEvento))
+                {
+                    TempData["error"] = "Debe seleccionar el estado de todos los alumnos.";
+                    return false;
+                }
+
+                tipoEvento = tipoEvento.Trim().ToUpperInvariant();
+
+                if (tipoEvento != "SUBIDA" &&
+                    tipoEvento != "BAJADA" &&
+                    tipoEvento != "NO_ABORDO" &&
+                    tipoEvento != "AUSENTE")
+                {
+                    TempData["error"] = "Tipo de evento no válido.";
+                    return false;
+                }
+
+                if (tipoParaderoNormalizado == "SUBIDA" && tipoEvento == "BAJADA")
+                {
+                    TempData["error"] = "En recojo no se puede registrar BAJADA.";
+                    return false;
+                }
+
+                if (tipoParaderoNormalizado == "BAJADA" && tipoEvento == "SUBIDA")
+                {
+                    TempData["error"] = "En entrega no se puede registrar SUBIDA.";
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static RecorridoResumenConductorViewModel CrearResumenRecorrido(RecorridoBE recorrido)
+        {
+            string turno = "Recorrido";
+
+            if (recorrido.HoraInicioProgramada.HasValue)
+            {
+                if (recorrido.HoraInicioProgramada.Value.Hours < 12)
+                    turno = "Recojo - Mañana";
+                else
+                    turno = "Entrega - Tarde";
+            }
+
+            return new RecorridoResumenConductorViewModel
+            {
+                IdRecorrido = recorrido.IdRecorrido,
+                CodigoRecorrido = recorrido.CodigoRecorrido,
+                NombreRuta = recorrido.Ruta?.Nombre ?? "Sin ruta",
+                CodigoBus = recorrido.Bus?.CodigoBus ?? "Sin bus",
+                HoraInicioProgramada = recorrido.HoraInicioProgramada,
+                HoraFinProgramada = recorrido.HoraFinProgramada,
+                EstadoRecorrido = recorrido.EstadoRecorrido,
+                TurnoTexto = turno
+            };
+        }
+
+        private static ParaderoResumenConductorViewModel CrearResumenParadero(ParaderoConductorBE paradero)
+        {
+            return new ParaderoResumenConductorViewModel
+            {
+                IdParadero = paradero.IdParadero,
+                Nombre = paradero.Nombre,
+                Direccion = paradero.Direccion,
+                OrdenParada = paradero.OrdenParada,
+                HoraEstimada = paradero.HoraEstimada,
+                TotalAlumnos = paradero.TotalAlumnos,
+                TotalRegistrados = paradero.TotalRegistrados,
+                Completado = paradero.Completado
+            };
         }
 
         private ConductorAbordajeViewModel ConstruirVistaAbordaje(ConductorBE conductor)
         {
             RecorridoBE? recorridoActivo = _recorridoBC.ObtenerActivoPorConductor(conductor.IdConductor);
+
             HashSet<Guid> idsRecorrido = _recorridoBC.ListarPorConductor(conductor.IdConductor)
                 .Select(r => r.IdRecorrido)
                 .ToHashSet();
@@ -722,6 +1029,7 @@ namespace CapiMovil.PL.Gui.Controllers
             }
 
             List<ConductorAbordajeAlumnoEstadoViewModel> estadosPorAlumno = new();
+
             if (recorridoActivo != null)
             {
                 foreach (SelectListItem estudiante in estudiantes)
@@ -729,7 +1037,11 @@ namespace CapiMovil.PL.Gui.Controllers
                     if (!Guid.TryParse(estudiante.Value, out Guid idEstudiante))
                         continue;
 
-                    var resumen = _eventoAbordajeBC.ObtenerResumenPorEstudianteRecorrido(recorridoActivo.IdRecorrido, idEstudiante);
+                    var resumen = _eventoAbordajeBC.ObtenerResumenPorEstudianteRecorrido(
+                        recorridoActivo.IdRecorrido,
+                        idEstudiante
+                    );
+
                     estadosPorAlumno.Add(MapearEstadoAbordaje(estudiante, resumen));
                 }
             }
@@ -745,7 +1057,9 @@ namespace CapiMovil.PL.Gui.Controllers
             };
         }
 
-        private static ConductorAbordajeAlumnoEstadoViewModel MapearEstadoAbordaje(SelectListItem estudiante, EventoAbordajeResumenBE resumen)
+        private static ConductorAbordajeAlumnoEstadoViewModel MapearEstadoAbordaje(
+            SelectListItem estudiante,
+            EventoAbordajeResumenBE resumen)
         {
             bool tieneSubida = resumen.TotalSubidas > 0;
             bool tieneBajada = resumen.TotalBajadas > 0;
@@ -753,11 +1067,17 @@ namespace CapiMovil.PL.Gui.Controllers
             bool noAbordo = resumen.TotalNoAbordo > 0;
 
             string estadoActual = "SIN_EVENTOS";
-            if (ausente) estadoActual = "AUSENTE";
-            else if (noAbordo) estadoActual = "NO_ABORDO";
-            else if (tieneSubida && tieneBajada) estadoActual = "COMPLETADO";
-            else if (tieneSubida) estadoActual = "EN_BUS";
-            else estadoActual = "PENDIENTE";
+
+            if (ausente)
+                estadoActual = "AUSENTE";
+            else if (noAbordo)
+                estadoActual = "NO_ABORDO";
+            else if (tieneSubida && tieneBajada)
+                estadoActual = "COMPLETADO";
+            else if (tieneSubida)
+                estadoActual = "EN_BUS";
+            else
+                estadoActual = "PENDIENTE";
 
             bool bloqueado = ausente || noAbordo;
 
@@ -777,50 +1097,21 @@ namespace CapiMovil.PL.Gui.Controllers
             };
         }
 
-        private ConductorIncidenciasViewModel ConstruirVistaIncidencias(ConductorBE conductor)
-        {
-            RecorridoBE? recorridoOperacion = ObtenerRecorridoOperacion(conductor.IdConductor);
-
-            return new ConductorIncidenciasViewModel
-            {
-                RecorridoOperacion = recorridoOperacion,
-                Incidencias = _incidenciaBC.ListarPorConductor(conductor.IdConductor)
-                    .OrderByDescending(i => i.FechaHora)
-                    .ToList(),
-                TiposIncidencia = new List<SelectListItem>
-                {
-                    new("RETRASO", "RETRASO"),
-                    new("FALLA MECANICA", "FALLA MECANICA"),
-                    new("ACCIDENTE", "ACCIDENTE"),
-                    new("DESVIO", "DESVIO"),
-                    new("AUSENCIA", "AUSENCIA"),
-                    new("OTRO", "OTRO")
-                },
-                Prioridades = new List<SelectListItem>
-                {
-                    new("BAJA", "BAJA"),
-                    new("MEDIA", "MEDIA"),
-                    new("ALTA", "ALTA"),
-                    new("CRITICA", "CRITICA")
-                }
-            };
-        }
-
         private RecorridoBE? ObtenerRecorridoOperacion(Guid idConductor)
         {
             RecorridoBE? recorridoActivo = _recorridoBC.ObtenerActivoPorConductor(idConductor);
+
             if (recorridoActivo != null)
                 return recorridoActivo;
 
-            return _recorridoBC.ListarPorConductor(idConductor)
-                .Where(r => r.Fecha.Date == DateTime.Today)
-                .OrderByDescending(r => PrioridadEstadoRecorrido(r.EstadoRecorrido))
+            return _recorridoBC.ListarHoyPorConductor(idConductor, DateTime.Today)
                 .FirstOrDefault();
         }
 
         private static int PrioridadEstadoRecorrido(string? estado)
         {
             string normalizado = (estado ?? string.Empty).Trim().ToUpperInvariant();
+
             return normalizado switch
             {
                 "EN_CURSO" => 3,
@@ -833,6 +1124,7 @@ namespace CapiMovil.PL.Gui.Controllers
         private ConductorBE? ObtenerConductorAutenticado()
         {
             string? usuarioId = HttpContext.Session.GetString("UsuarioId");
+
             if (!Guid.TryParse(usuarioId, out Guid idUsuario))
                 return null;
 
@@ -842,22 +1134,31 @@ namespace CapiMovil.PL.Gui.Controllers
         private Guid? ObtenerUsuarioIdSesion()
         {
             string? usuarioId = HttpContext.Session.GetString("UsuarioId");
-            return Guid.TryParse(usuarioId, out Guid idUsuario) ? idUsuario : null;
+
+            return Guid.TryParse(usuarioId, out Guid idUsuario)
+                ? idUsuario
+                : null;
         }
 
         private string? ObtenerIpCliente()
-            => HttpContext.Connection.RemoteIpAddress?.ToString();
+        {
+            return HttpContext.Connection.RemoteIpAddress?.ToString();
+        }
 
         private string? ObtenerUserAgent()
-            => Request.Headers.UserAgent.ToString();
+        {
+            return Request.Headers.UserAgent.ToString();
+        }
 
         private string? ObtenerUsernameSesion()
         {
             string? username = HttpContext.Session.GetString("Username");
+
             if (!string.IsNullOrWhiteSpace(username))
                 return username;
 
             Guid? idUsuario = ObtenerUsuarioIdSesion();
+
             if (idUsuario.HasValue)
                 return _usuarioBC.ListarPorId(idUsuario.Value)?.Username;
 
@@ -889,7 +1190,9 @@ namespace CapiMovil.PL.Gui.Controllers
                 .ThenByDescending(r => r.Fecha)
                 .FirstOrDefault();
 
-            return recorrido == null ? null : _conductorBC.ListarPorId(recorrido.IdConductor);
+            return recorrido == null
+                ? null
+                : _conductorBC.ListarPorId(recorrido.IdConductor);
         }
 
         private List<SelectListItem> ObtenerUsuariosDisponibles()

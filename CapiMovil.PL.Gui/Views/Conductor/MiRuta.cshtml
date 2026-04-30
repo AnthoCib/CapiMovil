@@ -1,183 +1,232 @@
-@model CapiMovil.PL.Gui.Models.ViewModels.ConductorMiRutaViewModel
-@using System.Text.Json
+@model CapiMovil.PL.Gui.Models.ViewModels.ConductorDashboardViewModel
 
 @{
-    ViewData["Title"] = "Operación de Ruta";
+    ViewData["Title"] = "Mi Ruta";
+}
 
-    var paraderosMapa = Model.Paraderos
-        .Where(p => p.Latitud.HasValue && p.Longitud.HasValue)
-        .Select(p => new
-        {
-            nombre = p.Nombre,
-            direccion = p.Direccion,
-            ordenParada = p.OrdenParada,
-            latitud = p.Latitud,
-            longitud = p.Longitud
-        })
-        .ToList();
-
-    var busMapa = Model.UltimaUbicacionBus == null
-        ? null
-        : new
-        {
-            latitud = Model.UltimaUbicacionBus.Latitud,
-            longitud = Model.UltimaUbicacionBus.Longitud,
-            fechaHora = Model.UltimaUbicacionBus.FechaHora.ToString("dd/MM/yyyy HH:mm")
-        };
-
-    var proximoParadero = Model.Paraderos.FirstOrDefault();
-    var minutosEstimados = Model.Paraderos.Any() ? Math.Max(5, Model.Paraderos.Count * 4) : 0;
-    var distanciaEstimadaKm = Model.Paraderos.Any() ? Math.Round(Model.Paraderos.Count * 0.8m, 1) : 0;
-    var estado = (Model.RecorridoOperacion?.EstadoRecorrido ?? "SIN_OPERACION").Trim().ToUpperInvariant();
-    var claseEstado = estado switch
+@functions {
+    string HoraTexto(TimeSpan? hora)
     {
-        "EN_CURSO" => "text-bg-success",
-        "PROGRAMADO" => "text-bg-warning",
-        "FINALIZADO" => "text-bg-secondary",
-        _ => "text-bg-light"
-    };
+        if (hora.HasValue)
+        {
+            return DateTime.Today.Add(hora.Value).ToString("hh:mm tt");
+        }
+
+        return "Sin hora";
+    }
+
+    string EstadoTexto(string? estado)
+    {
+        string valor = (estado ?? "").Trim().ToUpperInvariant();
+
+        if (valor == "PROGRAMADO") return "Programado";
+        if (valor == "EN_CURSO") return "En curso";
+        if (valor == "FINALIZADO") return "Finalizado";
+        if (valor == "CANCELADO") return "Cancelado";
+
+        return string.IsNullOrWhiteSpace(estado) ? "Programado" : estado;
+    }
+
+    string EstadoBadge(string? estado)
+    {
+        string valor = (estado ?? "").Trim().ToUpperInvariant();
+
+        if (valor == "PROGRAMADO") return "bg-warning text-dark";
+        if (valor == "EN_CURSO") return "bg-primary";
+        if (valor == "FINALIZADO") return "bg-success";
+        if (valor == "CANCELADO") return "bg-danger";
+
+        return "bg-secondary";
+    }
 }
 
-@section Styles {
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-          crossorigin="" />
-    <link rel="stylesheet" href="~/css/conductor-operacion.css" asp-append-version="true" />
-}
+<div class="dashboard-conductor">
 
-<div class="conductor-op-shell">
-    <div class="row g-3 g-xl-4">
-        <section class="col-12 col-xl-8">
-            <div class="card border-0 shadow-sm mb-3 conductor-op-header">
-                <div class="card-body p-4">
-                    @if (Model.RecorridoOperacion == null)
-                    {
-                        <h2 class="h4 fw-bold mb-2">Sin ruta operativa asignada</h2>
-                        <p class="text-muted mb-0">No tienes recorrido activo ni programado para hoy.</p>
-                    }
-                    else
-                    {
-                        <div class="d-flex flex-wrap justify-content-between gap-2 align-items-start">
-                            <div>
-                                <h2 class="h4 fw-bold mb-1">@(Model.RecorridoOperacion.Ruta?.Nombre ?? "Ruta asignada")</h2>
-                                <p class="text-muted mb-2">Código: @Model.RecorridoOperacion.CodigoRecorrido · Turno: @Model.RecorridoOperacion.Ruta?.Turno</p>
-                                <span class="badge @claseEstado">@estado.Replace("_", " ")</span>
-                            </div>
-                            <div class="text-end">
-                                <div class="small text-muted">Estudiantes</div>
-                                <div class="h4 fw-bold mb-1">@Model.EstudiantesRuta.Count</div>
-                                <div class="small text-muted">Duración estimada @minutosEstimados min</div>
-                            </div>
-                        </div>
-                    }
+    <div class="dashboard-saludo mb-4">
+        <h1>Mi Ruta</h1>
+        <p>Consulta tus recorridos y paraderos asignados para hoy.</p>
+    </div>
+
+    @if (Model.RecorridosHoy == null || !Model.RecorridosHoy.Any())
+    {
+        <div class="card-conductor p-4">
+            <h2 class="titulo-card">Sin rutas asignadas</h2>
+            <p class="text-muted mb-0">
+                No tienes recorridos programados para hoy.
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="card-conductor p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h2 class="titulo-card mb-1">Recorridos de Hoy</h2>
+                    <p class="text-muted mb-0">
+                        Revisa la información principal de tus recorridos.
+                    </p>
                 </div>
+
+                <span class="pill-total">
+                    @Model.RecorridosHoy.Count recorridos
+                </span>
             </div>
 
-            <div class="card border-0 shadow-sm conductor-op-map-wrap">
-                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center pt-3">
-                    <h5 class="mb-0 fw-semibold"><i class="bi bi-map me-2 text-success"></i>Mapa de operación</h5>
-                    <span class="badge text-bg-success">Seguimiento en vivo</span>
-                </div>
-                <div class="card-body pt-2">
-                    @if (!paraderosMapa.Any() && busMapa == null)
-                    {
-                        <div class="alert alert-secondary mb-0">No hay coordenadas disponibles para mostrar tracking en mapa.</div>
-                    }
-                    else
-                    {
-                        <div id="mapConductorRuta" class="capi-map"></div>
-                    }
-                </div>
-                <div class="card-footer border-0 bg-op-info">
+            @foreach (var recorrido in Model.RecorridosHoy)
+            {
+                <div class="ruta-etapa-card mb-3">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="mb-1">@recorrido.NombreRuta</h5>
+                            <small>@recorrido.TurnoTexto</small>
+                        </div>
+
+                        <span class="badge @EstadoBadge(recorrido.EstadoRecorrido)">
+                            @EstadoTexto(recorrido.EstadoRecorrido)
+                        </span>
+                    </div>
+
                     <div class="row g-3">
-                        <div class="col-md-5">
-                            <small class="text-muted d-block">Próxima parada</small>
-                            <strong>@(proximoParadero?.Nombre ?? "No disponible")</strong>
-                            <div class="small text-muted">@(proximoParadero?.Direccion ?? "Sin dirección")</div>
-                        </div>
-                        <div class="col-md-4">
-                            <small class="text-muted d-block">Tiempo estimado</small>
-                            <strong>@(minutosEstimados == 0 ? "-" : $"{minutosEstimados} min")</strong>
-                        </div>
                         <div class="col-md-3">
-                            <small class="text-muted d-block">Distancia aprox.</small>
-                            <strong>@(distanciaEstimadaKm == 0 ? "-" : $"{distanciaEstimadaKm} km")</strong>
+                            <small>Código recorrido</small>
+                            <strong class="d-block">@recorrido.CodigoRecorrido</strong>
+                        </div>
+
+                        <div class="col-md-3">
+                            <small>Bus</small>
+                            <strong class="d-block">@recorrido.CodigoBus</strong>
+                        </div>
+
+                        <div class="col-md-3">
+                            <small>Hora inicio</small>
+                            <strong class="d-block">@HoraTexto(recorrido.HoraInicioProgramada)</strong>
+                        </div>
+
+                        <div class="col-md-3">
+                            <small>Hora fin</small>
+                            <strong class="d-block">@HoraTexto(recorrido.HoraFinProgramada)</strong>
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            }
+        </div>
 
-        <aside class="col-12 col-xl-3">
-            <div class="card border-0 shadow-sm mb-3">
-                <div class="card-body p-3 d-grid gap-2">
-                    @if (Model.RecorridoOperacion != null && estado == "PROGRAMADO")
-                    {
-                        <form asp-action="IniciarRecorrido" method="post" data-disable-on-submit data-confirm data-confirm-title="¿Iniciar ruta ahora?" data-confirm-text="La operación cambiará a EN CURSO." data-confirm-icon="question" data-confirm-confirm-text="Sí, iniciar" data-confirm-cancel-text="Cancelar">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="idRecorrido" value="@Model.RecorridoOperacion.IdRecorrido" />
-                            <button class="btn btn-success btn-lg w-100" data-loading-text="Iniciando ruta..."><i class="bi bi-play-fill me-2"></i>Iniciar Ruta</button>
-                        </form>
-                    }
-                    else
-                    {
-                        <button class="btn btn-success btn-lg w-100" disabled><i class="bi bi-play-fill me-2"></i>Iniciar Ruta</button>
-                    }
-
-                    @if (Model.RecorridoOperacion != null && estado == "EN_CURSO")
-                    {
-                        <form asp-action="FinalizarRecorrido" method="post" data-disable-on-submit data-confirm data-confirm-title="¿Finalizar ruta?" data-confirm-text="Esta acción marcará el recorrido como finalizado." data-confirm-icon="warning" data-confirm-confirm-text="Sí, finalizar" data-confirm-cancel-text="Cancelar">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="idRecorrido" value="@Model.RecorridoOperacion.IdRecorrido" />
-                            <button class="btn btn-danger btn-lg w-100" data-loading-text="Finalizando ruta..."><i class="bi bi-stop-fill me-2"></i>Finalizar Ruta</button>
-                        </form>
-                    }
-                    else
-                    {
-                        <button class="btn btn-danger btn-lg w-100" disabled><i class="bi bi-stop-fill me-2"></i>Finalizar Ruta</button>
-                    }
+        <div class="card-conductor p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h2 class="titulo-card mb-1">Detalle de Paraderos</h2>
+                    <p class="text-muted mb-0">
+                        Paraderos registrados para el recorrido actual.
+                    </p>
                 </div>
             </div>
 
-            <div class="card border-0 shadow-sm conductor-student-manifest">
-                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 fw-bold">Student Manifest</h6>
-                    <span class="badge text-bg-light border">@Model.EstudiantesRuta.Count/@Model.EstudiantesRuta.Count</span>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <button class="btn btn-outline-warning w-100 fw-bold"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#paraderosRecojo">
+                        Ver paraderos de recojo
+                    </button>
                 </div>
-                <div class="card-body p-2">
-                    @if (Model.EstudiantesRuta.Any())
+
+                <div class="col-md-6">
+                    <button class="btn btn-outline-warning w-100 fw-bold"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#paraderosEntrega">
+                        Ver paraderos de entrega
+                    </button>
+                </div>
+            </div>
+
+            <div class="collapse show" id="paraderosRecojo">
+                <div class="detalle-etapa mb-3">
+                    <h6>
+                        <i class="bi bi-sun me-1"></i>
+                        Paraderos de Recojo
+                    </h6>
+
+                    @if (Model.ParaderosRecojo == null || !Model.ParaderosRecojo.Any())
                     {
-                        @foreach (var estudiante in Model.EstudiantesRuta)
+                        <p class="text-muted mb-0">
+                            No hay paraderos de recojo registrados.
+                        </p>
+                    }
+                    else
+                    {
+                        foreach (var paradero in Model.ParaderosRecojo)
                         {
-                            <partial name="_StudentRouteItem" model="estudiante" />
+                            <div class="paradero-item">
+                                <span class="numero-paradero">@paradero.OrdenParada</span>
+
+                                <div class="flex-fill">
+                                    <strong>@paradero.Nombre</strong>
+                                    <small>@paradero.Direccion</small>
+                                    <small class="d-block text-muted">
+                                        Hora estimada: @HoraTexto(paradero.HoraEstimada)
+                                    </small>
+                                </div>
+
+                                <div class="text-end">
+                                    <span class="pill-total">
+                                        @paradero.TotalAlumnos alumnos
+                                    </span>
+
+                                    <small class="d-block text-muted mt-1">
+                                        Registrados: @paradero.TotalRegistrados / @paradero.TotalAlumnos
+                                    </small>
+                                </div>
+                            </div>
                         }
                     }
+                </div>
+            </div>
+
+            <div class="collapse" id="paraderosEntrega">
+                <div class="detalle-etapa">
+                    <h6>
+                        <i class="bi bi-moon me-1"></i>
+                        Paraderos de Entrega
+                    </h6>
+
+                    @if (Model.ParaderosEntrega == null || !Model.ParaderosEntrega.Any())
+                    {
+                        <p class="text-muted mb-0">
+                            No hay paraderos de entrega registrados.
+                        </p>
+                    }
                     else
                     {
-                        <div class="text-muted small p-2">No hay estudiantes asignados para esta ruta.</div>
+                        foreach (var paradero in Model.ParaderosEntrega)
+                        {
+                            <div class="paradero-item">
+                                <span class="numero-paradero">@paradero.OrdenParada</span>
+
+                                <div class="flex-fill">
+                                    <strong>@paradero.Nombre</strong>
+                                    <small>@paradero.Direccion</small>
+                                    <small class="d-block text-muted">
+                                        Hora estimada: @HoraTexto(paradero.HoraEstimada)
+                                    </small>
+                                </div>
+
+                                <div class="text-end">
+                                    <span class="pill-total">
+                                        @paradero.TotalAlumnos alumnos
+                                    </span>
+
+                                    <small class="d-block text-muted mt-1">
+                                        Registrados: @paradero.TotalRegistrados / @paradero.TotalAlumnos
+                                    </small>
+                                </div>
+                            </div>
+                        }
                     }
                 </div>
             </div>
-        </aside>
-    </div>
-</div>
-
-@section Scripts {
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-            crossorigin=""></script>
-
-    @if (paraderosMapa.Any() || busMapa != null)
-    {
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                CapiMovilMaps.createRouteViewer({
-                    mapId: 'mapConductorRuta',
-                    paraderos: @Html.Raw(JsonSerializer.Serialize(paraderosMapa)),
-                    busLocation: @Html.Raw(JsonSerializer.Serialize(busMapa)),
-                    defaultCenter: [-12.046374, -77.042793]
-                });
-            });
-        </script>
+        </div>
     }
-}
+
+</div>

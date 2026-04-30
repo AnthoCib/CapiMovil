@@ -27,7 +27,6 @@
         new { Texto = "Mi Ruta", Url = Url.Action("MiRuta", "Conductor"), Keywords = "ruta mapa paraderos trayecto" },
         new { Texto = "Recorridos", Url = Url.Action("Recorrido", "Conductor"), Keywords = "operacion iniciar finalizar" },
         new { Texto = "Estudiantes", Url = Url.Action("Estudiantes", "Conductor"), Keywords = "alumnos lista" },
-        new { Texto = "Abordaje", Url = Url.Action("Abordaje", "Conductor"), Keywords = "subida bajada eventos" },
         new { Texto = "Incidencias", Url = Url.Action("Incidencias", "Conductor"), Keywords = "alertas reportes" },
         new { Texto = "Mi Bus", Url = Url.Action("MiBus", "Conductor"), Keywords = "bus unidad placa" },
         new { Texto = "Seguimiento en vivo", Url = Url.Action("MiRuta", "Conductor"), Keywords = "seguimiento vivo mapa" },
@@ -116,16 +115,11 @@
                         <a asp-controller="Conductor" asp-action="MiRuta" class="@NavClass("MiRuta")"><i class="bi bi-map"></i>Mi Ruta</a>
                         <a asp-controller="Conductor" asp-action="Recorrido" class="@NavClass("Recorrido")"><i class="bi bi-signpost"></i>Recorridos</a>
                         <a asp-controller="Conductor" asp-action="Estudiantes" class="@NavClass("Estudiantes")"><i class="bi bi-people"></i>Estudiantes</a>
-                        <a asp-controller="Conductor" asp-action="Abordaje" class="@NavClass("Abordaje")"><i class="bi bi-check2-square"></i>Abordaje</a>
                         <a asp-controller="Conductor" asp-action="Incidencias" class="@NavClass("Incidencias")"><i class="bi bi-exclamation-triangle"></i>Incidencias</a>
                         <a asp-controller="Conductor" asp-action="MiBus" class="@NavClass("MiBus")"><i class="bi bi-bus-front"></i>Mi Bus</a>
                         <a asp-controller="Usuario" asp-action="CambiarPassword" class="nav-link"><i class="bi bi-key"></i>Ajustes</a>
                         <a asp-controller="Usuario" asp-action="MiPerfil" class="nav-link"><i class="bi bi-person-circle"></i>Mi Perfil</a>
                     </nav>
-
-                    <a asp-controller="Conductor" asp-action="MiRuta" class="btn btn-conductor-live mt-auto">
-                        <i class="bi bi-broadcast-pin me-2"></i>Seguimiento en vivo
-                    </a>
                 </div>
             </div>
         </aside>

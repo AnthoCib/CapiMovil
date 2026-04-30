@@ -532,3 +532,45 @@ function inicializarSidebarsDesdeData() {
 window.CapiMovilUI = {
     initSidebarShell: inicializarSidebarShellById
 };
+
+/* ============================================================
+  CONDUCTOR - EVENTOS DE ALUMNOS POR PARADERO
+  ============================================================ */
+
+window.cambiarEstadoAlumno = function (idAlumno, valor, texto) {
+    const input = document.getElementById('tipoEvento_' + idAlumno);
+    const badge = document.getElementById('estadoTexto_' + idAlumno);
+
+    if (input) {
+        input.value = valor;
+    }
+
+    if (badge) {
+        badge.textContent = texto;
+        badge.className = 'badge';
+
+        if (valor === 'SUBIDA' || valor === 'BAJADA') {
+            badge.classList.add('bg-success');
+        } else if (valor === 'NO_ABORDO') {
+            badge.classList.add('bg-warning');
+            badge.classList.add('text-dark');
+        } else if (valor === 'AUSENTE') {
+            badge.classList.add('bg-danger');
+        } else {
+            badge.classList.add('bg-secondary');
+        }
+    }
+};
+
+window.validarFormularioParadero = function () {
+    const eventos = document.querySelectorAll('.evento-alumno');
+
+    for (let i = 0; i < eventos.length; i++) {
+        if (!eventos[i].value) {
+            alert('Debe seleccionar el estado de todos los alumnos antes de guardar.');
+            return false;
+        }
+    }
+
+    return confirm('¿Deseas guardar los eventos de este paradero?');
+};

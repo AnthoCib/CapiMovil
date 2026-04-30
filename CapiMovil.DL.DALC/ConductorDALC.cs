@@ -246,7 +246,7 @@ namespace CapiMovil.DL.DALC
         public ConductorBE? ObtenerPorIdUsuario(Guid idUsuario)
         {
             using SqlConnection cn = _bdConexion.ObtenerConexion();
-            using SqlCommand cmd = new("sp_Conductor_ListarPorIdUsuario", cn)
+            using SqlCommand cmd = new("sp_Conductor_ObtenerPorIdUsuario", cn)
             {
                 CommandType = CommandType.StoredProcedure
             };

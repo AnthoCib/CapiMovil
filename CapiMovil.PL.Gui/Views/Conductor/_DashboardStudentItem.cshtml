@@ -1,21 +1,47 @@
-@model CapiMovil.PL.Gui.Models.ViewModels.ConductorDashboardEstudianteItemViewModel
+@model CapiMovil.BL.BE.EstudianteRutaEstadoBE
+
 @{
-    var inicial = string.IsNullOrWhiteSpace(Model.Nombre) ? "E" : Model.Nombre.Trim()[0].ToString().ToUpperInvariant();
-    var badgeClass = Model.Estado switch
+    string inicial = string.IsNullOrWhiteSpace(Model.Nombres)
+        ? "E"
+        : Model.Nombres.Trim()[0].ToString().ToUpperInvariant();
+
+    string estado = (Model.EstadoEvento ?? "PENDIENTE").Trim().ToUpperInvariant();
+
+    string badgeClass = estado switch
     {
-        "ABORDÓ" => "conductor-status-boarded",
-        "DESCENDIÓ" => "conductor-status-dropped",
-        _ => "conductor-status-pending"
+        "SUBIDA" => "bg-success",
+        "BAJADA" => "bg-success",
+        "NO_ABORDO" => "bg-warning text-dark",
+        "AUSENTE" => "bg-danger",
+        _ => "bg-secondary"
+    };
+
+    string estadoTexto = estado switch
+    {
+        "SUBIDA" => "Subida",
+        "BAJADA" => "Bajada",
+        "NO_ABORDO" => "No abordó",
+        "AUSENTE" => "Ausente",
+        _ => "Pendiente"
     };
 }
 
-<div class="conductor-student-item">
-    <div class="d-flex align-items-center gap-3">
-        <span class="conductor-avatar">@inicial</span>
-        <div>
-            <p class="fw-semibold mb-0">@Model.Nombre</p>
-            <p class="text-muted small mb-0"><i class="bi bi-geo-alt me-1"></i>@Model.Parada · @Model.Hora</p>
-        </div>
+<div class="estudiante-item">
+    <div class="avatar-estudiante">
+        @inicial
     </div>
-    <span class="badge @badgeClass">@Model.Estado</span>
+
+    <div class="flex-fill">
+        <strong>@Model.NombreCompleto</strong>
+
+        <small>
+            @(string.IsNullOrWhiteSpace(Model.ParaderoSubidaNombre)
+                ? "Sin paradero asignado"
+                : Model.ParaderoSubidaNombre)
+        </small>
+    </div>
+
+    <span class="badge @badgeClass">
+        @estadoTexto
+    </span>
 </div>

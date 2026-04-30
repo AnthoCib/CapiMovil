@@ -1,63 +1,252 @@
-@model CapiMovil.PL.Gui.Models.ViewModels.ConductorIncidenciasViewModel
+@model CapiMovil.PL.Gui.Models.ViewModels.ConductorDashboardViewModel
+
 @{
     ViewData["Title"] = "Incidencias";
 }
 
-<div class="card shadow-sm border-0 mb-3">
-    <div class="card-body">
-        <h2 class="fw-bold mb-3">Registrar incidencia</h2>
-        @if (Model.RecorridoOperacion == null)
+@functions {
+    string PrioridadBadge(string? prioridad)
+    {
+        string valor = (prioridad ?? "").Trim().ToUpperInvariant();
+
+        if (valor == "BAJA") return "bg-secondary";
+        if (valor == "MEDIA") return "bg-warning text-dark";
+        if (valor == "ALTA") return "bg-danger";
+        if (valor == "CRITICA") return "bg-dark";
+
+        return "bg-warning text-dark";
+    }
+
+    string FechaTexto(DateTime fecha)
+    {
+        if (fecha == DateTime.MinValue)
+            return "Sin fecha";
+
+        return fecha.ToString("dd/MM/yyyy HH:mm");
+    }
+}
+
+<div class="dashboard-conductor">
+
+    <div class="dashboard-saludo mb-4 d-flex justify-content-between align-items-start">
+        <div>
+            <h1>Incidencias</h1>
+            <p>Consulta y reporta incidencias del recorrido actual.</p>
+        </div>
+
+        @if (Model.RecorridoActual != null)
         {
-            <div class="alert alert-warning mb-0">No tienes recorridos asignados para registrar incidencias.</div>
-        }
-        else
-        {
-            <p><strong>Recorrido:</strong> @Model.RecorridoOperacion.CodigoRecorrido - @Model.RecorridoOperacion.Fecha.ToString("dd/MM/yyyy")</p>
-            <form asp-action="RegistrarIncidencia" method="post" class="row g-3">
-                @Html.AntiForgeryToken()
-                <div class="col-md-3">
-                    <label class="form-label">Tipo</label>
-                    <select asp-for="TipoIncidencia" asp-items="Model.TiposIncidencia" class="form-select"></select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Prioridad</label>
-                    <select asp-for="Prioridad" asp-items="Model.Prioridades" class="form-select"></select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Fecha/Hora</label>
-                    <input asp-for="FechaHora" class="form-control" type="datetime-local" value="@Model.FechaHora.ToString("yyyy-MM-ddTHH:mm")" />
-                </div>
-                <div class="col-12">
-                    <label class="form-label">Descripción</label>
-                    <textarea asp-for="Descripcion" class="form-control" rows="2"></textarea>
-                </div>
-                <div class="col-12">
-                    <button type="submit" class="btn btn-primary">Registrar incidencia</button>
-                </div>
-            </form>
+            <button type="button"
+                    class="btn btn-danger"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalRegistrarIncidencia">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                Reportar incidencia
+            </button>
         }
     </div>
+
+    @if (TempData["ok"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["ok"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model.RecorridoActual == null)
+    {
+        <div class="card-conductor p-4">
+            <h2 class="titulo-card">Sin recorrido asignado</h2>
+            <p class="text-muted mb-0">
+                No hay un recorrido actual para consultar o reportar incidencias.
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="card-conductor p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h2 class="titulo-card mb-1">Recorrido actual</h2>
+                    <p class="text-muted mb-0">
+                        Las incidencias se registrarán para este recorrido.
+                    </p>
+                </div>
+
+                <span class="pill-total">
+                    @Model.RecorridoActual.CodigoRecorrido
+                </span>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <small class="text-muted">Ruta</small>
+                    <strong class="d-block">
+                        @(Model.RecorridoActual.Ruta?.Nombre ?? "Sin ruta")
+                    </strong>
+                </div>
+
+                <div class="col-md-4">
+                    <small class="text-muted">Bus</small>
+                    <strong class="d-block">
+                        @(Model.RecorridoActual.Bus?.CodigoBus ?? "Sin bus")
+                    </strong>
+                </div>
+
+                <div class="col-md-4">
+                    <small class="text-muted">Estado</small>
+                    <strong class="d-block">
+                        @Model.RecorridoActual.EstadoRecorrido
+                    </strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-conductor p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h2 class="titulo-card mb-1">Incidencias reportadas</h2>
+                    <p class="text-muted mb-0">
+                        Lista de incidencias registradas para el recorrido actual.
+                    </p>
+                </div>
+
+                <span class="pill-total">
+                    @Model.IncidenciasPendientes.Count total
+                </span>
+            </div>
+
+            @if (Model.IncidenciasPendientes == null || !Model.IncidenciasPendientes.Any())
+            {
+                <div class="sin-alertas">
+                    <i class="bi bi-bell-slash"></i>
+                    <strong>Sin incidencias reportadas</strong>
+                    <span>No se han registrado incidencias para este recorrido.</span>
+                </div>
+            }
+            else
+            {
+                foreach (var incidencia in Model.IncidenciasPendientes)
+                {
+                    <div class="ruta-etapa-card mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="mb-1">@incidencia.TipoIncidencia</h5>
+
+                                <p class="mb-2">
+                                    @incidencia.Descripcion
+                                </p>
+
+                                <small class="text-muted">
+                                    Fecha: @FechaTexto(incidencia.FechaHora)
+                                </small>
+                            </div>
+
+                            <span class="badge @PrioridadBadge(incidencia.Prioridad)">
+                                @incidencia.Prioridad
+                            </span>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    }
+
 </div>
 
-<div class="card shadow-sm border-0">
-    <div class="card-body">
-        <h5 class="fw-bold mb-3">Mis Incidencias</h5>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-primary"><tr><th>Código</th><th>Tipo</th><th>Fecha/Hora</th><th>Prioridad</th><th>Estado</th></tr></thead>
-                <tbody>
-                    @if (Model.Incidencias.Any())
-                    {
-                        foreach (var i in Model.Incidencias)
-                        {
-                            <tr>
-                                <td>@i.CodigoIncidencia</td><td>@i.TipoIncidencia</td><td>@i.FechaHora.ToString("dd/MM/yyyy HH:mm")</td><td>@i.Prioridad</td><td>@i.EstadoIncidencia</td>
-                            </tr>
-                        }
-                    }
-                    else { <tr><td colspan="5" class="text-center text-muted">No hay incidencias de tu operación.</td></tr> }
-                </tbody>
-            </table>
+@if (Model.RecorridoActual != null)
+{
+    <div class="modal fade" id="modalRegistrarIncidencia" tabindex="-1" aria-labelledby="modalRegistrarIncidenciaLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <form asp-controller="Conductor"
+                      asp-action="RegistrarIncidenciaConductor"
+                      method="post"
+                      onsubmit="return confirm('¿Deseas registrar esta incidencia?');">
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden" name="idRecorrido" value="@Model.RecorridoActual.IdRecorrido" />
+
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalRegistrarIncidenciaLabel">
+                            Reportar incidencia
+                        </h5>
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Cerrar"></button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de incidencia</label>
+
+                            <select name="tipoIncidencia" class="form-select" required>
+                                <option value="">Seleccione...</option>
+                                <option value="RETRASO">Retraso</option>
+                                <option value="DESVIO">Desvío</option>
+                                <option value="TRAFICO">Tráfico</option>
+                                <option value="FALLA MECANICA">Falla mecánica</option>
+                                <option value="ACCIDENTE">Accidente</option>
+                                <option value="OTRO">Otro</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Prioridad</label>
+
+                            <select name="prioridad" class="form-select" required>
+                                <option value="BAJA">Baja</option>
+                                <option value="MEDIA" selected>Media</option>
+                                <option value="ALTA">Alta</option>
+                                <option value="CRITICA">Crítica</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Descripción</label>
+
+                            <textarea name="descripcion"
+                                      class="form-control"
+                                      rows="3"
+                                      maxlength="300"
+                                      required
+                                      placeholder="Ejemplo: Tráfico pesado en avenida principal, posible retraso de 15 minutos."></textarea>
+                        </div>
+
+                        <small class="text-muted">
+                            Esta incidencia quedará registrada para el recorrido actual.
+                        </small>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button"
+                                class="btn btn-outline-secondary"
+                                data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+
+                        <button type="submit" class="btn btn-danger">
+                            Reportar incidencia
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
         </div>
     </div>
-</div>
+}

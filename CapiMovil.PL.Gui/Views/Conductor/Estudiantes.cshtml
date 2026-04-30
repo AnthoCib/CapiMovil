@@ -1,66 +1,191 @@
-@model List<CapiMovil.BL.BE.EstudianteBE>
+@model CapiMovil.PL.Gui.Models.ViewModels.ConductorDashboardViewModel
+
 @{
-    ViewData["Title"] = "Alumnos de la ruta";
+    ViewData["Title"] = "Estudiantes";
 }
 
-<div class="conductor-shell">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
-        <div>
-            <h1 class="h3 fw-bold mb-1"><i class="bi bi-people me-2 text-primary"></i>Detalle de alumnos por parada</h1>
-            <p class="text-muted mb-0">Vista operativa para revisar rápidamente los estudiantes de tus rutas.</p>
-        </div>
-        <a asp-action="Abordaje" class="btn btn-primary btn-lg conductor-btn-lg">
-            <i class="bi bi-check2-square me-2"></i>Ir a detalle de parada
-        </a>
+@functions {
+    string Iniciales(string? nombres, string? apellido)
+    {
+        string inicial1 = !string.IsNullOrWhiteSpace(nombres) ? nombres.Substring(0, 1) : "";
+        string inicial2 = !string.IsNullOrWhiteSpace(apellido) ? apellido.Substring(0, 1) : "";
+
+        return (inicial1 + inicial2).ToUpper();
+    }
+
+    string EstadoTexto(string? estado)
+    {
+        string valor = (estado ?? "").Trim().ToUpperInvariant();
+
+        if (valor == "SUBIDA") return "Subida";
+        if (valor == "BAJADA") return "Bajada";
+        if (valor == "NO_ABORDO") return "No abordó";
+        if (valor == "AUSENTE") return "Ausente";
+
+        return "Pendiente";
+    }
+
+    string ClaseEstado(string? estado)
+    {
+        string valor = (estado ?? "").Trim().ToUpperInvariant();
+
+        if (valor == "SUBIDA" || valor == "BAJADA") return "estado-finalizado";
+        if (valor == "NO_ABORDO") return "estado-programado";
+        if (valor == "AUSENTE") return "estado-cancelado";
+
+        return "estado-pendiente";
+    }
+}
+
+<div class="dashboard-conductor">
+
+    <div class="dashboard-saludo mb-4">
+        <h1>Estudiantes</h1>
+        <p>Consulta los estudiantes asignados al recorrido actual.</p>
     </div>
 
-    @if (!Model.Any())
-    {
-        <div class="alert alert-info border-0 shadow-sm">
-            <i class="bi bi-info-circle me-2"></i>No hay estudiantes asociados a tus rutas.
-        </div>
-    }
-    else
-    {
-        <div class="row g-3 mb-3">
-            <div class="col-12 col-md-6 col-xl-4">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <span class="text-muted d-block">Total estudiantes</span>
-                        <div class="display-6 fw-bold">@Model.Count</div>
-                    </div>
-                </div>
+    <div class="card-conductor p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2 class="titulo-card mb-1">Lista de Estudiantes</h2>
+                <p class="text-muted mb-0">
+                    Revisa el estado, contacto y paraderos de cada estudiante.
+                </p>
             </div>
+
+            <span class="pill-total">
+                @Model.TotalEstudiantes total
+            </span>
         </div>
 
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="ps-4">Código</th>
-                                <th>Alumno</th>
-                                <th>DNI</th>
-                                <th>Grado</th>
-                                <th class="pe-4">Sección</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var e in Model)
-                            {
-                                <tr>
-                                    <td class="ps-4"><span class="badge text-bg-light text-primary">@e.CodigoEstudiante</span></td>
-                                    <td class="fw-semibold">@e.NombreCompleto</td>
-                                    <td>@e.DNI</td>
-                                    <td><span class="badge text-bg-info">@e.Grado</span></td>
-                                    <td class="pe-4"><span class="badge text-bg-secondary">@e.Seccion</span></td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+        @if (Model.EstudiantesEnRuta == null || !Model.EstudiantesEnRuta.Any())
+        {
+            <p class="text-muted mb-0">
+                No hay estudiantes asignados al recorrido actual.
+            </p>
+        }
+        else
+        {
+            <div class="lista-estudiantes">
+                @foreach (var estudiante in Model.EstudiantesEnRuta)
+                {
+                    <div class="estudiante-item">
+                        <div class="avatar-estudiante">
+                            @Iniciales(estudiante.Nombres, estudiante.ApellidoPaterno)
+                        </div>
+
+                        <div class="flex-fill">
+                            <strong>@estudiante.NombreCompleto</strong>
+                            <small>
+                                @(string.IsNullOrWhiteSpace(estudiante.Grado) ? "Sin grado" : estudiante.Grado)
+                                -
+                                @(string.IsNullOrWhiteSpace(estudiante.Seccion) ? "Sin sección" : estudiante.Seccion)
+                            </small>
+                        </div>
+
+                        <span class="badge-estado @ClaseEstado(estudiante.EstadoEvento)">
+                            @EstadoTexto(estudiante.EstadoEvento)
+                        </span>
+
+                        <button type="button"
+                                class="btn btn-sm btn-outline-warning"
+                                data-bs-toggle="modal"
+                                data-bs-target="#detalleEstudiante_@estudiante.IdEstudiante">
+                            Ver detalle
+                        </button>
+                    </div>
+
+                    <div class="modal fade" id="detalleEstudiante_@estudiante.IdEstudiante" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+
+                                <div class="modal-header">
+                                    <h5 class="modal-title">
+                                        @estudiante.NombreCompleto
+                                    </h5>
+
+                                    <button type="button"
+                                            class="btn-close"
+                                            data-bs-dismiss="modal"
+                                            aria-label="Cerrar"></button>
+                                </div>
+
+                                <div class="modal-body">
+
+                                    <h6 class="fw-bold mb-3">Datos del estudiante</h6>
+
+                                    <p>
+                                        <strong>Código:</strong>
+                                        @(string.IsNullOrWhiteSpace(estudiante.CodigoEstudiante) ? "No registrado" : estudiante.CodigoEstudiante)
+                                    </p>
+
+                                    <p>
+                                        <strong>Grado:</strong>
+                                        @(string.IsNullOrWhiteSpace(estudiante.Grado) ? "No registrado" : estudiante.Grado)
+                                    </p>
+
+                                    <p>
+                                        <strong>Sección:</strong>
+                                        @(string.IsNullOrWhiteSpace(estudiante.Seccion) ? "No registrado" : estudiante.Seccion)
+                                    </p>
+
+                                    <p>
+                                        <strong>Estado actual:</strong>
+                                        @EstadoTexto(estudiante.EstadoEvento)
+                                    </p>
+
+                                    <hr />
+
+                                    <h6 class="fw-bold mb-3">Contacto de emergencia</h6>
+
+                                    <p>
+                                        <strong>Padre/Madre:</strong>
+                                        @(string.IsNullOrWhiteSpace(estudiante.NombrePadre) ? "No registrado" : estudiante.NombrePadre)
+                                    </p>
+
+                                    <p>
+                                        <strong>Teléfono:</strong>
+                                        @(string.IsNullOrWhiteSpace(estudiante.TelefonoPadre) ? "No registrado" : estudiante.TelefonoPadre)
+                                    </p>
+
+                                    <hr />
+
+                                    <h6 class="fw-bold mb-3">Paraderos asignados</h6>
+
+                                    <p class="mb-1">
+                                        <strong>Paradero de subida:</strong>
+                                        @(string.IsNullOrWhiteSpace(estudiante.ParaderoSubidaNombre) ? "No registrado" : estudiante.ParaderoSubidaNombre)
+                                    </p>
+
+                                    <p class="text-muted">
+                                        @(string.IsNullOrWhiteSpace(estudiante.ParaderoSubidaDireccion) ? "Sin dirección registrada" : estudiante.ParaderoSubidaDireccion)
+                                    </p>
+
+                                    <p class="mb-1">
+                                        <strong>Paradero de bajada:</strong>
+                                        @(string.IsNullOrWhiteSpace(estudiante.ParaderoBajadaNombre) ? "No registrado" : estudiante.ParaderoBajadaNombre)
+                                    </p>
+
+                                    <p class="text-muted mb-0">
+                                        @(string.IsNullOrWhiteSpace(estudiante.ParaderoBajadaDireccion) ? "Sin dirección registrada" : estudiante.ParaderoBajadaDireccion)
+                                    </p>
+
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button"
+                                            class="btn btn-outline-secondary"
+                                            data-bs-dismiss="modal">
+                                        Cerrar
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                }
             </div>
-        </div>
-    }
+        }
+    </div>
+
 </div>

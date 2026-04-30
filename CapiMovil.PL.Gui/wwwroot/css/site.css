@@ -428,3 +428,355 @@
         flex-direction: column;
     }
 }
+
+/* ============================================================
+   DASHBOARD CONDUCTOR - FLUJO PRINCIPAL
+   ============================================================ */
+
+.dashboard-conductor {
+    background: linear-gradient(180deg, #fff7ed 0%, #f8f9fa 45%, #f8f9fa 100%);
+    border-radius: 1.25rem;
+    padding: 1rem;
+}
+
+.dashboard-saludo {
+    background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+    color: #fff;
+    border-radius: 1.25rem;
+    padding: 1.6rem;
+    box-shadow: 0 10px 25px rgba(249, 115, 22, 0.22);
+}
+
+    .dashboard-saludo h1 {
+        font-weight: 800;
+        margin-bottom: .25rem;
+    }
+
+    .dashboard-saludo p {
+        margin-bottom: 0;
+        opacity: .95;
+    }
+
+.card-conductor {
+    background: #fff;
+    border: 1px solid #f1e7dc;
+    border-radius: 1.25rem;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+}
+
+.titulo-card {
+    color: #1f2937;
+    font-weight: 800;
+    font-size: 1.35rem;
+}
+
+.badge-conductor {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: .35rem .75rem;
+    font-size: .8rem;
+    font-weight: 700;
+}
+
+.estado-programado {
+    background: #fff7ed;
+    color: #c2410c;
+}
+
+.estado-curso {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.estado-finalizado {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.estado-cancelado {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.estado-pendiente {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.bus-resumen {
+    min-width: 78px;
+    background: #fff7ed;
+    color: #c2410c;
+    border-radius: 1rem;
+    padding: .7rem .85rem;
+    border: 1px solid #fed7aa;
+}
+
+    .bus-resumen strong {
+        display: block;
+        font-size: 1rem;
+    }
+
+    .bus-resumen span {
+        display: block;
+        font-size: .75rem;
+        color: #9a3412;
+    }
+
+.recorrido-datos small {
+    display: block;
+    color: #6b7280;
+    font-weight: 600;
+    margin-bottom: .25rem;
+}
+
+.recorrido-datos strong {
+    display: block;
+    color: #1f2937;
+}
+
+.ruta-etapa-card {
+    background: #fffaf5;
+    border: 1px solid #fed7aa;
+    border-radius: 1rem;
+    padding: 1rem;
+}
+
+    .ruta-etapa-card h5 {
+        font-weight: 800;
+        color: #1f2937;
+    }
+
+    .ruta-etapa-card small {
+        color: #6b7280;
+    }
+
+.btn-naranja {
+    background: #f97316;
+    border-color: #f97316;
+    color: #fff;
+    font-weight: 700;
+    border-radius: .75rem;
+}
+
+    .btn-naranja:hover {
+        background: #ea580c;
+        border-color: #ea580c;
+        color: #fff;
+    }
+
+.detalle-etapa {
+    background: #fff;
+    border: 1px solid #f1e7dc;
+    border-radius: 1rem;
+    padding: 1rem;
+}
+
+    .detalle-etapa h6 {
+        color: #c2410c;
+        font-weight: 800;
+        margin-bottom: 1rem;
+    }
+
+.paradero-item {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    background: #fffaf5;
+    border: 1px solid #fed7aa;
+    border-radius: 1rem;
+    padding: .85rem;
+    margin-bottom: .75rem;
+}
+
+.numero-paradero {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f97316;
+    color: #fff;
+    font-weight: 800;
+}
+
+.paradero-item strong {
+    display: block;
+    color: #1f2937;
+}
+
+.paradero-item small {
+    display: block;
+    color: #6b7280;
+}
+
+.pill-total {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff7ed;
+    color: #c2410c;
+    border: 1px solid #fed7aa;
+    border-radius: 999px;
+    padding: .3rem .7rem;
+    font-size: .8rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.lista-estudiantes {
+    display: grid;
+    gap: .75rem;
+}
+
+.estudiante-item {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    background: #fff;
+    border: 1px solid #f1e7dc;
+    border-radius: 1rem;
+    padding: .85rem;
+}
+
+.avatar-estudiante {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffedd5;
+    color: #c2410c;
+    font-weight: 800;
+}
+
+.estudiante-item strong {
+    display: block;
+    color: #1f2937;
+}
+
+.estudiante-item small {
+    display: block;
+    color: #6b7280;
+}
+
+.badge-estado {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: .3rem .65rem;
+    font-size: .78rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.card-alertas {
+    background: #fff;
+    border: 1px solid #f1e7dc;
+    border-radius: 1.25rem;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+}
+
+    .card-alertas h3 {
+        color: #b91c1c;
+        font-weight: 800;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+
+.sin-alertas {
+    display: grid;
+    place-items: center;
+    text-align: center;
+    gap: .25rem;
+    background: #fff7ed;
+    border: 1px dashed #fdba74;
+    border-radius: 1rem;
+    padding: 1.3rem;
+    color: #9a3412;
+}
+
+    .sin-alertas i {
+        font-size: 1.8rem;
+    }
+
+    .sin-alertas strong {
+        display: block;
+    }
+
+    .sin-alertas span {
+        font-size: .9rem;
+        color: #6b7280;
+    }
+
+.alerta-item {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: .85rem;
+    padding: .75rem;
+    margin-bottom: .65rem;
+}
+
+    .alerta-item strong {
+        display: block;
+        color: #991b1b;
+    }
+
+    .alerta-item small {
+        display: block;
+        color: #7f1d1d;
+    }
+
+.btn-ver-todos {
+    border-radius: .75rem;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #c2410c;
+    font-weight: 700;
+}
+
+    .btn-ver-todos:hover {
+        background: #ffedd5;
+        color: #9a3412;
+    }
+
+/* Tabla rápida de alumnos por paradero */
+.evento-alumno {
+    display: none;
+}
+
+.table .btn-group .btn {
+    font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .dashboard-conductor {
+        padding: .5rem;
+    }
+
+    .dashboard-saludo {
+        padding: 1.2rem;
+    }
+
+    .paradero-item,
+    .estudiante-item {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+        .paradero-item .d-flex {
+            width: 100%;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }
+
+    .pill-total {
+        white-space: normal;
+    }
+}

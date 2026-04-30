@@ -1,159 +1,720 @@
 @model CapiMovil.PL.Gui.Models.ViewModels.ConductorDashboardViewModel
+@using CapiMovil.BL.BE
+
 @{
-    ViewData["Title"] = "Dashboard del Conductor";
-    var recorrido = Model.RecorridoHoy;
-    var estado = (recorrido?.EstadoRecorrido ?? "SIN RECORRIDO").Trim().ToUpperInvariant();
-    var badgeEstado = estado switch
-    {
-        "EN_CURSO" => "text-bg-success",
-        "PROGRAMADO" => "text-bg-warning",
-        "FINALIZADO" => "text-bg-secondary",
-        _ => "text-bg-light text-dark"
-    };
+    ViewData["Title"] = "Dashboard Conductor";
 }
 
-<div class="conductor-dashboard">
-    <section class="conductor-welcome-card mb-4">
-        <h1 class="h3 fw-bold mb-1 app-section-title">Hola, @Model.NombreConductor</h1>
-        <p class="app-section-subtitle mb-0">Aquí tienes el resumen de tu jornada para hoy.</p>
-    </section>
+@functions {
+    string EstadoClase(string? estado)
+    {
+        string valor = (estado ?? "").Trim().ToUpperInvariant();
 
-    <div class="row g-4 mb-4 align-items-stretch">
-        <div class="col-xl-8">
-            <section class="card border-0 shadow-sm h-100 conductor-soft-card">
-                <div class="card-body p-4 p-xl-5">
-                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-4">
-                        <div>
-                            <p class="text-uppercase conductor-label mb-1">Operación de hoy</p>
-                            <h2 class="h4 fw-bold mb-0">Mi Recorrido de Hoy</h2>
-                        </div>
-                        <span class="badge rounded-pill @badgeEstado px-3 py-2">@estado.Replace("_", " ")</span>
-                    </div>
+        if (valor == "PROGRAMADO") return "estado-programado";
+        if (valor == "EN_CURSO") return "estado-curso";
+        if (valor == "FINALIZADO") return "estado-finalizado";
+        if (valor == "CANCELADO") return "estado-cancelado";
 
-                    @if (recorrido == null)
-                    {
-                        <div class="alert alert-info mb-0 rounded-4 border-0">No tienes recorrido programado para hoy.</div>
-                    }
-                    else
-                    {
-                        <div class="row g-3">
-                            <div class="col-sm-6 col-lg-4">
-                                <p class="conductor-data-label mb-1">Código del recorrido</p>
-                                <p class="conductor-data-value mb-0">@recorrido.CodigoRecorrido</p>
-                            </div>
-                            <div class="col-sm-6 col-lg-4">
-                                <p class="conductor-data-label mb-1">Ruta</p>
-                                <p class="conductor-data-value mb-0">@(recorrido.Ruta?.Nombre ?? "-")</p>
-                            </div>
-                            <div class="col-sm-6 col-lg-4">
-                                <p class="conductor-data-label mb-1">Bus</p>
-                                <p class="conductor-data-value mb-0">@(recorrido.Bus?.Placa ?? "-")</p>
-                            </div>
-                            <div class="col-sm-6 col-lg-4">
-                                <p class="conductor-data-label mb-1">Hora programada</p>
-                                <p class="conductor-data-value mb-0">@(recorrido.HoraInicioProgramada?.ToString(@"hh\:mm") ?? "--:--")</p>
-                            </div>
-                            <div class="col-sm-6 col-lg-4">
-                                <p class="conductor-data-label mb-1">Recorridos hoy</p>
-                                <p class="conductor-data-value mb-0">@Model.RecorridosHoy</p>
-                            </div>
-                            <div class="col-sm-6 col-lg-4">
-                                <p class="conductor-data-label mb-1">Estudiantes activos</p>
-                                <p class="conductor-data-value mb-0">@Model.EstudiantesRutaActiva</p>
-                            </div>
-                        </div>
-                    }
-                </div>
-            </section>
+        return "estado-programado";
+    }
+
+    string EstadoTexto(string? estado)
+    {
+        string valor = (estado ?? "").Trim().ToUpperInvariant();
+
+        if (valor == "PROGRAMADO") return "Programado";
+        if (valor == "EN_CURSO") return "En curso";
+        if (valor == "FINALIZADO") return "Finalizado";
+        if (valor == "CANCELADO") return "Cancelado";
+
+        return string.IsNullOrWhiteSpace(estado) ? "Programado" : estado;
+    }
+
+    string EstadoTextoEstudiante(string? estado)
+    {
+        string valor = (estado ?? "").Trim().ToUpperInvariant();
+
+        if (valor == "SUBIDA") return "Subida";
+        if (valor == "BAJADA") return "Bajada";
+        if (valor == "NO_ABORDO") return "No abordó";
+        if (valor == "AUSENTE") return "Ausente";
+
+        return "Pendiente";
+    }
+
+    string ClaseEstadoEstudiante(string? estado)
+    {
+        string valor = (estado ?? "").Trim().ToUpperInvariant();
+
+        if (valor == "SUBIDA" || valor == "BAJADA") return "estado-finalizado";
+        if (valor == "NO_ABORDO") return "estado-programado";
+        if (valor == "AUSENTE") return "estado-cancelado";
+
+        return "estado-pendiente";
+    }
+
+    string HoraTexto(TimeSpan? hora)
+    {
+        if (hora.HasValue)
+        {
+            return DateTime.Today.Add(hora.Value).ToString("hh:mm tt");
+        }
+
+        return "Sin hora";
+    }
+
+    string Iniciales(EstudianteRutaEstadoBE estudiante)
+    {
+        string nombres = estudiante.Nombres ?? "";
+        string apellido = estudiante.ApellidoPaterno ?? "";
+
+        string inicial1 = nombres.Length > 0 ? nombres.Substring(0, 1) : "";
+        string inicial2 = apellido.Length > 0 ? apellido.Substring(0, 1) : "";
+
+        return (inicial1 + inicial2).ToUpper();
+    }
+}
+
+<div class="dashboard-conductor">
+
+    @if (TempData["ok"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["ok"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
+    }
 
-        <div class="col-xl-4">
-            <section class="card border-0 shadow-sm h-100 conductor-soft-card">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h2 class="h5 fw-bold mb-0">Alertas / Incidencias</h2>
-                        <span class="badge rounded-pill text-bg-danger">@Model.IncidenciasAbiertas</span>
-                    </div>
+    @if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
-                    @if (Model.AlertasRecientes.Any())
-                    {
-                        <div class="d-flex flex-column gap-2 mb-3">
-                            @foreach (var alerta in Model.AlertasRecientes)
+    <div class="dashboard-saludo mb-4">
+        <h1>Hola, @Model.NombreConductor</h1>
+        <p>Revisa tu ruta y estudiantes para hoy.</p>
+    </div>
+
+    @if (Model.RecorridosHoy == null || !Model.RecorridosHoy.Any())
+    {
+        <div class="card-conductor p-4">
+            <h2 class="titulo-card">Sin recorrido asignado</h2>
+            <p class="text-muted mb-0">No tienes un recorrido programado para hoy.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+
+            <div class="col-lg-8">
+
+                <div class="card-conductor p-4 mb-4">
+
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h2 class="titulo-card mb-2">Mi Recorrido de Hoy</h2>
+
+                            @if (Model.RecorridoActual != null)
                             {
-                                @await Html.PartialAsync("_DashboardAlertItem", alerta)
+                                <span class="badge-conductor @EstadoClase(Model.RecorridoActual.EstadoRecorrido)">
+                                    <i class="bi bi-circle-fill me-1"></i>
+                                    @EstadoTexto(Model.RecorridoActual.EstadoRecorrido)
+                                </span>
                             }
                         </div>
+
+                        @if (Model.RecorridoActual != null)
+                        {
+                            <div class="bus-resumen text-center">
+                                <strong>@(Model.RecorridoActual.Bus?.CodigoBus ?? "Bus")</strong>
+                                <span>Bus</span>
+                            </div>
+                        }
+                    </div>
+
+                    @if (Model.RecorridoActual != null)
+                    {
+                        <div class="row recorrido-datos g-3 mb-4">
+                            <div class="col-md-4">
+                                <small><i class="bi bi-signpost-2 me-1"></i>Ruta actual</small>
+                                <strong>@(Model.RecorridoActual.Ruta?.Nombre ?? "Sin ruta")</strong>
+                            </div>
+
+                            <div class="col-md-4">
+                                <small><i class="bi bi-clock me-1"></i>Hora inicio</small>
+                                <strong>@HoraTexto(Model.RecorridoActual.HoraInicioProgramada)</strong>
+                            </div>
+
+                            <div class="col-md-4">
+                                <small><i class="bi bi-hash me-1"></i>Código recorrido</small>
+                                <strong>@Model.RecorridoActual.CodigoRecorrido</strong>
+                            </div>
+                        </div>
+                    }
+
+                    <h5 class="fw-bold mb-3">Recorridos de Hoy</h5>
+
+                    <div class="row g-3">
+                        @foreach (var recorrido in Model.RecorridosHoy)
+                        {
+                            string estado = (recorrido.EstadoRecorrido ?? "").Trim().ToUpperInvariant();
+
+                            bool tieneAnteriorPendiente = Model.RecorridosHoy.Any(r =>
+                                r.HoraInicioProgramada.HasValue &&
+                                recorrido.HoraInicioProgramada.HasValue &&
+                                r.HoraInicioProgramada.Value < recorrido.HoraInicioProgramada.Value &&
+                                (r.EstadoRecorrido ?? "").Trim().ToUpperInvariant() != "FINALIZADO" &&
+                                (r.EstadoRecorrido ?? "").Trim().ToUpperInvariant() != "CANCELADO"
+                            );
+
+                            <div class="col-md-6">
+                                <div class="ruta-etapa-card h-100">
+
+                                    <div class="mb-3">
+                                        <h5 class="mb-1">@recorrido.NombreRuta</h5>
+                                        <small>@recorrido.TurnoTexto</small>
+                                    </div>
+
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-4">
+                                            <small>Código recorrido</small>
+                                            <strong class="d-block">@recorrido.CodigoRecorrido</strong>
+                                        </div>
+
+                                        <div class="col-4">
+                                            <small>Bus</small>
+                                            <strong class="d-block">@recorrido.CodigoBus</strong>
+                                        </div>
+
+                                        <div class="col-4">
+                                            <small>Hora</small>
+                                            <strong class="d-block">@HoraTexto(recorrido.HoraInicioProgramada)</strong>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <span class="badge-conductor @EstadoClase(recorrido.EstadoRecorrido)">
+                                            @EstadoTexto(recorrido.EstadoRecorrido)
+                                        </span>
+                                    </div>
+
+                                    @if (estado == "PROGRAMADO")
+                                    {
+                                        if (tieneAnteriorPendiente)
+                                        {
+                                            <button type="button" class="btn btn-secondary w-100" disabled>
+                                                <i class="bi bi-lock-fill me-1"></i>
+                                                Recorrido bloqueado
+                                            </button>
+
+                                            <small class="text-muted d-block mt-2">
+                                                Primero finaliza el recorrido anterior.
+                                            </small>
+                                        }
+                                        else
+                                        {
+                                            <form asp-controller="Conductor"
+                                                  asp-action="IniciarRecorrido"
+                                                  method="post"
+                                                  onsubmit="return confirm('¿Deseas iniciar este recorrido?');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="idRecorrido" value="@recorrido.IdRecorrido" />
+
+                                                <button type="submit" class="btn btn-naranja w-100">
+                                                    <i class="bi bi-play-fill me-1"></i>
+                                                    Iniciar Recorrido
+                                                </button>
+                                            </form>
+                                        }
+                                    }
+                                    else if (estado == "EN_CURSO")
+                                    {
+                                        bool recojoCompleto = Model.ParaderosRecojo.Any() && Model.ParaderosRecojo.All(p => p.Completado);
+                                        bool entregaCompleta = Model.ParaderosEntrega.Any() && Model.ParaderosEntrega.All(p => p.Completado);
+                                        bool recorridoCompleto = recojoCompleto && entregaCompleta;
+
+                                        if (recorridoCompleto)
+                                        {
+                                            <form asp-controller="Conductor"
+                                                  asp-action="FinalizarRecorrido"
+                                                  method="post"
+                                                  onsubmit="return confirm('¿Deseas finalizar este recorrido?');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="idRecorrido" value="@recorrido.IdRecorrido" />
+
+                                                <button type="submit" class="btn btn-danger w-100">
+                                                    <i class="bi bi-square-fill me-1"></i>
+                                                    Finalizar Recorrido
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <div class="alert alert-warning py-2 mb-0">
+                                                Selecciona el paradero actual en la lista de abajo.
+                                            </div>
+                                        }
+                                    }
+                                    else if (estado == "FINALIZADO")
+                                    {
+                                        <span class="badge-conductor estado-finalizado">
+                                            <i class="bi bi-check-circle-fill me-1"></i>
+                                            Recorrido finalizado
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-conductor estado-cancelado">
+                                            @EstadoTexto(recorrido.EstadoRecorrido)
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <button class="btn btn-outline-warning w-100 fw-bold"
+                                    type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#detalleRecojo">
+                                Ver paraderos de recojo
+                            </button>
+                        </div>
+
+                        <div class="col-md-6">
+                            <button class="btn btn-outline-warning w-100 fw-bold"
+                                    type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#detalleEntrega">
+                                Ver paraderos de entrega
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="collapse mt-3" id="detalleRecojo">
+                        <div class="detalle-etapa">
+                            <h6><i class="bi bi-sun me-1"></i>Paraderos de Recojo</h6>
+
+                            @if (Model.ParaderosRecojo == null || !Model.ParaderosRecojo.Any())
+                            {
+                                <p class="text-muted mb-0">No hay paraderos de recojo registrados.</p>
+                            }
+                            else
+                            {
+                                foreach (var paradero in Model.ParaderosRecojo)
+                                {
+                                    bool anteriorPendienteRecojo = Model.ParaderosRecojo.Any(p =>
+                                        p.OrdenParada < paradero.OrdenParada && !p.Completado
+                                    );
+
+                                    <div class="paradero-item">
+                                        <span class="numero-paradero">@paradero.OrdenParada</span>
+
+                                        <div class="flex-fill">
+                                            <strong>@paradero.Nombre</strong>
+                                            <small>@paradero.Direccion</small>
+                                            <small class="d-block text-muted">
+                                                Registrados: @paradero.TotalRegistrados / @paradero.TotalAlumnos
+                                            </small>
+                                        </div>
+
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="pill-total">@paradero.TotalAlumnos alumnos</span>
+
+                                            @if (paradero.Completado)
+                                            {
+                                                <span class="badge bg-success">
+                                                    Completado
+                                                </span>
+                                            }
+                                            else if (anteriorPendienteRecojo)
+                                            {
+                                                <button type="button" class="btn btn-sm btn-secondary" disabled>
+                                                    Bloqueado
+                                                </button>
+                                            }
+                                            else if ((Model.RecorridoActual?.EstadoRecorrido ?? "").Trim().ToUpperInvariant() == "EN_CURSO")
+                                            {
+                                                <form asp-controller="Conductor"
+                                                      asp-action="Index"
+                                                      method="get"
+                                                      onsubmit="return confirm('¿Llegaste a este paradero?');">
+                                                    <input type="hidden" name="idRecorridoOperacion" value="@Model.RecorridoActual.IdRecorrido" />
+                                                    <input type="hidden" name="idParaderoActual" value="@paradero.IdParadero" />
+                                                    <input type="hidden" name="tipoParadero" value="SUBIDA" />
+
+                                                    <button type="submit" class="btn btn-sm btn-naranja">
+                                                        Llegué
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <div class="collapse mt-3" id="detalleEntrega">
+                        <div class="detalle-etapa">
+                            <h6><i class="bi bi-moon me-1"></i>Paraderos de Entrega</h6>
+
+                            @if (Model.ParaderosEntrega == null || !Model.ParaderosEntrega.Any())
+                            {
+                                <p class="text-muted mb-0">No hay paraderos de entrega registrados.</p>
+                            }
+                            else
+                            {
+                                foreach (var paradero in Model.ParaderosEntrega)
+                                {
+                                    bool anteriorPendienteEntrega = Model.ParaderosEntrega.Any(p =>
+                                        p.OrdenParada < paradero.OrdenParada && !p.Completado
+                                    );
+
+                                    <div class="paradero-item">
+                                        <span class="numero-paradero">@paradero.OrdenParada</span>
+
+                                        <div class="flex-fill">
+                                            <strong>@paradero.Nombre</strong>
+                                            <small>@paradero.Direccion</small>
+                                            <small class="d-block text-muted">
+                                                Registrados: @paradero.TotalRegistrados / @paradero.TotalAlumnos
+                                            </small>
+                                        </div>
+
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="pill-total">@paradero.TotalAlumnos alumnos</span>
+
+                                            @if (paradero.Completado)
+                                            {
+                                                <span class="badge bg-success">
+                                                    Completado
+                                                </span>
+                                            }
+                                            else if (anteriorPendienteEntrega)
+                                            {
+                                                <button type="button" class="btn btn-sm btn-secondary" disabled>
+                                                    Bloqueado
+                                                </button>
+                                            }
+                                            else if ((Model.RecorridoActual?.EstadoRecorrido ?? "").Trim().ToUpperInvariant() == "EN_CURSO")
+                                            {
+                                                <form asp-controller="Conductor"
+                                                      asp-action="Index"
+                                                      method="get"
+                                                      onsubmit="return confirm('¿Llegaste a este paradero?');">
+                                                    <input type="hidden" name="idRecorridoOperacion" value="@Model.RecorridoActual.IdRecorrido" />
+                                                    <input type="hidden" name="idParaderoActual" value="@paradero.IdParadero" />
+                                                    <input type="hidden" name="tipoParadero" value="BAJADA" />
+
+                                                    <button type="submit" class="btn btn-sm btn-naranja">
+                                                        Llegué
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    @if (Model.MostrarTablaParadero)
+                    {
+                        string tipoPrincipal = Model.TipoParaderoActual == "BAJADA" ? "BAJADA" : "SUBIDA";
+                        string textoPrincipal = tipoPrincipal == "BAJADA" ? "Bajada" : "Subida";
+
+                        <div class="card-conductor p-4 mt-4">
+                            <div class="mb-3">
+                                <h5 class="fw-bold mb-1">Alumnos del paradero</h5>
+                                <p class="text-muted mb-0">
+                                    @Model.NombreParaderoActual - @Model.TipoParaderoActual
+                                </p>
+                            </div>
+
+                            <form asp-controller="Conductor"
+                                  asp-action="GuardarEventosParadero"
+                                  method="post"
+                                  onsubmit="return validarFormularioParadero();">
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden" name="idRecorrido" value="@Model.IdRecorridoOperacion.Value" />
+                                <input type="hidden" name="idParadero" value="@Model.IdParaderoActual.Value" />
+                                <input type="hidden" name="tipoParadero" value="@Model.TipoParaderoActual" />
+
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>Alumno</th>
+                                                <th class="text-center">Estado actual</th>
+                                                <th class="text-center">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var estudiante in Model.EstudiantesParaderoActual)
+                                            {
+                                                string idAlumno = estudiante.IdEstudiante.ToString();
+
+                                                <tr>
+                                                    <td>
+                                                        <input type="hidden" name="idsEstudiantes" value="@estudiante.IdEstudiante" />
+
+                                                        <input type="hidden"
+                                                               class="evento-alumno"
+                                                               id="tipoEvento_@idAlumno"
+                                                               name="tipoEvento_@idAlumno"
+                                                               value="" />
+
+                                                        <strong>@estudiante.NombreCompleto</strong>
+                                                        <br />
+                                                        <small class="text-muted">
+                                                            @estudiante.Grado - @estudiante.Seccion
+                                                        </small>
+                                                    </td>
+
+                                                    <td class="text-center">
+                                                        <span id="estadoTexto_@idAlumno" class="badge bg-secondary">
+                                                            Pendiente
+                                                        </span>
+                                                    </td>
+
+                                                    <td class="text-center">
+                                                        <div class="btn-group btn-group-sm" role="group">
+                                                            <button type="button"
+                                                                    class="btn btn-outline-success"
+                                                                    onclick="cambiarEstadoAlumno('@idAlumno', '@tipoPrincipal', '@textoPrincipal')">
+                                                                @textoPrincipal
+                                                            </button>
+
+                                                            <button type="button"
+                                                                    class="btn btn-outline-warning"
+                                                                    onclick="cambiarEstadoAlumno('@idAlumno', 'NO_ABORDO', 'No abordó')">
+                                                                No abordó
+                                                            </button>
+
+                                                            <button type="button"
+                                                                    class="btn btn-outline-danger"
+                                                                    onclick="cambiarEstadoAlumno('@idAlumno', 'AUSENTE', 'Ausente')">
+                                                                Ausente
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-naranja">
+                                        Guardar eventos
+                                    </button>
+
+                                    <a asp-controller="Conductor"
+                                       asp-action="Index"
+                                       class="btn btn-outline-secondary">
+                                        Cancelar
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    }
+
+                </div>
+
+                <div class="card-conductor p-4" id="estudiantesRuta">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="titulo-card mb-0">Estudiantes en Ruta</h2>
+                        <span class="pill-total">@Model.TotalEstudiantes Total</span>
+                    </div>
+
+                    @if (Model.EstudiantesEnRuta == null || !Model.EstudiantesEnRuta.Any())
+                    {
+                        <p class="text-muted mb-0">No hay estudiantes asignados a esta ruta.</p>
                     }
                     else
                     {
-                        <p class="text-muted small mb-3">Sin incidencias recientes registradas.</p>
+                        <div class="lista-estudiantes">
+                            @foreach (var estudiante in Model.EstudiantesEnRuta.Take(3))
+                            {
+                                <div class="estudiante-item">
+                                    <div class="avatar-estudiante">@Iniciales(estudiante)</div>
+
+                                    <div class="flex-fill">
+                                        <strong>@estudiante.NombreCompleto</strong>
+                                        <small>
+                                            Estado actual: @EstadoTextoEstudiante(estudiante.EstadoEvento)
+                                        </small>
+                                    </div>
+
+                                    <span class="badge-estado @ClaseEstadoEstudiante(estudiante.EstadoEvento)">
+                                        @EstadoTextoEstudiante(estudiante.EstadoEvento)
+                                    </span>
+                                </div>
+                            }
+                        </div>
+
+                        @if (Model.EstudiantesEnRuta.Count > 3)
+                        {
+                            <div class="collapse" id="todosEstudiantes">
+                                <div class="lista-estudiantes mt-2">
+                                    @foreach (var estudiante in Model.EstudiantesEnRuta.Skip(3))
+                                    {
+                                        <div class="estudiante-item">
+                                            <div class="avatar-estudiante">@Iniciales(estudiante)</div>
+
+                                            <div class="flex-fill">
+                                                <strong>@estudiante.NombreCompleto</strong>
+                                                <small>
+                                                    Estado actual: @EstadoTextoEstudiante(estudiante.EstadoEvento)
+                                                </small>
+                                            </div>
+
+                                            <span class="badge-estado @ClaseEstadoEstudiante(estudiante.EstadoEvento)">
+                                                @EstadoTextoEstudiante(estudiante.EstadoEvento)
+                                            </span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <button class="btn btn-ver-todos w-100 mt-2"
+                                    type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#todosEstudiantes">
+                                Ver todos los estudiantes
+                            </button>
+                        }
                     }
-
-                    <a asp-action="Incidencias" class="btn btn-outline-secondary btn-sm w-100">
-                        <i class="bi bi-clock-history me-1"></i>Ver historial de alertas
-                    </a>
                 </div>
-            </section>
-        </div>
-    </div>
 
-    <div class="row g-4 mb-4">
-        <div class="col-md-6 col-xl-4">
-            @await Html.PartialAsync("_DashboardRouteStageCard", ("Ruta Escolar 1", "Etapa de recojo", "MiRuta", "bi-signpost-split"))
-        </div>
-        <div class="col-md-6 col-xl-4">
-            @await Html.PartialAsync("_DashboardRouteStageCard", ("Ruta Escolar 2", "Etapa de retorno", "Recorrido", "bi-arrow-left-right"))
-        </div>
-        <div class="col-xl-4">
-            <section class="card border-0 shadow-sm h-100 conductor-soft-card">
-                <div class="card-body p-4 d-flex flex-column justify-content-center">
-                    <p class="text-uppercase conductor-label mb-2">Resumen rápido</p>
-                    <p class="display-6 fw-bold mb-1">@Model.EstudiantesRutaActiva</p>
-                    <p class="text-muted mb-0">Estudiantes asignados para la operación de hoy.</p>
-                </div>
-            </section>
-        </div>
-    </div>
-
-    <section class="card border-0 shadow-sm mb-4 conductor-soft-card">
-        <div class="card-body p-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h2 class="h5 fw-bold mb-0">Estudiantes en Ruta</h2>
-                <span class="text-muted small">@Model.EstudiantesEnRuta.Count estudiantes visibles</span>
             </div>
 
-            @if (Model.EstudiantesEnRuta.Any())
-            {
-                <div class="d-flex flex-column gap-2">
-                    @foreach (var item in Model.EstudiantesEnRuta)
-                    {
-                        @await Html.PartialAsync("_DashboardStudentItem", item)
-                    }
-                </div>
-            }
-            else
-            {
-                <p class="text-muted small mb-0">No hay estudiantes asociados para mostrar.</p>
-            }
-        </div>
-    </section>
+            <div class="col-lg-4">
+                <div class="card-alertas p-4 mb-4" id="incidencias">
+                    <h3>
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Incidencias reportadas
+                    </h3>
 
-    <div class="d-grid d-md-flex justify-content-md-end">
-        @if (Model.PuedeIniciarRecorrido && recorrido != null)
-        {
-            <form asp-action="IniciarRecorrido" method="post" class="w-100 w-md-auto">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="idRecorrido" value="@recorrido.IdRecorrido" />
-                <button type="submit" class="btn btn-warning btn-lg fw-semibold conductor-primary-action">
-                    <i class="bi bi-play-circle me-2"></i>Iniciar Recorrido de Recojo
-                </button>
-            </form>
-        }
-        else
-        {
-            <button class="btn btn-warning btn-lg fw-semibold conductor-primary-action" disabled>
-                <i class="bi bi-play-circle me-2"></i>Iniciar Recorrido de Recojo
-            </button>
-        }
-    </div>
+                    @if (Model.IncidenciasPendientes == null || !Model.IncidenciasPendientes.Any())
+                    {
+                        <div class="sin-alertas">
+                            <i class="bi bi-bell-slash"></i>
+                            <strong>Sin incidencias reportadas</strong>
+                            <span>No se han registrado incidencias para este recorrido.</span>
+                        </div>
+                    }
+                    else
+                    {
+                        foreach (var incidencia in Model.IncidenciasPendientes)
+                        {
+                            <div class="alerta-item">
+                                <strong>@incidencia.TipoIncidencia</strong>
+                                <small>@incidencia.Descripcion</small>
+                            </div>
+                        }
+                    }
+
+                    <button type="button"
+                            class="btn btn-outline-danger w-100 mt-3"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalRegistrarIncidencia">
+                        <i class="bi bi-bell me-1"></i>
+                        Reportar incidencia
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    }
 </div>
+
+@if (Model.RecorridoActual != null)
+{
+    <div class="modal fade" id="modalRegistrarIncidencia" tabindex="-1" aria-labelledby="modalRegistrarIncidenciaLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <form asp-controller="Conductor"
+                      asp-action="RegistrarIncidenciaConductor"
+                      method="post"
+                      onsubmit="return confirm('¿Deseas registrar esta incidencia?');">
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden" name="idRecorrido" value="@Model.RecorridoActual.IdRecorrido" />
+
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalRegistrarIncidenciaLabel">
+                            Reportar incidencia
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de incidencia</label>
+                            <select name="tipoIncidencia" class="form-select" required>
+                                <option value="">Seleccione...</option>
+                                <option value="RETRASO">Retraso</option>
+                                <option value="DESVIO">Desvío</option>
+                                <option value="TRAFICO">Tráfico</option>
+                                <option value="FALLA MECANICA">Falla mecánica</option>
+                                <option value="ACCIDENTE">Accidente</option>
+                                <option value="OTRO">Otro</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Prioridad</label>
+                            <select name="prioridad" class="form-select" required>
+                                <option value="BAJA">Baja</option>
+                                <option value="MEDIA" selected>Media</option>
+                                <option value="ALTA">Alta</option>
+                                <option value="CRITICA">Crítica</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Descripción</label>
+                            <textarea name="descripcion"
+                                      class="form-control"
+                                      rows="3"
+                                      maxlength="300"
+                                      required
+                                      placeholder="Ejemplo: Tráfico pesado en avenida principal, posible retraso de 15 minutos."></textarea>
+                        </div>
+
+                        <small class="text-muted">
+                            Esta incidencia quedará registrada para el recorrido actual.
+                        </small>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+
+                        <button type="submit" class="btn btn-danger">
+                            Reportar incidencia
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+}
+
+<script src="~/js/site.js" asp-append-version="true"></script>
